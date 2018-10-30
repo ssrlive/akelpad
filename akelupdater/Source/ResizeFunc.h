@@ -1,12 +1,12 @@
 /*****************************************************************
- *                 Resize functions header v1.4                  *
+ *                 Resize functions header v1.5                  *
  *                                                               *
- * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
  * GetWindowPos, GetWindowSize, GetClientPos, GetClientSize      *
- * ResizeDialogMessages                                          *
+ * ResizeDialogUpdateOffsets, ResizeDialogMessages               *
  *****************************************************************/
 
 #ifndef _RESIZEFUNC_H_
@@ -52,6 +52,7 @@ BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL GetClientPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL GetClientSize(HWND hWnd, HWND hWndOwner, RECT *rc);
+void ResizeDialogUpdateOffsets(RESIZEDIALOG *rds, RECT *rcCurrent, HWND hDlg);
 BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 #endif //_RESIZEFUNC_H_
@@ -206,6 +207,50 @@ BOOL GetClientSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 
 /********************************************************************
  *
+ *  ResizeDialogUpdateOffsets
+ *
+ *Update offsets (RESIZEDIALOG.nOffset). Required to call if control size was changed outside ResizeDialogMessages.
+ *
+ *[in,out] RESIZEDIALOG *rds  Pointer to a first RESIZEDIALOG element in array. Last element specified as NULL in RESIZEDIALOG.lpWnd.
+ *[in] RECT *rcCurrent        Pointer to a current dialog rectangle.
+ *[in] HWND hDlg              Dialog handle.
+ *
+ *Returns: void.
+ ********************************************************************/
+#if defined ResizeDialogUpdateOffsets || defined ALLRESIZEFUNC
+#define ResizeDialogUpdateOffsets_INCLUDED
+#undef ResizeDialogUpdateOffsets
+void ResizeDialogUpdateOffsets(RESIZEDIALOG *rds, RECT *rcCurrent, HWND hDlg)
+{
+  RESIZEDIALOG *rdsControl;
+  RECT rcControl;
+
+  for (rdsControl=rds; rdsControl->lpWnd; ++rdsControl)
+  {
+    if (!*rdsControl->lpWnd)
+      continue;
+
+    GetWindowSize(*rdsControl->lpWnd, hDlg, &rcControl);
+    if (rdsControl->dwType & RDS_SIZE)
+    {
+      if (rdsControl->dwType & RDS_X)
+        rdsControl->nOffset=rcCurrent->right - (rcControl.left + rcControl.right);
+      else if (rdsControl->dwType & RDS_Y)
+        rdsControl->nOffset=rcCurrent->bottom - (rcControl.top + rcControl.bottom);
+    }
+    else if (rdsControl->dwType & RDS_MOVE)
+    {
+      if (rdsControl->dwType & RDS_X)
+        rdsControl->nOffset=rcCurrent->right - rcControl.left;
+      else if (rdsControl->dwType & RDS_Y)
+        rdsControl->nOffset=rcCurrent->bottom - rcControl.top;
+    }
+  }
+}
+#endif
+
+/********************************************************************
+ *
  *  ResizeDialogMessages
  *
  *Resize dialog that has style WS_THICKFRAME.
@@ -234,35 +279,12 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
     case WM_CREATE:
     case WM_INITDIALOG:
     {
-      RESIZEDIALOG *rdsControl;
       RECT rcTemplate;
-      RECT rcControl;
       DWORD dwSwpFlags=SWP_NOMOVE;
 
       rcTemplate=*rcCurrent;
       GetWindowSize(hDlg, NULL, rcCurrent);
-
-      for (rdsControl=rds; rdsControl->lpWnd; ++rdsControl)
-      {
-        if (!*rdsControl->lpWnd)
-          continue;
-
-        GetWindowSize(*rdsControl->lpWnd, hDlg, &rcControl);
-        if (rdsControl->dwType & RDS_SIZE)
-        {
-          if (rdsControl->dwType & RDS_X)
-            rdsControl->nOffset=rcCurrent->right - (rcControl.left + rcControl.right);
-          else if (rdsControl->dwType & RDS_Y)
-            rdsControl->nOffset=rcCurrent->bottom - (rcControl.top + rcControl.bottom);
-        }
-        else if (rdsControl->dwType & RDS_MOVE)
-        {
-          if (rdsControl->dwType & RDS_X)
-            rdsControl->nOffset=rcCurrent->right - rcControl.left;
-          else if (rdsControl->dwType & RDS_Y)
-            rdsControl->nOffset=rcCurrent->bottom - rcControl.top;
-        }
-      }
+      ResizeDialogUpdateOffsets(rds, rcCurrent, hDlg);
 
       if (rcTemplate.right && rcTemplate.bottom)
       {

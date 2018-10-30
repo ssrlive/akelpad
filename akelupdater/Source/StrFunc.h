@@ -1,7 +1,7 @@
 /*****************************************************************
- *              String functions header v6.0                     *
+ *              String functions header v6.2                     *
  *                                                               *
- * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
@@ -15,7 +15,8 @@
  * xatoiA, xatoiW, xatoi64A, xatoi64W,                           *
  * xitoaA, xitoaW, xuitoaA, xuitoaW, xi64toaA, xi64toaW,         *
  * hex2decA, hex2decW, dec2hexA, dec2hexW,                       *
- * bin2hexA, bin2hexW, hex2binA, hex2binW, xprintfA, xprintfW    *
+ * bin2hexA, bin2hexW, hex2binA, hex2binW,                       *
+ * xnprintfA, xnprintfW, xprintfA, xprintfW                      *
  *                                                               *
  * UTF16toUTF8, UTF8toUTF16, UTF32toUTF16, UTF16toUTF32          *
  *****************************************************************/
@@ -69,7 +70,11 @@ INT_PTR bin2hexA(const unsigned char *pData, INT_PTR nBytes, char *szStrHex, INT
 INT_PTR bin2hexW(const unsigned char *pData, INT_PTR nBytes, wchar_t *wszStrHex, INT_PTR nStrHexMax, BOOL bLowerCase);
 INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax);
 INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax);
+INT_PTR xprintfCommonA(char *szOutput, const char *pFormat, va_list argList);
+INT_PTR xnprintfA(char *szOutput, UINT_PTR dwOutputMax, const char *pFormat, ...);
 INT_PTR xprintfA(char *szOutput, const char *pFormat, ...);
+INT_PTR xprintfCommonW(wchar_t *wszOutput, const wchar_t *wpFormat, va_list argList);
+INT_PTR xnprintfW(wchar_t *wszOutput, UINT_PTR dwOutputMax, const wchar_t *wpFormat, ...);
 INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...);
 
 UINT_PTR UTF16toUTF8(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned char *szTarget, UINT_PTR nTargetMax);
@@ -850,15 +855,36 @@ wchar_t WideCharUpper(wchar_t c)
 #undef xmemcpy
 void* xmemcpy(void *dest, const void *src, UINT_PTR count)
 {
-  unsigned char *byte_dest=(unsigned char *)dest;
-  unsigned char *byte_src=(unsigned char *)src;
-
   //Special form of memcpy implementation to avoid
   //compiler from replace this code with memcpy call.
-  if (byte_dest != byte_src)
+  if (dest != src)
   {
+    unsigned int *uint_dest=(unsigned int *)dest;
+    unsigned int *uint_src=(unsigned int *)src;
+    unsigned char *byte_dest;
+    unsigned char *byte_src;
+
+    if (count >= sizeof(unsigned int))
+    {
+      for (;;)
+      {
+        *uint_dest=*uint_src;
+        count-=sizeof(unsigned int);
+        if (count < sizeof(unsigned int))
+        {
+          ++uint_dest;
+          ++uint_src;
+          break;
+        }
+        ++uint_dest;
+        ++uint_src;
+      }
+    }
     if (count)
     {
+      byte_dest=(unsigned char *)uint_dest;
+      byte_src=(unsigned char *)uint_src;
+
       for (;;)
       {
         *byte_dest=*byte_src;
@@ -2888,48 +2914,8 @@ INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax
 }
 #endif
 
-/********************************************************************
- *
- *  xprintfA
- *
- *Function formats and stores a series of characters and values in a buffer.
- *
- *[out] char *szOutput       Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
- *[in]  const char *pFormat  Pointer to a null-terminated string that contains the format-control specifications.
- *                            pFormat syntax is equal to wsprintfA function.
- *[in]  ...                  Specifies one or more optional arguments. The number and type of argument parameters
- *                            depend on the corresponding format-control specifications in the pFormat parameter.
- *                           %[-][0][width][.precision]type
- *                             "-"           Pad the output with blanks or zeros to the right to fill the field width, justifying output to the left.
- *                             "0"           Pad the output value with zeros to fill the field width. If this field is omitted, the output value is padded with blank spaces.
- *                             [width]       Copy the specified minimum number of characters to the output buffer.
- *                             [.precision]  For numbers, copy the specified minimum number of digits to the output buffer. If the number of digits in the argument is less than the specified precision, the output value is padded on the left with zeros.
- *                                           For strings, copy the specified maximum number of characters to the output buffer.
- *                                           Supported special format to specify argument as precision: "%.%us" or "%.%ds"
- *                             [type]
- *                               "c"         ansi character.
- *                               "d"         signed integer (32-bit).
- *                               "Id"        signed integer (32-bit on x86, 64-bit on x64).
- *                               "u"         unsigned integer (32-bit).
- *                               "Iu"        unsigned integer (32-bit on x86, 64-bit on x64).
- *                               "x","X"     unsigned hexadecimal integer in lowercase or uppercase (32-bit).
- *                               "Ix","IX"   unsigned hexadecimal integer in lowercase or uppercase (32-bit on x86, 64-bit on x64).
- *                               "s"         ansi string.
- *                               "S"         unicode string.
- *
- *
- *Returns: number of characters copied, not including the terminating null character.
- *
- *Note:
- *  xprintfA uses xatoiA, xitoaA, xuitoaA, dec2hexA, xstrcpynA.
- *
- *Examples:
- *  xprintfA(szResult, "%d | %u | %x | %X | %s", -123, 123, 123, 123, "string");   //szResult == "-123 | 123 | 7b | 7B | string"
- ********************************************************************/
-#if defined xprintfA || defined ALLSTRFUNC
-#define xprintfA_INCLUDED
-#undef xprintfA
-INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
+#if defined xprintfA || defined xnprintfA || defined ALLSTRFUNC
+INT_PTR xprintfCommonA(char *szOutput, const char *pFormat, va_list argList)
 {
   const char *pFmt=pFormat;
   char *pOut=szOutput;
@@ -2942,9 +2928,6 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
   BOOL bInt64;
   INT_PTR nSigned;
   INT_PTR nUnsigned;
-
-  va_list val;
-  va_start(val, pFormat);
 
   while (*pFmt)
   {
@@ -2979,7 +2962,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
         //Special format to specify argument as precision: "%.%us" or "%.%ds"
         if (*++pFmt == '%' && (*(pFmt + 1) == 'u' || *(pFmt + 1) == 'd'))
         {
-          dwPrecision=(unsigned int)va_arg(val, INT_PTR);
+          dwPrecision=(unsigned int)va_arg(argList, INT_PTR);
           pFmt+=2;
         }
         else dwPrecision=(unsigned int)xatoiA(pFmt, &pFmt);
@@ -3003,7 +2986,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       }
       else if (*pFmt == 'c')
       {
-        nSigned=va_arg(val, INT_PTR);
+        nSigned=va_arg(argList, INT_PTR);
         if (nWidth > 0)
         {
           nWidth=max(nWidth - 1, 0);
@@ -3015,9 +2998,9 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       else if (*pFmt == 'd')
       {
         if (bInt64)
-          nSigned=va_arg(val, INT_PTR);
+          nSigned=va_arg(argList, INT_PTR);
         else
-          nSigned=va_arg(val, int);
+          nSigned=va_arg(argList, int);
         if (!szOutput || nWidth > 0)
         {
           dwLen=xitoaA(nSigned, NULL) - 1;
@@ -3038,9 +3021,9 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       else if (*pFmt == 'u')
       {
         if (bInt64)
-          nUnsigned=va_arg(val, UINT_PTR);
+          nUnsigned=va_arg(argList, UINT_PTR);
         else
-          nUnsigned=va_arg(val, UINT);
+          nUnsigned=va_arg(argList, UINT);
         if (!szOutput || nWidth > 0)
         {
           dwLen=xuitoaA(nUnsigned, NULL) - 1;
@@ -3056,9 +3039,9 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       else if (*pFmt == 'x' || *pFmt == 'X')
       {
         if (bInt64)
-          nUnsigned=va_arg(val, UINT_PTR);
+          nUnsigned=va_arg(argList, UINT_PTR);
         else
-          nUnsigned=va_arg(val, UINT);
+          nUnsigned=va_arg(argList, UINT);
         if (!szOutput || nWidth > 0)
         {
           dwLen=dec2hexA(nUnsigned, NULL, 0, (*pFmt == 'x')?TRUE:FALSE) - 1;
@@ -3073,7 +3056,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       }
       else if (*pFmt == 's' || *pFmt == 'S')
       {
-        if (pString=va_arg(val, unsigned char *))
+        if (pString=va_arg(argList, unsigned char *))
         {
           if (dwPrecision != (DWORD)-1)
           {
@@ -3145,53 +3128,102 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
   else
     ++pOut;
 
-  va_end(val);
   return pOut - szOutput;
 }
 #endif
 
 /********************************************************************
  *
- *  xprintfW
+ *  xnprintfA
  *
  *Function formats and stores a series of characters and values in a buffer.
  *
- *[out] wchar_t *wszOutput       Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
- *[in]  const wchar_t *wpFormat  Pointer to a null-terminated string that contains the format-control specifications.
- *                                wpFormat syntax is equal to wsprintfW function.
- *[in]  ...                      Specifies one or more optional arguments. The number and type of argument parameters
- *                                depend on the corresponding format-control specifications in the wpFormat parameter.
- *                               %[-][0][width][.precision]type
- *                                 "-"           Pad the output with blanks or zeros to the right to fill the field width, justifying output to the left.
- *                                 "0"           Pad the output value with zeros to fill the field width. If this field is omitted, the output value is padded with blank spaces.
- *                                 [width]       Copy the specified minimum number of characters to the output buffer.
- *                                 [.precision]  For numbers, copy the specified minimum number of digits to the output buffer. If the number of digits in the argument is less than the specified precision, the output value is padded on the left with zeros.
- *                                               For strings, copy the specified maximum number of characters to the output buffer.
- *                                               Supported special format to specify argument as precision: "%.%us" or "%.%ds"
- *                                 [type]
- *                                   "c"         unicode character.
- *                                   "d"         signed integer (32-bit).
- *                                   "Id"        signed integer (32-bit on x86, 64-bit on x64).
- *                                   "u"         unsigned integer (32-bit).
- *                                   "Iu"        unsigned integer (32-bit on x86, 64-bit on x64).
- *                                   "x","X"     unsigned hexadecimal integer in lowercase or uppercase (32-bit).
- *                                   "Ix","IX"   unsigned hexadecimal integer in lowercase or uppercase (32-bit on x86, 64-bit on x64).
- *                                   "s"         unicode string.
- *                                   "S"         ansi string.
+ *[out] char *szOutput        Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
+ *[in]  UINT_PTR dwOutputMax  Maximum number of characters to store, including a terminating null character.
+ *[in]  const char *pFormat   Pointer to a null-terminated string that contains the format-control specifications.
+ *                             pFormat syntax is equal to wsprintfA function.
+ *[in]  ...                   Specifies one or more optional arguments. The number and type of argument parameters
+ *                             depend on the corresponding format-control specifications in the pFormat parameter.
+ *                            %[-][0][width][.precision]type
+ *                              "-"           Pad the output with blanks or zeros to the right to fill the field width, justifying output to the left.
+ *                              "0"           Pad the output value with zeros to fill the field width. If this field is omitted, the output value is padded with blank spaces.
+ *                              [width]       Copy the specified minimum number of characters to the output buffer.
+ *                              [.precision]  For numbers, copy the specified minimum number of digits to the output buffer. If the number of digits in the argument is less than the specified precision, the output value is padded on the left with zeros.
+ *                                            For strings, copy the specified maximum number of characters to the output buffer.
+ *                                            Supported special format to specify argument as precision: "%.%us" or "%.%ds"
+ *                              [type]
+ *                                "c"         ansi character.
+ *                                "d"         signed integer (32-bit).
+ *                                "Id"        signed integer (32-bit on x86, 64-bit on x64).
+ *                                "u"         unsigned integer (32-bit).
+ *                                "Iu"        unsigned integer (32-bit on x86, 64-bit on x64).
+ *                                "x","X"     unsigned hexadecimal integer in lowercase or uppercase (32-bit).
+ *                                "Ix","IX"   unsigned hexadecimal integer in lowercase or uppercase (32-bit on x86, 64-bit on x64).
+ *                                "s"         ansi string.
+ *                                "S"         unicode string.
  *
  *
  *Returns: number of characters copied, not including the terminating null character.
+ *         If store operation failed due to insufficient buffer size, zero returns.
  *
  *Note:
- *  xprintfW uses xatoiW, xitoaW, xuitoaW, dec2hexW, xstrcpynW, xstrlenW.
+ *  xnprintfA uses xatoiA, xitoaA, xuitoaA, dec2hexA, xstrcpynA.
  *
  *Examples:
- *  xprintfW(szResult, L"%d | %u | %x | %X | %s", -123, 123, 123, 123, L"string");   //szResult == "-123 | 123 | 7b | 7B | string"
+ *  xnprintfA(szResult, "%d | %u | %x | %X | %s", -123, 123, 123, 123, "string");   //szResult == "-123 | 123 | 7b | 7B | string"
  ********************************************************************/
-#if defined xprintfW || defined ALLSTRFUNC
-#define xprintfW_INCLUDED
-#undef xprintfW
-INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
+#if defined xnprintfA || defined ALLSTRFUNC
+#define xnprintfA_INCLUDED
+#undef xnprintfA
+INT_PTR xnprintfA(char *szOutput, UINT_PTR dwOutputMax, const char *pFormat, ...)
+{
+  INT_PTR nOutputLen;
+
+  va_list argList;
+  va_start(argList, pFormat);
+
+  if (!dwOutputMax && szOutput) return 0;
+  nOutputLen=xprintfCommonA(NULL, pFormat, argList);
+  if (!szOutput) return nOutputLen;
+  if ((UINT_PTR)nOutputLen > dwOutputMax)
+  {
+    szOutput[0]='\0';
+    return 0;
+  }
+  nOutputLen=xprintfCommonA(szOutput, pFormat, argList);
+
+  va_end(argList);
+  return nOutputLen;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xprintfA
+ *
+ *Function formats and stores a series of characters and values in a buffer.
+ *
+ *  Same as xnprintfA, but without maximum number of characters to store parameter.
+ ********************************************************************/
+#if defined xprintfA || defined ALLSTRFUNC
+#define xprintfA_INCLUDED
+#undef xprintfA
+INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
+{
+  INT_PTR nOutputLen;
+
+  va_list argList;
+  va_start(argList, pFormat);
+
+  nOutputLen=xprintfCommonA(szOutput, pFormat, argList);
+
+  va_end(argList);
+  return nOutputLen;
+}
+#endif
+
+#if defined xprintfW || defined xnprintfW || defined ALLSTRFUNC
+INT_PTR xprintfCommonW(wchar_t *wszOutput, const wchar_t *wpFormat, va_list argList)
 {
   const wchar_t *wpFmt=wpFormat;
   wchar_t *wpOut=wszOutput;
@@ -3204,9 +3236,6 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
   BOOL bInt64;
   INT_PTR nSigned;
   INT_PTR nUnsigned;
-
-  va_list val;
-  va_start(val, wpFormat);
 
   while (*wpFmt)
   {
@@ -3241,7 +3270,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
         //Special format to specify argument as precision: "%.%us" or "%.%ds"
         if (*++wpFmt == '%' && (*(wpFmt + 1) == L'u' || *(wpFmt + 1) == L'd'))
         {
-          dwPrecision=(unsigned int)va_arg(val, INT_PTR);
+          dwPrecision=(unsigned int)va_arg(argList, INT_PTR);
           wpFmt+=2;
         }
         else dwPrecision=(unsigned int)xatoiW(wpFmt, &wpFmt);
@@ -3265,7 +3294,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       }
       else if (*wpFmt == L'c')
       {
-        nSigned=va_arg(val, INT_PTR);
+        nSigned=va_arg(argList, INT_PTR);
         if (nWidth > 0)
         {
           nWidth=max(nWidth - 1, 0);
@@ -3277,9 +3306,9 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       else if (*wpFmt == L'd')
       {
         if (bInt64)
-          nSigned=va_arg(val, INT_PTR);
+          nSigned=va_arg(argList, INT_PTR);
         else
-          nSigned=va_arg(val, int);
+          nSigned=va_arg(argList, int);
         if (!wszOutput || nWidth > 0)
         {
           dwLen=xitoaW(nSigned, NULL) - 1;
@@ -3300,9 +3329,9 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       else if (*wpFmt == L'u')
       {
         if (bInt64)
-          nUnsigned=va_arg(val, UINT_PTR);
+          nUnsigned=va_arg(argList, UINT_PTR);
         else
-          nUnsigned=va_arg(val, UINT);
+          nUnsigned=va_arg(argList, UINT);
         if (!wszOutput || nWidth > 0)
         {
           dwLen=xuitoaW(nUnsigned, NULL) - 1;
@@ -3318,9 +3347,9 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       else if (*wpFmt == L'x' || *wpFmt == L'X')
       {
         if (bInt64)
-          nUnsigned=va_arg(val, UINT_PTR);
+          nUnsigned=va_arg(argList, UINT_PTR);
         else
-          nUnsigned=va_arg(val, UINT);
+          nUnsigned=va_arg(argList, UINT);
         if (!wszOutput || nWidth > 0)
         {
           dwLen=dec2hexW(nUnsigned, NULL, 0, (*wpFmt == L'x')?TRUE:FALSE) - 1;
@@ -3335,7 +3364,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       }
       else if (*wpFmt == L's' || *wpFmt == L'S')
       {
-        if (pString=va_arg(val, unsigned char *))
+        if (pString=va_arg(argList, unsigned char *))
         {
           if (dwPrecision != (DWORD)-1)
           {
@@ -3407,8 +3436,97 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
   else
     ++wpOut;
 
-  va_end(val);
   return wpOut - wszOutput;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xnprintfW
+ *
+ *Function formats and stores a series of characters and values in a buffer.
+ *
+ *[out] wchar_t *wszOutput       Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
+ *[in]  UINT_PTR dwOutputMax     Maximum number of characters to store, including a terminating null character.
+ *[in]  const wchar_t *wpFormat  Pointer to a null-terminated string that contains the format-control specifications.
+ *                                wpFormat syntax is equal to wsprintfW function.
+ *[in]  ...                      Specifies one or more optional arguments. The number and type of argument parameters
+ *                                depend on the corresponding format-control specifications in the wpFormat parameter.
+ *                               %[-][0][width][.precision]type
+ *                                 "-"           Pad the output with blanks or zeros to the right to fill the field width, justifying output to the left.
+ *                                 "0"           Pad the output value with zeros to fill the field width. If this field is omitted, the output value is padded with blank spaces.
+ *                                 [width]       Copy the specified minimum number of characters to the output buffer.
+ *                                 [.precision]  For numbers, copy the specified minimum number of digits to the output buffer. If the number of digits in the argument is less than the specified precision, the output value is padded on the left with zeros.
+ *                                               For strings, copy the specified maximum number of characters to the output buffer.
+ *                                               Supported special format to specify argument as precision: "%.%us" or "%.%ds"
+ *                                 [type]
+ *                                   "c"         unicode character.
+ *                                   "d"         signed integer (32-bit).
+ *                                   "Id"        signed integer (32-bit on x86, 64-bit on x64).
+ *                                   "u"         unsigned integer (32-bit).
+ *                                   "Iu"        unsigned integer (32-bit on x86, 64-bit on x64).
+ *                                   "x","X"     unsigned hexadecimal integer in lowercase or uppercase (32-bit).
+ *                                   "Ix","IX"   unsigned hexadecimal integer in lowercase or uppercase (32-bit on x86, 64-bit on x64).
+ *                                   "s"         unicode string.
+ *                                   "S"         ansi string.
+ *
+ *
+ *Returns: number of characters copied, not including the terminating null character.
+ *         If store operation failed due to insufficient buffer size, zero returns.
+ *
+ *Note:
+ *  xnprintfW uses xatoiW, xitoaW, xuitoaW, dec2hexW, xstrcpynW, xstrlenW.
+ *
+ *Examples:
+ *  xnprintfW(szResult, L"%d | %u | %x | %X | %s", -123, 123, 123, 123, L"string");   //szResult == "-123 | 123 | 7b | 7B | string"
+ ********************************************************************/
+#if defined xnprintfW || defined ALLSTRFUNC
+#define xnprintfW_INCLUDED
+#undef xnprintfW
+INT_PTR xnprintfW(wchar_t *wszOutput, UINT_PTR dwOutputMax, const wchar_t *wpFormat, ...)
+{
+  INT_PTR nOutputLen;
+
+  va_list argList;
+  va_start(argList, wpFormat);
+
+  if (!dwOutputMax && wszOutput) return 0;
+  nOutputLen=xprintfCommonW(NULL, wpFormat, argList);
+  if (!wszOutput) return nOutputLen;
+  if ((UINT_PTR)nOutputLen > dwOutputMax)
+  {
+    wszOutput[0]=L'\0';
+    return 0;
+  }
+  nOutputLen=xprintfCommonW(wszOutput, wpFormat, argList);
+
+  va_end(argList);
+  return nOutputLen;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xprintfW
+ *
+ *Function formats and stores a series of characters and values in a buffer.
+ *
+ *  Same as xnprintfW, but without maximum number of characters to store parameter.
+ ********************************************************************/
+#if defined xprintfW || defined ALLSTRFUNC
+#define xprintfW_INCLUDED
+#undef xprintfW
+INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
+{
+  INT_PTR nOutputLen;
+
+  va_list argList;
+  va_start(argList, wpFormat);
+
+  nOutputLen=xprintfCommonW(wszOutput, wpFormat, argList);
+
+  va_end(argList);
+  return nOutputLen;
 }
 #endif
 

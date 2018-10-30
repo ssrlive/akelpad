@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 0, 4)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 2, 0)
 
 
 //// Defines
@@ -26,6 +26,7 @@
 #define WMD_PMDI  2  //Pseudo-Multiple document interface (PMDI).
 
 //Sizes
+#define BUFFER_SIZE             1024
 #define COMMANDLINE_SIZE        32768
 #define COMMANDARG_SIZE         16384
 #define WORD_DELIMITERS_SIZE    128
@@ -224,8 +225,8 @@
                               //Return value is zero.
 
 //AKD_SEARCHHISTORY flags
-#define SH_GET    1  //Retrieve search strings count.
-#define SH_CLEAR  2  //Clear search history.
+#define SH_GET          1  //Retrieve search strings count.
+#define SH_CLEAR        2  //Clear search history.
 
 //AKD_GETMAININFO type
 
@@ -316,7 +317,10 @@
 #define MI_DATELOG                   217  //Return: insert date if file has .LOG at the beginning (on\off).
 #define MI_SAVEINREADONLYMSG         221  //Return: save in read-only files warning (on\off).
 #define MI_DEFAULTSAVEEXT            224  //Return: copied chars. (wchar_t *)lParam - buffer that receives default saving extension string.
+//Find dialog
 #define MI_SEARCHOPTIONS             228  //Return: search options, see FRF_* defines.
+#define MI_LASTFIND                  229  //Return: copied chars. (wchar_t *)lParam - buffer that receives last find string, that used by IDM_EDIT_FINDNEXTDOWN, IDM_EDIT_FINDNEXTUP.
+#define MI_LASTREPLACE               230  //Return: copied chars. (wchar_t *)lParam - buffer that receives last replace string.
 //Print dialog
 #define MI_PRINTMARGINS              251  //Return: copied bytes. (RECT *)lParam - buffer that receives print margins.
 #define MI_PRINTCOLOR                255  //Return: color printing, see PRNC_* defines.
@@ -389,7 +393,10 @@
 #define MIS_DATELOG                   217  //(BOOL)lParam - insert date if file has .LOG at the beginning (on\off).
 #define MIS_SAVEINREADONLYMSG         221  //(BOOL)lParam - save in read-only files warning (on\off).
 #define MIS_DEFAULTSAVEEXT            224  //(wchar_t *)lParam - default saving extension string.
+//Find dialog
 #define MIS_SEARCHOPTIONS             228  //(DWORD)lParam - search options, see FRF_* defines.
+#define MIS_LASTFIND                  229  //(wchar_t *)lParam - last find string, that used by IDM_EDIT_FINDNEXTDOWN, IDM_EDIT_FINDNEXTUP. Note: string doesn't put into search history.
+#define MIS_LASTREPLACE               230  //(wchar_t *)lParam - last replace string. Note: string doesn't put into search history.
 //Print dialog
 #define MIS_PRINTMARGINS              251  //(RECT *)lParam - print margins.
 #define MIS_PRINTCOLOR                255  //(DWORD)lParam - color printing, see PRNC_* defines.
@@ -586,6 +593,7 @@
 #define TAB_NOADD_MBUTTONDOWN   0x00200000  //Don't create new tab by middle button click on the tab bar.
 #define TAB_NODEL_LBUTTONDBLCLK 0x00400000  //Don't close tab by left button double click on the tab.
 #define TAB_NODEL_MBUTTONDOWN   0x00800000  //Don't close tab by middle button click on the tab.
+#define TAB_ONEXITMODIFIEDFIRST 0x10000000  //Close modified tabs first on exit.
 
 //File types association
 #define FTA_ASSOCIATE     0x00000001  //Internal.
@@ -731,11 +739,12 @@
 #define FWDE_NOWINDOW  3  //Frame doesn't have associated edit window (FRAMEDATA.ei.hWndEdit == NULL).
 
 //AKD_FRAMESTATS flags
-#define FWS_COUNTALL      0  //Count of windows.
-#define FWS_COUNTMODIFIED 1  //Count of modified windows.
-#define FWS_COUNTSAVED    2  //Count of unmodified windows.
-#define FWS_CURSEL        3  //Active window zero based index.
-#define FWS_COUNTNAMED    4  //Count of named windows.
+#define FWS_COUNTALL      0  //Count of windows. lParam not used.
+#define FWS_COUNTMODIFIED 1  //Count of modified windows. lParam not used.
+#define FWS_COUNTSAVED    2  //Count of unmodified windows. lParam not used.
+#define FWS_CURSEL        3  //Active window zero based index. lParam not used.
+#define FWS_COUNTNAMED    4  //Count of named windows. lParam not used.
+#define FWS_COUNTFILE     5  //Count of file in different frames. (wchar_t *)lParam is full file name string.
 
 //Lock inherit new document settings from current document
 #define LI_FONT           0x00000001  //Lock inherit font.
@@ -976,6 +985,116 @@ typedef BOOL (CALLBACK *PLUGINPROC)(void *lpParameter, LPARAM lParam, DWORD dwSu
 //Return Value
 // TRUE  catch hotkey.
 // FALSE do default hotkey processing.
+
+typedef struct {
+  //Save place
+  int nSaveSettings;
+
+  //Manual
+  DWORD dwShowModify;
+  DWORD dwStatusPosType;
+  wchar_t wszStatusUserFormat[MAX_PATH];
+  int nStatusUserFormatLen;
+  DWORD dwStatusUserFlags;
+  DWORD dwWordBreakCustom;
+  DWORD dwPaintOptions;
+  int nFixedCharWidth;
+  DWORD dwEditStyle;
+  BOOL bRichEditClass;
+  BOOL bAkelAdminResident;
+  wchar_t wszDateLogFormat[128];
+  wchar_t wszDateInsertFormat[128];
+  wchar_t wszAkelUpdaterOptions[MAX_PATH];
+  wchar_t wszUrlCommand[MAX_PATH];
+  wchar_t wszTabNameFind[MAX_PATH];
+  wchar_t wszTabNameRep[MAX_PATH];
+
+  //Menu settings
+  BOOL bOnTop;
+  BOOL bStatusBar;
+  char szLangModule[MAX_PATH];
+  wchar_t wszLangModule[MAX_PATH];
+  BOOL bKeepSpace;
+  BOOL bWatchFile;
+  BOOL bSaveTime;
+  BOOL bSingleOpenFile;
+  DWORD dwSingleOpenProgram;
+  int nMDI;
+  DWORD dwTabOptionsMDI;
+
+  //Settings dialog
+  RECT rcPropCurrentDialog;
+  wchar_t wszExecuteCommand[BUFFER_SIZE];
+  wchar_t wszExecuteDirectory[MAX_PATH];
+  int nDefaultCodePage;
+  int bDefaultBOM;
+  int nNewFileCodePage;
+  int bNewFileBOM;
+  int nNewFileNewLine;
+  DWORD dwLangCodepageRecognition;
+  DWORD dwCodepageRecognitionBuffer;
+  BOOL bSavePositions;
+  BOOL bSaveCodepages;
+  int nRecentFiles;
+  int nSearchStrings;
+  wchar_t wszFileTypesOpen[MAX_PATH];
+  wchar_t wszFileTypesEdit[MAX_PATH];
+  wchar_t wszFileTypesPrint[MAX_PATH];
+  DWORD dwFileTypesAssociated;
+  DWORD dwKeybLayoutOptions;
+  BOOL bSilentCloseEmptyMDI;
+  BOOL bDateLog;
+  BOOL bSaveInReadOnlyMsg;
+  wchar_t wszDefaultSaveExt[MAX_PATH];
+
+  //Modeless dialog
+  BOOL bModelessSavePos;
+
+  //Recode dialog
+  RECT rcRecodeCurrentDialog;
+
+  //Find/Replace dialog
+  RECT rcSearchCurrentDialog;
+  DWORD dwSearchOptions;
+
+  //Go to line dialog
+  RECT rcGotoCurrentDialog;
+  DWORD dwGotoOptions;
+
+  //Open file dialog
+  wchar_t wszOfnDir[MAX_PATH];
+  wchar_t wszLastDir[MAX_PATH];
+  BOOL bShowPlacesBar;
+
+  //Print dialog
+  RECT rcPrintMargins;
+  DWORD dwPrintColor;
+  BOOL bPrintHeaderEnable;
+  wchar_t wszPrintHeader[MAX_PATH];
+  BOOL bPrintFooterEnable;
+  wchar_t wszPrintFooter[MAX_PATH];
+  BOOL bPrintFontEnable;
+  LOGFONTW lfPrintFont;
+
+  //Colors dialog
+  RECT rcColorsCurrentDialog;
+
+  //Plugin dialog
+  RECT rcPluginsCurrentDialog;
+
+  //Mdi list dialog
+  DWORD dwMdiListOptions;
+  RECT rcMdiListCurrentDialog;
+
+  //Main window
+  DWORD dwMainStyle;
+  RECT rcMainWindowRestored;
+  DWORD dwMdiStyle;
+
+  //Events
+  BOOL bMessageTranslating;
+  int nTextChanging;
+} MAINOPTIONS;
 
 typedef struct {
   HWND hWndEdit;           //Edit window.
@@ -1247,6 +1366,8 @@ typedef struct {
   HMODULE hLangModule;                //Language module handle.
   LANGID wLangSystem;                 //System language ID.
   LANGID wLangModule;                 //Language module language ID.
+  MAINOPTIONS *moInit;                //Pointer to a initial (on start) MAINOPTIONS structure.
+  MAINOPTIONS *moCur;                 //Pointer to a current FRAMEDATA structure.
 } PLUGINDATA;
 
 typedef struct {
@@ -1654,6 +1775,16 @@ typedef struct {
 } DIALOGMESSAGEBOX;
 
 typedef struct {
+  INT_PTR nReserved;          //Reserved.
+  HWND hWndParent;            //Handle to the owner window.
+  const wchar_t *wpText;      //Pointer to a null-terminated string that contains the message to be displayed.
+  const wchar_t *wpCaption;   //Pointer to a null-terminated string that contains the dialog box title.
+  UINT uType;                 //Specifies the standard message box icon. See MSDN for MB_ICON* defines of the MessageBox function.
+  UINT dwLoadStringID;        //Last loaded string id. See MSG_* defines in "[AkelPad sources]\AkelFiles\Langs\Resources\resource.h".
+  int nResult;                //MessageBox call result. If non-zero value is set in AKDN_MESSAGEBOXBEGIN, then dialog will not be shown.
+} NMESSAGEBOX;
+
+typedef struct {
   HWND hWnd;           //Window handle.
   UINT uMsg;           //Specifies the message to be sent.
   WPARAM wParam;       //Specifies additional message-specific information.
@@ -1887,13 +2018,13 @@ typedef struct {
 #define IDM_EDIT_REDO                   4152  //Redo last operation.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_EDIT_CUT                    4153  //Cut.
-                                              //Return Value: zero.
-                                              //
-#define IDM_EDIT_COPY                   4154  //Copy.
+#define IDM_EDIT_CUT                    4153  //Cut. lParam: see AECFC_ defines + 100000 * AELB_ defines.
                                               //Return Value: TRUE - clipboard changed, FALSE - clipboard not changed.
                                               //
-#define IDM_EDIT_PASTE                  4155  //Paste. lParam: see PASTE_* defines.
+#define IDM_EDIT_COPY                   4154  //Copy. lParam: see AECFC_ defines + 100000 * AELB_ defines.
+                                              //Return Value: TRUE - clipboard changed, FALSE - clipboard not changed.
+                                              //
+#define IDM_EDIT_PASTE                  4155  //Paste. lParam: see PASTE_ defines + 100000 * AELB_ defines.
                                               //Return Value: Number of characters pasted, -1 if error.
                                               //
 #define IDM_EDIT_CLEAR                  4156  //Delete.
@@ -2142,7 +2273,7 @@ typedef struct {
 #define IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE  4320  //Close all documents, but active (MDI/PMDI).
                                                   //Return Value: TRUE - success, FALSE - failed.
                                                   //
-#define IDM_WINDOW_FRAMECLOSEALL_UNMODIFIED 4321  //Close all unmodified documents.
+#define IDM_WINDOW_FRAMECLOSEALL_UNMODIFIED 4321  //Close all unmodified documents. lParam: modification state. TRUE - close all modified documents, FALSE - close all unmodified documents (default).
                                                   //Return Value: TRUE - success, FALSE - failed.
                                                   //
 #define IDM_WINDOW_FRAMECLONE           4322  //Clone current MDI window.
@@ -2218,49 +2349,50 @@ typedef struct {
 //// AkelPad main window WM_USER messages
 
 //Notification messages
-#define AKDN_MAIN_ONSTART          (WM_USER + 1)   //0x401
-#define AKDN_MAIN_ONSTART_PRESHOW  (WM_USER + 2)   //0x402
-#define AKDN_MAIN_ONSTART_SHOW     (WM_USER + 3)   //0x403
-#define AKDN_MAIN_ONSTART_FINISH   (WM_USER + 4)   //0x404
-#define AKDN_MAIN_ONSTART_IDLE     (WM_USER + 5)   //0x405
-#define AKDN_MAIN_ONFINISH         (WM_USER + 6)   //0x406
-#define AKDN_MAIN_ONDESTROY        (WM_USER + 7)   //0x407
+#define AKDN_MAIN_ONSTART           (WM_USER + 1)   //0x401
+#define AKDN_MAIN_ONSTART_PRESHOW   (WM_USER + 2)   //0x402
+#define AKDN_MAIN_ONSTART_SHOW      (WM_USER + 3)   //0x403
+#define AKDN_MAIN_ONSTART_FINISH    (WM_USER + 4)   //0x404
+#define AKDN_MAIN_ONSTART_IDLE      (WM_USER + 5)   //0x405
+#define AKDN_MAIN_ONFINISH          (WM_USER + 6)   //0x406
+#define AKDN_MAIN_ONDESTROY         (WM_USER + 7)   //0x407
+#define AKDN_MAIN_ONCLOSE_PREFINISH (WM_USER + 8)   //0x408
 
-#define AKDN_EDIT_ONSTART          (WM_USER + 11)  //0x40B
-#define AKDN_EDIT_ONFINISH         (WM_USER + 12)  //0x40C
-#define AKDN_EDIT_ONCLOSE          (WM_USER + 13)  //0x40D
+#define AKDN_EDIT_ONSTART           (WM_USER + 11)  //0x40B
+#define AKDN_EDIT_ONFINISH          (WM_USER + 12)  //0x40C
+#define AKDN_EDIT_ONCLOSE           (WM_USER + 13)  //0x40D
 
-#define AKDN_FRAME_NOWINDOWS       (WM_USER + 21)  //0x415
-#define AKDN_FRAME_ACTIVATE        (WM_USER + 22)  //0x416
-#define AKDN_FRAME_DEACTIVATE      (WM_USER + 23)  //0x417
-#define AKDN_FRAME_DESTROY         (WM_USER + 24)  //0x418
+#define AKDN_FRAME_NOWINDOWS        (WM_USER + 21)  //0x415
+#define AKDN_FRAME_ACTIVATE         (WM_USER + 22)  //0x416
+#define AKDN_FRAME_DEACTIVATE       (WM_USER + 23)  //0x417
+#define AKDN_FRAME_DESTROY          (WM_USER + 24)  //0x418
 
-#define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 31)  //0x41F
-#define AKDN_DOCK_CAPTURE_ONSTART  (WM_USER + 32)  //0x420
-#define AKDN_DOCK_CAPTURE_ONFINISH (WM_USER + 33)  //0x421
-#define AKDN_DOCK_RESIZE           (WM_USER + 34)  //0x422
+#define AKDN_DOCK_GETMINMAXINFO     (WM_USER + 31)  //0x41F
+#define AKDN_DOCK_CAPTURE_ONSTART   (WM_USER + 32)  //0x420
+#define AKDN_DOCK_CAPTURE_ONFINISH  (WM_USER + 33)  //0x421
+#define AKDN_DOCK_RESIZE            (WM_USER + 34)  //0x422
 
-#define AKDN_DLLCALL               (WM_USER + 41)  //0x429
-#define AKDN_DLLUNLOAD             (WM_USER + 42)  //0x42A
-#define AKDN_DLLCODER              (WM_USER + 43)  //0x42B
+#define AKDN_DLLCALL                (WM_USER + 41)  //0x429
+#define AKDN_DLLUNLOAD              (WM_USER + 42)  //0x42A
+#define AKDN_DLLCODER               (WM_USER + 43)  //0x42B
 
-#define AKDN_ACTIVATE              (WM_USER + 50)  //0x432
-#define AKDN_SIZE_ONSTART          (WM_USER + 51)  //0x433
-#define AKDN_SIZE_ONFINISH         (WM_USER + 52)  //0x434
-#define AKDN_OPENDOCUMENT_START    (WM_USER + 53)  //0x435
-#define AKDN_OPENDOCUMENT_FINISH   (WM_USER + 54)  //0x436
-#define AKDN_SAVEDOCUMENT_START    (WM_USER + 55)  //0x437
-#define AKDN_SAVEDOCUMENT_FINISH   (WM_USER + 56)  //0x438
-#define AKDN_HOTKEY                (WM_USER + 57)  //0x439
-#define AKDN_CONTEXTMENU           (WM_USER + 58)  //0x43A
-#define AKDN_SEARCH_ENDED          (WM_USER + 59)  //0x43B
-#define AKDN_MESSAGEBOXBEGIN       (WM_USER + 61)  //0x43D
-#define AKDN_MESSAGEBOXEND         (WM_USER + 62)  //0x43E
-#define AKDN_INITDIALOGBEGIN       (WM_USER + 63)  //0x43F
-#define AKDN_INITDIALOGEND         (WM_USER + 64)  //0x440
-#define AKDN_HOTKEYGLOBAL          (WM_USER + 70)  //0x446
-#define AKDN_POSTDOCUMENT_START    (WM_USER + 81)  //0x451
-#define AKDN_POSTDOCUMENT_FINISH   (WM_USER + 82)  //0x452
+#define AKDN_ACTIVATE               (WM_USER + 50)  //0x432
+#define AKDN_SIZE_ONSTART           (WM_USER + 51)  //0x433
+#define AKDN_SIZE_ONFINISH          (WM_USER + 52)  //0x434
+#define AKDN_OPENDOCUMENT_START     (WM_USER + 53)  //0x435
+#define AKDN_OPENDOCUMENT_FINISH    (WM_USER + 54)  //0x436
+#define AKDN_SAVEDOCUMENT_START     (WM_USER + 55)  //0x437
+#define AKDN_SAVEDOCUMENT_FINISH    (WM_USER + 56)  //0x438
+#define AKDN_HOTKEY                 (WM_USER + 57)  //0x439
+#define AKDN_CONTEXTMENU            (WM_USER + 58)  //0x43A
+#define AKDN_SEARCH_ENDED           (WM_USER + 59)  //0x43B
+#define AKDN_MESSAGEBOXBEGIN        (WM_USER + 61)  //0x43D
+#define AKDN_MESSAGEBOXEND          (WM_USER + 62)  //0x43E
+#define AKDN_INITDIALOGBEGIN        (WM_USER + 63)  //0x43F
+#define AKDN_INITDIALOGEND          (WM_USER + 64)  //0x440
+#define AKDN_HOTKEYGLOBAL           (WM_USER + 70)  //0x446
+#define AKDN_POSTDOCUMENT_START     (WM_USER + 81)  //0x451
+#define AKDN_POSTDOCUMENT_FINISH    (WM_USER + 82)  //0x452
 
 //SubClass
 #define AKD_GETMAINPROC            (WM_USER + 101)
@@ -2535,6 +2667,19 @@ lParam == not used.
 
 Return Value
  Zero.
+
+
+AKDN_MAIN_ONCLOSE_PREFINISH
+___________________________
+
+Notification message, sends to the main procedure before posting AKDN_MAIN_ONFINISH.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE  abort closing, don't send AKDN_MAIN_ONFINISH.
+ FALSE send AKDN_MAIN_ONFINISH.
 
 
 AKDN_EDIT_ONSTART
@@ -2832,8 +2977,8 @@ ____________________
 
 Notification message, sends to the main procedure before messagebox is open.
 
-(HWND)wParam  == parent window of the messagebox.
-(DWORD)lParam == last loaded string id. See MSG_* defines in "[AkelPad sources]\AkelFiles\Langs\Resources\resource.h".
+wParam                == not used.
+(NMESSAGEBOX *)lParam == pointer to an NMESSAGEBOX structure that contains message box information.
 
 Return Value
  Zero.
@@ -2844,8 +2989,8 @@ __________________
 
 Notification message, sends to the main procedure after messagebox is closed.
 
-(int)wParam   == MessageBox call result.
-(DWORD)lParam == same value as lParam of AKDN_MESSAGEBOXBEGIN.
+wParam                == not used.
+(NMESSAGEBOX *)lParam == pointer to an NMESSAGEBOX structure that contains message box information.
 
 Return Value
  Zero.
@@ -3703,11 +3848,12 @@ ________
 
 Copy text to clipboard from edit control.
 
-(HWND)wParam == edit window, NULL for current edit window.
-lParam       == not used.
+(HWND)wParam  == edit window, NULL for current edit window.
+(DWORD)lParam == see AECFC_* defines.
 
 Return Value
- Zero.
+ TRUE   clipboard changed.
+ FALSE  clipboard not changed.
 
 Example:
  SendMessage(pd->hMainWnd, AKD_COPY, (WPARAM)pd->hWndEdit, 0);
@@ -4365,8 +4511,8 @@ ______________
 
 Retrieve windows statistics.
 
-(int)wParam == see FWS_* defines.
-lParam      == not used.
+(int)wParam    == see FWS_* defines.
+(void *)lParam == depend on FWS_ value.
 
 Return Value
  Depend of FWS_* define.
