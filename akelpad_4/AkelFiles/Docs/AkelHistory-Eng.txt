@@ -13,6 +13,7 @@ Added: possibility to use x86 and x64 version with the same settings. For this:
        - create a folder "[AkelPad]\AkelFiles\Langs64\" for 64-bit dll files.
        - create a folder "[AkelPad]\AkelFiles\Plugs64\" for 64-bit dll files.
          Settings of all plugins will continue to be stored in "[AkelPad]\AkelFiles\Plugs".
+       - 64-bit AkelAdmin.exe rename to AkelAdmin64.exe.
 Added: "Settings..." dialog now resizable.
 Added: possibility to set negative line gap.
 Added: manual flag 268435456 in the parameter "TabOptionsMDI" - close modified tabs first

@@ -1121,12 +1121,15 @@ void _WinMain()
     xprintfW(wbuf, L"%s\\AkelFiles\\%s", wszExeDir, wszPlugsDll);
     if (!DirExistsWide(wbuf))
       xstrcpyW(wszPlugsDll, L"Plugs");
+
+    xprintfW(wszAkelAdminExe, L"%s\\AkelFiles\\AkelAdmin64.exe", wszExeDir);
+    if (!FileExistsWide(wszAkelAdminExe))
+      xprintfW(wszAkelAdminExe, L"%s\\AkelFiles\\AkelAdmin.exe", wszExeDir);
   #else
     xstrcpyW(wszLangsDll, L"Langs");
     xstrcpyW(wszPlugsDll, L"Plugs");
+    xprintfW(wszAkelAdminExe, L"%s\\AkelFiles\\AkelAdmin.exe", wszExeDir);
   #endif
-
-
 
   if (*moCur.wszLangModule)
   {
