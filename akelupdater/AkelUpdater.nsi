@@ -127,6 +127,7 @@ Var BITSUFFIXMINUS
 Var BITSUFFIXSLASH
 Var PLUGINCOUNT
 Var PLUGINCOUNT64
+Var SCRIPTCOUNT
 Var PLUGINCOPY
 Var PLUGINCOPIES
 Var SCRIPTSPACK
@@ -337,7 +338,7 @@ Function .onInit
   ;When user press "Scripts" call this address
   GetFunctionAddress $DLSCRIPTSPROC DownloadScriptsProc
 
-  ;Show dialog (Result: $0="ExeVersion|ExeVersion64|DllCount|DllCount64", $1="Download mirror", $2="Language")
+  ;Show dialog (Result: $0="ExeVersion|ExeVersion64|DllCount|DllCount64|ScriptCount", $1="Download mirror", $2="Language")
   AkelUpdater::List ${PRODUCT_VERSION} $ZIPLANG $ONTOP $EXEBIT $AUTO $NOCOPIES $PLUGINSDIR $DLSCRIPTSPROC "AkelUpdaterHelp.exe"
   Pop $R0
   ${If} $R0 == 0
@@ -368,6 +369,11 @@ Function .onInit
     Quit
   ${EndIf}
 
+  ${WordFind} "$0" "|" "E+5" $SCRIPTCOUNT
+  ${If} ${Errors}
+    Quit
+  ${EndIf}
+
   ;Is AkelPad running?
   CheckWindow:
   ${If} $DLONLY != 1
@@ -389,25 +395,19 @@ Function .onInit
   ${EndIf}
 
   ;Download
-  ${If} $EXEVERSIONFULL != 0
-  ${OrIf} $PLUGINCOUNT != 0
-    StrCpy $DL_EXEBIT $EXEBIT
-    StrCpy $DL_PATH64 ""
-    StrCpy $DL_EXEVERSIONFULL $EXEVERSIONFULL
-    StrCpy $DL_EXEVERSIONMAJOR $EXEVERSIONMAJOR
-    StrCpy $DL_PLUGINCOUNT $PLUGINCOUNT
-    Call DownloadZip
-  ${EndIf}
+  StrCpy $DL_EXEBIT $EXEBIT
+  StrCpy $DL_PATH64 ""
+  StrCpy $DL_EXEVERSIONFULL $EXEVERSIONFULL
+  StrCpy $DL_EXEVERSIONMAJOR $EXEVERSIONMAJOR
+  StrCpy $DL_PLUGINCOUNT $PLUGINCOUNT
+  Call DownloadZip
 
-  ${If} $EXEVERSIONFULL64 != 0
-  ${OrIf} $PLUGINCOUNT64 != 0
-    StrCpy $DL_EXEBIT "64"
-    StrCpy $DL_PATH64 "64"
-    StrCpy $DL_EXEVERSIONFULL $EXEVERSIONFULL64
-    StrCpy $DL_EXEVERSIONMAJOR $EXEVERSIONMAJOR64
-    StrCpy $DL_PLUGINCOUNT $PLUGINCOUNT64
-    Call DownloadZip
-  ${EndIf}
+  StrCpy $DL_EXEBIT "64"
+  StrCpy $DL_PATH64 "64"
+  StrCpy $DL_EXEVERSIONFULL $EXEVERSIONFULL64
+  StrCpy $DL_EXEVERSIONMAJOR $EXEVERSIONMAJOR64
+  StrCpy $DL_PLUGINCOUNT $PLUGINCOUNT64
+  Call DownloadZip
 
   ;Exit if update not required
   ${If} $DLONLY == 1
@@ -486,7 +486,7 @@ Function DownloadZip
       ${EndIf}
 
       ;Download "LangsPack.zip"
-      ${If} ${FileExists} "$AKELLANGSDIR\*.dll"
+      ${If} ${FileExists} "$AKELLANGSDIR$DL_PATH64\*.dll"
         StrCpy $LANGEXIST "true"
         inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
                    $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
@@ -540,6 +540,7 @@ Section
   ;Extract
   ${If} $EXEVERSIONFULL != 0
   ${OrIf} $PLUGINCOUNT != 0
+  ${OrIf} $SCRIPTCOUNT != 0
     StrCpy $DL_EXEBIT $EXEBIT
     StrCpy $DL_EXEVERSIONFULL $EXEVERSIONFULL
     StrCpy $DL_PATH64 ""
@@ -599,29 +600,29 @@ Function ExtractZip
       SetDetailsPrint both
     ${EndIf}
 
+    ;Extract "LangsPack.zip"
+    ${If} $LANGEXIST == "true"
+      GetFunctionAddress $0 ServiceCallback
+      Push /END
+      AkelUpdater::ParseAndPush "$UNZIP"
+      nsUnzip::Extract "$SAVEDIR\LangsPack$BITSUFFIXMINUS.zip" "/d=$AKELFILESDIR\Langs$DL_PATH64" /callS=$0 /e /j "Langs\*"
+      Pop $0
+      ${If} $0 != 0
+        DetailPrint "$(error) ($0): LangsPack$BITSUFFIXMINUS.zip"
+        StrCpy $LASTEXTRACTERROR $0
+      ${EndIf}
+    ${EndIf}
+
     ${Break}
   ${EndWhile}
 
+  ;Get AkelUpdater::List items
   ${If} $ZIPLANG == eng
     StrCpy $ZIPXLANG rus
   ${ElseIf} $ZIPLANG == rus
     StrCpy $ZIPXLANG eng
   ${EndIf}
 
-  ;Extract "LangsPack.zip"
-  ${If} $LANGEXIST == "true"
-    GetFunctionAddress $0 ServiceCallback
-    Push /END
-    AkelUpdater::ParseAndPush "$UNZIP"
-    nsUnzip::Extract "$SAVEDIR\LangsPack$BITSUFFIXMINUS.zip" "/d=$AKELFILESDIR\Langs$DL_PATH64" /callS=$0 /e /j "Langs\*"
-    Pop $0
-    ${If} $0 != 0
-      DetailPrint "$(error) ($0): LangsPack$BITSUFFIXMINUS.zip"
-      StrCpy $LASTEXTRACTERROR $0
-    ${EndIf}
-  ${EndIf}
-
-  ;Get AkelUpdater::List items
   ${Do}
     Pop $LISTITEM
     ${If} ${Errors}
@@ -730,7 +731,7 @@ Function ServiceCallback
   Pop $5  ;Entry CRC: ff00ff00
 
   ${GetBaseName} "$2" $R0
-  DetailPrint "$(done): $R0 $(language)"
+  DetailPrint "$(done): $R0$DL_PATH64 $(language)"
 
   #Use "SetErrors" for stop extracting
 FunctionEnd
