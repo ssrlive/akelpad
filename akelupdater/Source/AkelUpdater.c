@@ -972,6 +972,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       FILEITEM *lpFileItem;
       FILEITEM *lpCopyItem;
       FILEITEM *lpPackItem;
+      int nCountScript=0;
       int nCountDLL=0;
       int nCountDLL64=0;
       int nSelection;
@@ -989,6 +990,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             //Get checked pack
             if (!(lpPackItem=StackFileGet(&hPackStack, lpFileItem->wszPack, NULL)))
               lpPackItem=StackFileInsert(&hPackStack, lpFileItem->wszPack);
+            ++nCountScript;
           }
           else if (lpFileItem->nType == FIT_PLUGIN)
           {
@@ -1030,10 +1032,11 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           g_pluginParms->ExecuteCodeSegment(lpDownloadScriptsProc - 1, 0);
       }
 
-      xprintfW(wszBuffer, L"%s|%s|%d|%d", (lpFileItemAkelPad->nChecked > 0) ? lpFileItemAkelPad->wszLastVer : L"0",
-                                          (lpFileItemAkelPad64 && lpFileItemAkelPad64->nChecked > 0) ? lpFileItemAkelPad64->wszLastVer : L"0",
-                                          nCountDLL,
-                                          nCountDLL64);
+      xprintfW(wszBuffer, L"%s|%s|%d|%d|%d", (lpFileItemAkelPad->nChecked > 0) ? lpFileItemAkelPad->wszLastVer : L"0",
+                                             (lpFileItemAkelPad64 && lpFileItemAkelPad64->nChecked > 0) ? lpFileItemAkelPad64->wszLastVer : L"0",
+                                             nCountDLL,
+                                             nCountDLL64,
+                                             nCountScript);
       setuservariable(INST_0, wszBuffer);
 
       wszBuffer[0]=L'\0';
