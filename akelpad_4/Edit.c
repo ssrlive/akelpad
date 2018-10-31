@@ -9065,7 +9065,7 @@ BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen,
                              {949,  CP_UNICODE_UTF8, 0,               0,               0}}; //DETECTINDEX_KOREAN
   int nIndex;
   char *szText=NULL;
-  INT_PTR nAnsiLen;
+  INT_PTR nAnsiLen=0;
   int nFrom=0;
   int i;
   BOOL bUsedDefaultChar=TRUE;
@@ -19157,9 +19157,6 @@ BOOL MemClose(HANDLE hMem)
 
 BOOL AkelAdminInit(const wchar_t *wpFile)
 {
-  if (!wszAkelAdminPipe[0])
-    xprintfW(wszAkelAdminExe, L"%s\\AkelFiles\\AkelAdmin.exe", wszExeDir);
-
   if (FileExistsWide(wszAkelAdminExe))
   {
     //Custom MessageBox
