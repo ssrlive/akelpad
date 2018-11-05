@@ -719,20 +719,23 @@ BEGIN
                     BS_AUTORADIOBUTTON,32,19,70,10
     CONTROL         "Archivo INI",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
                     BS_AUTORADIOBUTTON,133,19,70,10
-    GROUPBOX        "Archivos recientes",IDC_STATIC,9,42,200,64
+    GROUPBOX        "Save history",IDC_STATIC,9,42,200,105
+    CONTROL         "Registro",IDC_OPTIONS_SAVEHISTORY_REGISTRY,"Button",
+                    BS_AUTORADIOBUTTON,32,55,70,10
+    CONTROL         "Archivo INI",IDC_OPTIONS_SAVEHISTORY_INI,"Button",
+                    BS_AUTORADIOBUTTON,134,55,70,10
     CONTROL         "Recordar posición del caret",IDC_OPTIONS_SAVEPOSITIONS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,55,185,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,75,185,10
     CONTROL         "Recordar code page",IDC_OPTIONS_SAVECODEPAGES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,66,185,10
-    LTEXT           "Cantidad de archivos:",IDC_STATIC,19,88,73,11,NOT 
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,86,185,10
+    LTEXT           "Archivos recientes:",IDC_STATIC,19,108,73,15,NOT 
                     WS_GROUP
-    EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,86,18,13,ES_NUMBER
+    EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,106,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,113,86,11,13
-    PUSHBUTTON      "Limpiar",IDC_OPTIONS_RECENTFILES_CLEAR,141,85,54,14
-    GROUPBOX        "Historial de búsqueda",IDC_STATIC,9,113,200,33
-    LTEXT           "Cantidad de líneas:",IDC_STATIC,19,128,73,11,NOT 
+                    UDS_NOTHOUSANDS,113,106,11,13
+    PUSHBUTTON      "Limpiar",IDC_OPTIONS_RECENTFILES_CLEAR,141,105,54,14
+    LTEXT           "Historial de búsqueda:",IDC_STATIC,19,128,73,15,NOT 
                     WS_GROUP
     EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,

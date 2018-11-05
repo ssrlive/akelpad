@@ -6,6 +6,8 @@ Changed: codepage recognition in "Recode" dialog in case of failure by
          values of "Ñodepage recognition" settings, tries to recognize by
          all encodings from the user list.
 
+Added: possibility to save recent files and search history in ini file.
+       Now program can be completely portable.
 Added: possibility to use x86 and x64 version with the same settings. For this:
        - 64-bit AkelPad.exe rename to AkelPad64.exe. This name is used by AkelUpdater
          to update 64-bit version.
