@@ -317,10 +317,11 @@ wchar_t wszLastFunction[MAX_PATH]=L"";
 int nLastFunctionIndex;
 
 //INI
-INIFILE hIniFile={0};
-wchar_t wszIniFile[MAX_PATH];
+INIFILE hAkelPadIni={0};
+wchar_t wszAkelPadIni[MAX_PATH];
 
 //Main settings
+HANDLE hReadOptions;
 MAINOPTIONS moInit;
 MAINOPTIONS moCur;
 BOOL bSaveManual=FALSE;
@@ -389,8 +390,10 @@ int nCodepageTableCount;
 int nAnsiCodePage;
 int nOemCodePage;
 
-//Recent files
+//History
 STACKRECENTFILE hRecentFilesStack={0};
+STACKSEARCH hFindStack={0};
+STACKSEARCH hReplaceStack={0};
 
 //Open/Save document
 OPENFILENAME_2000W *ofnStruct;
@@ -453,7 +456,8 @@ HWND hWndPropEditor1;
 HWND hWndPropEditor2;
 HWND hWndPropAdvanced;
 int nPropertyStartPage=0;
-BOOL bOptionsSave;
+BOOL bSaveSettingsSwitch;
+BOOL bSaveHistorySwitch;
 BOOL bOptionsRestart;
 RECT rcPropMinMaxDialog={358, 470, 0, 0};
 BOOL bPropResize;
@@ -706,6 +710,17 @@ void _WinMain()
     mc.dwStyle=WS_OVERLAPPEDWINDOW;
   #endif
 
+  //Get startup info
+  #ifndef AKELPAD_DLLBUILD
+    lpStartupInfoA.cb=sizeof(STARTUPINFOA);
+    GetStartupInfoA(&lpStartupInfoA);
+    if ((lpStartupInfoA.dwFlags & STARTF_USESHOWWINDOW) && lpStartupInfoA.wShowWindow != SW_SHOWDEFAULT)
+      dwCmdShow=lpStartupInfoA.wShowWindow;
+  #endif
+
+  //Command line
+  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
+
   //Get program HINSTANCE
   #ifndef AKELPAD_DLLBUILD
     hInstance=GetModuleHandleWide(NULL);
@@ -725,20 +740,13 @@ void _WinMain()
   wszAkelAdminPipe[0]=L'\0';
   wszAkelAdminExe[0]=L'\0';
 
-  //Set default options before reading from registry/ini
-  xmemset(&moInit, 0, sizeof(MAINOPTIONS));
-  xmemset(&fdInit, 0, sizeof(FRAMEDATA));
-  xmemset(&aecDefault, 0, sizeof(AECOLORS));
+  //INI
+  xprintfW(wszAkelPadIni, L"%s\\AkelPad.ini", wszExeDir);
 
   //System default codepages
   nAnsiCodePage=GetACP();
   nOemCodePage=GetOEMCP();
   dwLangSystem=GetUserDefaultLangID();
-  moInit.nDefaultCodePage=nAnsiCodePage;
-  moInit.bDefaultBOM=FALSE;
-  moInit.nNewFileCodePage=nAnsiCodePage;
-  moInit.bNewFileBOM=FALSE;
-  moInit.nNewFileNewLine=NEWLINE_WIN;
 
   //System default print metrics
   if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_IMEASURE, buf, BUFFER_SIZE))
@@ -765,6 +773,18 @@ void _WinMain()
     prninfo.nToPage=1;
     prninfo.nCopies=1;
   }
+
+  //Set default options before reading from registry/ini
+  xmemset(&moInit, 0, sizeof(MAINOPTIONS));
+  xmemset(&fdInit, 0, sizeof(FRAMEDATA));
+  xmemset(&aecDefault, 0, sizeof(AECOLORS));
+
+  //Codepage
+  moInit.nDefaultCodePage=nAnsiCodePage;
+  moInit.bDefaultBOM=FALSE;
+  moInit.nNewFileCodePage=nAnsiCodePage;
+  moInit.bNewFileBOM=FALSE;
+  moInit.nNewFileNewLine=NEWLINE_WIN;
 
   //--Edit state external--
   //fdInit.hWndEditParent=NULL;
@@ -842,6 +862,7 @@ void _WinMain()
 
   //--Save place--
   moInit.nSaveSettings=SS_REGISTRY;
+  moInit.nSaveHistory=SS_REGISTRY;
 
   //--Manual--
   moInit.dwShowModify=SM_STATUSBAR|SM_TABTITLE_MDI;
@@ -941,105 +962,10 @@ void _WinMain()
   moInit.rcMainWindowRestored.bottom=CW_USEDEFAULT;
   moInit.dwMdiStyle=WS_MAXIMIZE;
 
-  //Read options
-  ReadOptions(&moInit, &fdInit);
-
-  if (!fdInit.lf.lfHeight)
-  {
-    //Get edit font
-    HDC hDC;
-
-    if (hDC=GetDC(NULL))
-    {
-      fdInit.lf.lfHeight=-MulDiv(10, GetDeviceCaps(hDC, LOGPIXELSY), 72);
-      fdInit.lf.lfWidth=0;
-      fdInit.lf.lfEscapement=0;
-      fdInit.lf.lfOrientation=0;
-      fdInit.lf.lfWeight=FW_NORMAL;
-      fdInit.lf.lfItalic=FALSE;
-      fdInit.lf.lfUnderline=FALSE;
-      fdInit.lf.lfStrikeOut=FALSE;
-      fdInit.lf.lfCharSet=DEFAULT_CHARSET;
-      fdInit.lf.lfOutPrecision=OUT_DEFAULT_PRECIS;
-      fdInit.lf.lfClipPrecision=CLIP_DEFAULT_PRECIS;
-      fdInit.lf.lfQuality=DEFAULT_QUALITY;
-      fdInit.lf.lfPitchAndFamily=DEFAULT_PITCH;
-      xstrcpynW(fdInit.lf.lfFaceName, L"Courier New", LF_FACESIZE);
-      ReleaseDC(NULL, hDC);
-    }
-  }
-  if (!moInit.lfPrintFont.lfHeight)
-  {
-    //Get print font
-    xmemcpy(&moInit.lfPrintFont, &fdInit.lf, sizeof(LOGFONTW));
-  }
-  StackFontItemInsert(&hFontsStack, &fdInit.lf);
-
-  if (IsCodePageUnicode(moInit.nDefaultCodePage))
-    moInit.bDefaultBOM=TRUE;
-  fdInit.ei.nCodePage=moInit.nNewFileCodePage;
-  fdInit.ei.bBOM=moInit.bNewFileBOM;
-  prninfo.rtMargin=moInit.rcPrintMargins;
-  nMDI=moInit.nMDI;
-  if (!lpCodepageList) nCodepageListLen=EnumCodepageList(&lpCodepageList);
-  if (!wpCmdLineBegin) wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
-  if (!wpCmdLineEnd) wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
-  xmemcpy(&fdDefault, &fdInit, sizeof(FRAMEDATA));
-
-  //Normalize search flags
-  moInit.dwSearchOptions=(moInit.dwSearchOptions & FRF_DOWN) |
-          (moInit.dwSearchOptions & FRF_WHOLEWORD) |
-          (moInit.dwSearchOptions & FRF_MATCHCASE) |
-          (moInit.dwSearchOptions & FRF_UP) |
-          (moInit.dwSearchOptions & FRF_BEGINNING) |
-          (moInit.dwSearchOptions & FRF_SELECTION) |
-          (moInit.dwSearchOptions & FRF_ESCAPESEQ) |
-          (moInit.dwSearchOptions & FRF_REGEXP) |
-          (moInit.dwSearchOptions & FRF_REGEXPNONEWLINEDOT) |
-          (moInit.dwSearchOptions & FRF_ALLFILES) |
-          (moInit.dwSearchOptions & FRF_REPLACEALLANDCLOSE) |
-          (moInit.dwSearchOptions & FRF_REPLACEALLNOMSG) |
-          (moInit.dwSearchOptions & FRF_CHECKINSELIFSEL) |
-          (moInit.dwSearchOptions & FRF_CYCLESEARCH) |
-          (moInit.dwSearchOptions & FRF_CYCLESEARCHPROMPT);
-
-  //Normalize tab flags
-  if (!(moInit.dwTabOptionsMDI & TAB_VIEW_NONE) && !(moInit.dwTabOptionsMDI & TAB_VIEW_TOP) && !(moInit.dwTabOptionsMDI & TAB_VIEW_BOTTOM))
-    moInit.dwTabOptionsMDI|=TAB_VIEW_TOP;
-  if (!(moInit.dwTabOptionsMDI & TAB_TYPE_STANDARD) && !(moInit.dwTabOptionsMDI & TAB_TYPE_BUTTONS) && !(moInit.dwTabOptionsMDI & TAB_TYPE_FLATBUTTONS))
-    moInit.dwTabOptionsMDI|=TAB_TYPE_STANDARD;
-  if (!(moInit.dwTabOptionsMDI & TAB_SWITCH_NEXTPREV) && !(moInit.dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT))
-    moInit.dwTabOptionsMDI|=TAB_SWITCH_RIGHTLEFT;
-
-  //Get status bar user flags
-  if (moInit.wszStatusUserFormat[0])
-  {
-    STATUSPART *sp;
-
-    moInit.nStatusUserFormatLen=(int)xstrlenW(moInit.wszStatusUserFormat);
-    TranslateStatusUser(NULL, moInit.wszStatusUserFormat, moInit.nStatusUserFormatLen, NULL, 0);
-
-    moInit.dwStatusUserFlags=0;
-    for (sp=hStatusStack.first; sp; sp=sp->next)
-      moInit.dwStatusUserFlags|=sp->dwFormatFlags;
-  }
-
-  //Get ansi language module
-  WideCharToMultiByte(CP_ACP, 0, moInit.wszLangModule, -1, moInit.szLangModule, MAX_PATH, NULL, NULL);
-
-  //Copy initial options
+  //Read only few options
+  hReadOptions=ReadOptions(&moInit, &fdInit, PCL_ONLOAD, NULL);
   xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));
-
-  //Get startup info
-  #ifndef AKELPAD_DLLBUILD
-    lpStartupInfoA.cb=sizeof(STARTUPINFOA);
-    GetStartupInfoA(&lpStartupInfoA);
-    if ((lpStartupInfoA.dwFlags & STARTF_USESHOWWINDOW) && lpStartupInfoA.wShowWindow != SW_SHOWDEFAULT)
-      dwCmdShow=lpStartupInfoA.wShowWindow;
-  #endif
-
-  //Command line
-  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
+  nMDI=moInit.nMDI;
 
   //Parse commmand line on load
   if (wpCmdLine)
@@ -1093,6 +1019,94 @@ void _WinMain()
     else if (nParseCmdLineOnLoad != PCLE_ONLOAD)
       wpCmdLine=NULL;
   }
+
+  //Read all options
+  ReadOptions(&moInit, &fdInit, PCL_ONSHOW, hReadOptions);
+
+  if (!fdInit.lf.lfHeight)
+  {
+    //Get edit font
+    HDC hDC;
+
+    if (hDC=GetDC(NULL))
+    {
+      fdInit.lf.lfHeight=-MulDiv(10, GetDeviceCaps(hDC, LOGPIXELSY), 72);
+      fdInit.lf.lfWidth=0;
+      fdInit.lf.lfEscapement=0;
+      fdInit.lf.lfOrientation=0;
+      fdInit.lf.lfWeight=FW_NORMAL;
+      fdInit.lf.lfItalic=FALSE;
+      fdInit.lf.lfUnderline=FALSE;
+      fdInit.lf.lfStrikeOut=FALSE;
+      fdInit.lf.lfCharSet=DEFAULT_CHARSET;
+      fdInit.lf.lfOutPrecision=OUT_DEFAULT_PRECIS;
+      fdInit.lf.lfClipPrecision=CLIP_DEFAULT_PRECIS;
+      fdInit.lf.lfQuality=DEFAULT_QUALITY;
+      fdInit.lf.lfPitchAndFamily=DEFAULT_PITCH;
+      xstrcpynW(fdInit.lf.lfFaceName, L"Courier New", LF_FACESIZE);
+      ReleaseDC(NULL, hDC);
+    }
+  }
+  if (!moInit.lfPrintFont.lfHeight)
+  {
+    //Get print font
+    xmemcpy(&moInit.lfPrintFont, &fdInit.lf, sizeof(LOGFONTW));
+  }
+  StackFontItemInsert(&hFontsStack, &fdInit.lf);
+
+  if (IsCodePageUnicode(moInit.nDefaultCodePage))
+    moInit.bDefaultBOM=TRUE;
+  fdInit.ei.nCodePage=moInit.nNewFileCodePage;
+  fdInit.ei.bBOM=moInit.bNewFileBOM;
+  prninfo.rtMargin=moInit.rcPrintMargins;
+  if (!lpCodepageList) nCodepageListLen=EnumCodepageList(&lpCodepageList);
+  if (!wpCmdLineBegin) wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
+  if (!wpCmdLineEnd) wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(wchar_t));
+  xmemcpy(&fdDefault, &fdInit, sizeof(FRAMEDATA));
+
+  //Normalize search flags
+  moInit.dwSearchOptions=(moInit.dwSearchOptions & FRF_DOWN) |
+          (moInit.dwSearchOptions & FRF_WHOLEWORD) |
+          (moInit.dwSearchOptions & FRF_MATCHCASE) |
+          (moInit.dwSearchOptions & FRF_UP) |
+          (moInit.dwSearchOptions & FRF_BEGINNING) |
+          (moInit.dwSearchOptions & FRF_SELECTION) |
+          (moInit.dwSearchOptions & FRF_ESCAPESEQ) |
+          (moInit.dwSearchOptions & FRF_REGEXP) |
+          (moInit.dwSearchOptions & FRF_REGEXPNONEWLINEDOT) |
+          (moInit.dwSearchOptions & FRF_ALLFILES) |
+          (moInit.dwSearchOptions & FRF_REPLACEALLANDCLOSE) |
+          (moInit.dwSearchOptions & FRF_REPLACEALLNOMSG) |
+          (moInit.dwSearchOptions & FRF_CHECKINSELIFSEL) |
+          (moInit.dwSearchOptions & FRF_CYCLESEARCH) |
+          (moInit.dwSearchOptions & FRF_CYCLESEARCHPROMPT);
+
+  //Normalize tab flags
+  if (!(moInit.dwTabOptionsMDI & TAB_VIEW_NONE) && !(moInit.dwTabOptionsMDI & TAB_VIEW_TOP) && !(moInit.dwTabOptionsMDI & TAB_VIEW_BOTTOM))
+    moInit.dwTabOptionsMDI|=TAB_VIEW_TOP;
+  if (!(moInit.dwTabOptionsMDI & TAB_TYPE_STANDARD) && !(moInit.dwTabOptionsMDI & TAB_TYPE_BUTTONS) && !(moInit.dwTabOptionsMDI & TAB_TYPE_FLATBUTTONS))
+    moInit.dwTabOptionsMDI|=TAB_TYPE_STANDARD;
+  if (!(moInit.dwTabOptionsMDI & TAB_SWITCH_NEXTPREV) && !(moInit.dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT))
+    moInit.dwTabOptionsMDI|=TAB_SWITCH_RIGHTLEFT;
+
+  //Get status bar user flags
+  if (moInit.wszStatusUserFormat[0])
+  {
+    STATUSPART *sp;
+
+    moInit.nStatusUserFormatLen=(int)xstrlenW(moInit.wszStatusUserFormat);
+    TranslateStatusUser(NULL, moInit.wszStatusUserFormat, moInit.nStatusUserFormatLen, NULL, 0);
+
+    moInit.dwStatusUserFlags=0;
+    for (sp=hStatusStack.first; sp; sp=sp->next)
+      moInit.dwStatusUserFlags|=sp->dwFormatFlags;
+  }
+
+  //Get ansi language module
+  WideCharToMultiByte(CP_ACP, 0, moInit.wszLangModule, -1, moInit.szLangModule, MAX_PATH, NULL, NULL);
+
+  //Copy initial options
+  xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));
 
   //Get common controls version
   GetFileVersionA("comctl32.dll", &nMajor, &nMinor, &nRelease, &nBuild, NULL);
@@ -1374,7 +1388,9 @@ void WinMainCleanUp()
   AkelAdminExit();
   CodepageListFree(&lpCodepageList);
   RecentFilesZero(&hRecentFilesStack);
-  FreeMemorySearch();
+  SearchZero(&hFindStack);
+  SearchZero(&hReplaceStack);
+  SearchFreeLast();
   StackStatusPartFree(&hStatusStack);
   StackFontItemsFree(&hFontsStack);
   StackBkImageFree(&hBkImagesStack);
@@ -1781,16 +1797,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int i=0;
 
         bMainOnStart=TRUE;
-
-        //Allocate and read search string
-        if (moCur.nSearchStrings)
-        {
-          RegReadSearch();
-        }
-
-        //Allocate and read recent files
-        RecentFilesRead(&hRecentFilesStack);
-        bMenuRecentFiles=TRUE;
 
         //Call plugins on start
         CallPluginsOnStart(&hPluginsStack);
@@ -2470,6 +2476,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           case MI_SAVESETTINGS:
             return (LRESULT)moCur.nSaveSettings;
+          case MI_SAVEHISTORY:
+            return (LRESULT)moCur.nSaveHistory;
           case MI_WNDPROGRESS:
             return (LRESULT)hProgress;
           case MI_WNDSTATUS:
@@ -2697,6 +2705,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               SaveOptions(&moCur, lpFrameCurrent, SS_REGISTRY, TRUE);
               SaveThemes(SS_REGISTRY);
               StackPluginSave(&hPluginsStack, SS_REGISTRY);
+              return TRUE;
+            }
+            return FALSE;
+          }
+          case MIS_SAVEHISTORY:
+          {
+            if (SetOption(lParam, &moCur.nSaveHistory, sizeof(DWORD), INI_DWORD))
+            {
+              //Save to INI
+              RecentFilesSave(&hRecentFilesStack, SS_INI);
+              SearchSave(SS_INI);
+
+              //Save to registry
+              RecentFilesSave(&hRecentFilesStack, SS_REGISTRY);
+              SearchSave(SS_REGISTRY);
               return TRUE;
             }
             return FALSE;
@@ -2945,7 +2968,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             //Same as AKD_RECENTFILES with RF_SET
             if (SetOption(lParam, &moCur.nRecentFiles, sizeof(DWORD), INI_DWORD))
             {
-              RecentFilesRefresh(&hRecentFilesStack);
+              RecentFilesCut(&hRecentFilesStack);
               return TRUE;
             }
             return FALSE;
@@ -3557,7 +3580,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (moCur.nRecentFiles != lParam)
           {
             moCur.nRecentFiles=(int)lParam;
-            RecentFilesRefresh(&hRecentFilesStack);
+            RecentFilesCut(&hRecentFilesStack);
           }
         }
         else if (wParam == RF_READ)
@@ -3565,14 +3588,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
 
           if (!rfs) rfs=&hRecentFilesStack;
-          return RecentFilesRead(rfs);
+          return RecentFilesRead(&moCur, rfs);
         }
         else if (wParam == RF_SAVE)
         {
           STACKRECENTFILE *rfs=(STACKRECENTFILE *)lParam;
 
           if (!rfs) rfs=&hRecentFilesStack;
-          RecentFilesSave(rfs);
+          RecentFilesSave(rfs, moCur.nSaveHistory);
           bMenuRecentFiles=TRUE;
         }
         else if (wParam == RF_CLEAR)
@@ -3667,10 +3690,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (wParam == SH_CLEAR)
         {
-          wchar_t wszRegKey[MAX_PATH];
-
-          xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
-          RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
+          SearchZero(&hFindStack);
+          SearchZero(&hReplaceStack);
+          SearchSave(moCur.nSaveHistory);
           return moCur.nSearchStrings;
         }
         return 0;
@@ -4131,7 +4153,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               else
                 xprintfW(ih->wszIniFile, L"%s\\AkelFiles\\Plugs\\%s%s.ini", wszExeDir, ((ih->dwType & POB_SCRIPTS) && !(ih->dwType & POB_PLUGS))?L"Scripts\\":L"", (wchar_t *)lParam);
             }
-            else xprintfW(ih->wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
+            else xstrcpynW(ih->wszIniFile, wszAkelPadIni, MAX_PATH);
 
             if (!OpenIni(&ih->hIniFile, ih->wszIniFile, (ih->dwType & POB_SAVE)))
             {
@@ -4142,7 +4164,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               INISECTION *lpIniSection;
 
-              if (lpIniSection=StackOpenIniSection(&ih->hIniFile, L"Options", (int)xstrlenW(L"Options"), FALSE))
+              if (lpIniSection=StackOpenIniSection(&ih->hIniFile, L"Options", -1, FALSE))
                 StackDeleteIniSection(&ih->hIniFile, lpIniSection, TRUE);
             }
           }
@@ -5707,13 +5729,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (wCommand == IDM_RECENT_FILES)
       {
-        int nDead;
+        int nDead=RecentFilesDeleteOld(&hRecentFilesStack);
 
-        if (nDead=RecentFilesDeleteOld(&hRecentFilesStack))
-        {
-          RecentFilesSave(&hRecentFilesStack);
-          bMenuRecentFiles=TRUE;
-        }
         API_LoadString(hLangModule, MSG_RECENTFILES_DELETED, wbuf, BUFFER_SIZE);
         xprintfW(wszMsg, wbuf, nDead);
         API_MessageBox(hWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
@@ -5878,7 +5895,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nMainOnFinish=MOF_NONE;
         return bEndSession?0:1;
       }
-      RecentFilesSaveFile(lpFrameCurrent);
+      RecentFilesFrameUpdate(lpFrameCurrent);
     }
     else
     {
@@ -5886,7 +5903,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (lpFrameCurrent->hWndEditParent)
       {
-        RecentFilesSaveFile(lpFrameCurrent);
+        RecentFilesFrameUpdate(lpFrameCurrent);
         bFirstTabOnFinish=TRUE;
       }
 
@@ -5965,6 +5982,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Save plugin stack
     if (bSavePluginsStackOnExit)
       StackPluginSave(&hPluginsStack, moCur.nSaveSettings);
+
+    //Save search history
+    SearchSave(moCur.nSaveHistory);
+
+    //Save recent files
+    RecentFilesSave(&hRecentFilesStack, moCur.nSaveHistory);
 
     //Clean up
     if (nMDI)
@@ -6977,7 +7000,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         //Ask if document unsaved
         if (!SaveChanged(dwPrompt)) return TRUE;
-        RecentFilesSaveFile(lpFrame);
+        RecentFilesFrameUpdate(lpFrame);
 
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
         {

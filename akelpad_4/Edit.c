@@ -106,10 +106,11 @@ extern wchar_t wszLastFunction[MAX_PATH];
 extern int nLastFunctionIndex;
 
 //INI
-extern INIFILE hIniFile;
-extern wchar_t wszIniFile[MAX_PATH];
+extern INIFILE hAkelPadIni;
+extern wchar_t wszAkelPadIni[MAX_PATH];
 
 //Main settings
+extern HANDLE hReadOptions;
 extern MAINOPTIONS moInit;
 extern MAINOPTIONS moCur;
 extern BOOL bSaveManual;
@@ -178,8 +179,10 @@ extern int nCodepageTableCount;
 extern int nAnsiCodePage;
 extern int nOemCodePage;
 
-//Recent files
+//History
 extern STACKRECENTFILE hRecentFilesStack;
+extern STACKSEARCH hFindStack;
+extern STACKSEARCH hReplaceStack;
 
 //Open/Save document
 extern OPENFILENAME_2000W *ofnStruct;
@@ -242,7 +245,8 @@ extern HWND hWndPropEditor1;
 extern HWND hWndPropEditor2;
 extern HWND hWndPropAdvanced;
 extern int nPropertyStartPage;
-extern BOOL bOptionsSave;
+extern BOOL bSaveSettingsSwitch;
+extern BOOL bSaveHistorySwitch;
 extern BOOL bOptionsRestart;
 extern RECT rcPropMinMaxDialog;
 extern BOOL bPropResize;
@@ -1066,7 +1070,7 @@ int DestroyFrameWindow(FRAMEDATA *lpFrame)
       {
         //Ask if document unsaved
         if (!SaveChanged(dwPrompt)) return FWDE_ABORT;
-        RecentFilesSaveFile(lpFrame);
+        RecentFilesFrameUpdate(lpFrame);
       }
 
       if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
@@ -1415,7 +1419,7 @@ BOOL CloseDocument(DWORD dwPrompt)
 {
   if (!SaveChanged(dwPrompt)) return FALSE;
 
-  RecentFilesSaveFile(lpFrameCurrent);
+  RecentFilesFrameUpdate(lpFrameCurrent);
   SendMessage(hMainWnd, AKDN_EDIT_ONCLOSE, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
 
   SetWindowTextWide(lpFrameCurrent->ei.hWndEdit, L"");
@@ -2885,7 +2889,8 @@ void DoSettingsOptions()
   PROPSHEETPAGEW psp[5];
   DWORD dwInitKeybLayoutOptions=moCur.dwKeybLayoutOptions;
 
-  bOptionsSave=FALSE;
+  bSaveSettingsSwitch=FALSE;
+  bSaveHistorySwitch=FALSE;
   bOptionsRestart=FALSE;
 
   xmemset(&psp, 0, sizeof(psp));
@@ -2938,7 +2943,7 @@ void DoSettingsOptions()
       SwitchLayout(lpFrameCurrent->ei.hWndEdit, &ciCurCaret);
   }
 
-  if (bOptionsSave)
+  if (bSaveSettingsSwitch)
   {
     //Save to INI
     SaveOptions(&moCur, lpFrameCurrent, SS_INI, TRUE);
@@ -2949,6 +2954,16 @@ void DoSettingsOptions()
     SaveOptions(&moCur, lpFrameCurrent, SS_REGISTRY, TRUE);
     SaveThemes(SS_REGISTRY);
     StackPluginSave(&hPluginsStack, SS_REGISTRY);
+  }
+  if (bSaveHistorySwitch)
+  {
+    //Save to INI
+    RecentFilesSave(&hRecentFilesStack, SS_INI);
+    SearchSave(SS_INI);
+
+    //Save to registry
+    RecentFilesSave(&hRecentFilesStack, SS_REGISTRY);
+    SearchSave(SS_REGISTRY);
   }
 
   if (bOptionsRestart)
@@ -3370,7 +3385,11 @@ BOOL WriteIni(INIFILE *hIniFile, HANDLE hFile)
 INISECTION* StackOpenIniSection(INIFILE *hIniFile, const wchar_t *wpSection, int nSectionLen, BOOL bCreate)
 {
   INISECTION *lpIniSection;
-  int nSectionBytes=(nSectionLen + 1) * sizeof(wchar_t);
+  int nSectionBytes;
+
+  if (nSectionLen == -1)
+    nSectionLen=(int)xstrlenW(wpSection);
+  nSectionBytes=(nSectionLen + 1) * sizeof(wchar_t);
 
   for (lpIniSection=hIniFile->first; lpIniSection; lpIniSection=lpIniSection->next)
   {
@@ -3400,7 +3419,11 @@ INISECTION* StackOpenIniSection(INIFILE *hIniFile, const wchar_t *wpSection, int
 INIKEY* StackOpenIniKey(INISECTION *lpIniSection, const wchar_t *wpKey, int nKeyLen, BOOL bCreate)
 {
   INIKEY *lpIniKey;
-  int nKeyBytes=(nKeyLen + 1) * sizeof(wchar_t);
+  int nKeyBytes;
+
+  if (nKeyLen == -1)
+    nKeyLen=(int)xstrlenW(wpKey);
+  nKeyBytes=(nKeyLen + 1) * sizeof(wchar_t);
 
   for (lpIniKey=lpIniSection->first; lpIniKey; lpIniKey=lpIniKey->next)
   {
@@ -3612,11 +3635,11 @@ INIKEY* IniOpenKey(INIFILE *hIniFile, const wchar_t *wpSection, const wchar_t *w
 {
   INISECTION *lpIniSection;
 
-  if (!(lpIniSection=StackOpenIniSection(hIniFile, wpSection, (int)xstrlenW(wpSection), bCreate)))
+  if (!(lpIniSection=StackOpenIniSection(hIniFile, wpSection, -1, bCreate)))
     return NULL;
   if (lppIniSection)
     *lppIniSection=lpIniSection;
-  return StackOpenIniKey(lpIniSection, wpKey, (int)xstrlenW(wpKey), bCreate);
+  return StackOpenIniKey(lpIniSection, wpKey, -1, bCreate);
 }
 
 int IniEnumKey(INIFILE *hIniFile, const wchar_t *wpSection, int nIndex, unsigned char *lpData, DWORD dwDataBytes)
@@ -3625,7 +3648,7 @@ int IniEnumKey(INIFILE *hIniFile, const wchar_t *wpSection, int nIndex, unsigned
   INIKEY *lpIniKey;
   int nSize;
 
-  if (!(lpIniSection=StackOpenIniSection(hIniFile, wpSection, (int)xstrlenW(wpSection), FALSE)))
+  if (!(lpIniSection=StackOpenIniSection(hIniFile, wpSection, -1, FALSE)))
     return -1;
   if (!(lpIniKey=StackEnumIniKey(lpIniSection, nIndex)))
     return -1;
@@ -3694,7 +3717,7 @@ DWORD ReadOption(OPTIONHANDLE *oh, const wchar_t *wpParam, DWORD dwType, void *l
     else if (dwType & MOT_BINARY) dwType=INI_BINARY;
     else if (dwType & MOT_STRING) dwType=INI_STRINGUNICODE;
 
-    if (lpIniKey=StackOpenIniKey((INISECTION *)oh->hHandle, wpParam, (int)xstrlenW(wpParam), FALSE))
+    if (lpIniKey=StackOpenIniKey((INISECTION *)oh->hHandle, wpParam, -1, FALSE))
       return StackGetIniData(lpIniKey, dwType, (LPBYTE)lpData, dwSize);
     else
       return 0;
@@ -3747,7 +3770,7 @@ DWORD SaveOption(OPTIONHANDLE *oh, const wchar_t *wpParam, DWORD dwType, void *l
     else if (dwType & MOT_BINARY) dwType=INI_BINARY;
     else if (dwType & MOT_STRING) dwType=INI_STRINGUNICODE;
 
-    if (lpIniKey=StackOpenIniKey((INISECTION *)oh->hHandle, wpParam, (int)xstrlenW(wpParam), TRUE))
+    if (lpIniKey=StackOpenIniKey((INISECTION *)oh->hHandle, wpParam, -1, TRUE))
     {
       StackSetIniData(lpIniKey, dwType, (LPBYTE)lpData, dwSize);
       return dwSize;
@@ -3756,34 +3779,54 @@ DWORD SaveOption(OPTIONHANDLE *oh, const wchar_t *wpParam, DWORD dwType, void *l
   }
 }
 
-void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
+HANDLE ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nType, HANDLE hHandle)
 {
   OPTIONHANDLE oh;
   DWORD dwSize;
 
-  xprintfW(wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
-  if (OpenIni(&hIniFile, wszIniFile, FALSE))
-    IniGetValue(&hIniFile, L"Options", L"SaveSettings", INI_DWORD, (LPBYTE)&mo->nSaveSettings, sizeof(DWORD));
+  if (nType == PCL_ONLOAD)
+  {
+    //On load
+    if (OpenIni(&hAkelPadIni, wszAkelPadIni, FALSE))
+      IniGetValue(&hAkelPadIni, L"Options", L"SaveSettings", INI_DWORD, (LPBYTE)&mo->nSaveSettings, sizeof(DWORD));
+
+    if (mo->nSaveSettings == SS_REGISTRY)
+    {
+      wchar_t wszRegKey[MAX_PATH];
+
+      xprintfW(wszRegKey, L"%s\\Options", APP_REGHOMEW);
+      if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, (HKEY *)&oh.hHandle) != ERROR_SUCCESS)
+        oh.hHandle=NULL;
+    }
+    else
+    {
+      if (!(oh.hHandle=(HANDLE)StackOpenIniSection(&hAkelPadIni, L"Options", -1, FALSE)))
+        oh.hHandle=NULL;
+    }
+  }
+  else oh.hHandle=hHandle;
+
   oh.mo=mo;
   oh.fd=fd;
   oh.nSaveSettings=mo->nSaveSettings;
 
-  if (oh.nSaveSettings == SS_REGISTRY)
-  {
-    wchar_t wszRegKey[MAX_PATH];
-
-    xprintfW(wszRegKey, L"%s\\Options", APP_REGHOMEW);
-    if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, (HKEY *)&oh.hHandle) != ERROR_SUCCESS)
-      oh.hHandle=NULL;
-  }
-  else
-  {
-    if (!(oh.hHandle=(HANDLE)StackOpenIniSection(&hIniFile, L"Options", (int)xstrlenW(L"Options"), FALSE)))
-      oh.hHandle=NULL;
-  }
-
   if (oh.hHandle)
   {
+    if (nType == PCL_ONLOAD)
+    {
+      //On load
+      ReadOption(&oh, L"MDI", MOT_DWORD, &mo->nMDI, sizeof(DWORD));
+      ReadOption(&oh, L"SingleOpenFile", MOT_DWORD, &mo->bSingleOpenFile, sizeof(DWORD));
+      ReadOption(&oh, L"SingleOpenProgram", MOT_DWORD, &mo->dwSingleOpenProgram, sizeof(DWORD));
+
+      ReadOption(&oh, L"FileTypesOpen", MOT_STRING, mo->wszFileTypesOpen, sizeof(mo->wszFileTypesOpen));
+      ReadOption(&oh, L"FileTypesEdit", MOT_STRING, mo->wszFileTypesEdit, sizeof(mo->wszFileTypesEdit));
+      ReadOption(&oh, L"FileTypesPrint", MOT_STRING, mo->wszFileTypesPrint, sizeof(mo->wszFileTypesPrint));
+      ReadOption(&oh, L"FileTypesAssociated", MOT_DWORD, &mo->dwFileTypesAssociated, sizeof(DWORD));
+      return oh.hHandle;
+    }
+    ReadOption(&oh, L"SaveHistory", MOT_DWORD, &mo->nSaveHistory, sizeof(DWORD));
+
     //Manual
     if (dwSize=ReadOption(&oh, L"CmdLineBegin", MOT_STRING, NULL, 0))
     {
@@ -3896,9 +3939,6 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"KeepSpace", MOT_DWORD, &mo->bKeepSpace, sizeof(DWORD));
     ReadOption(&oh, L"WatchFile", MOT_DWORD, &mo->bWatchFile, sizeof(DWORD));
     ReadOption(&oh, L"SaveTime", MOT_DWORD, &mo->bSaveTime, sizeof(DWORD));
-    ReadOption(&oh, L"SingleOpenFile", MOT_DWORD, &mo->bSingleOpenFile, sizeof(DWORD));
-    ReadOption(&oh, L"SingleOpenProgram", MOT_DWORD, &mo->dwSingleOpenProgram, sizeof(DWORD));
-    ReadOption(&oh, L"MDI", MOT_DWORD, &mo->nMDI, sizeof(DWORD));
     if (mo->nMDI)
     {
       ReadOption(&oh, L"TabOptionsMDI", MOT_DWORD, &mo->dwTabOptionsMDI, sizeof(DWORD));
@@ -3926,10 +3966,6 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"SaveCodepages", MOT_DWORD, &mo->bSaveCodepages, sizeof(DWORD));
     ReadOption(&oh, L"RecentFiles", MOT_DWORD, &mo->nRecentFiles, sizeof(DWORD));
     ReadOption(&oh, L"SearchStrings", MOT_DWORD, &mo->nSearchStrings, sizeof(DWORD));
-    ReadOption(&oh, L"FileTypesOpen", MOT_STRING, mo->wszFileTypesOpen, sizeof(mo->wszFileTypesOpen));
-    ReadOption(&oh, L"FileTypesEdit", MOT_STRING, mo->wszFileTypesEdit, sizeof(mo->wszFileTypesEdit));
-    ReadOption(&oh, L"FileTypesPrint", MOT_STRING, mo->wszFileTypesPrint, sizeof(mo->wszFileTypesPrint));
-    ReadOption(&oh, L"FileTypesAssociated", MOT_DWORD, &mo->dwFileTypesAssociated, sizeof(DWORD));
     ReadOption(&oh, L"KeybLayoutOptions", MOT_DWORD, &mo->dwKeybLayoutOptions, sizeof(DWORD));
     ReadOption(&oh, L"SilentCloseEmptyMDI", MOT_DWORD, &mo->bSilentCloseEmptyMDI, sizeof(DWORD));
     ReadOption(&oh, L"DateLog", MOT_DWORD, &mo->bDateLog, sizeof(DWORD));
@@ -3987,13 +4023,11 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     {
       ReadOption(&oh, L"WindowStyleMDI", MOT_DWORD, &mo->dwMdiStyle, sizeof(DWORD));
     }
-
-    //Close handle
-    if (oh.nSaveSettings == SS_REGISTRY)
-    {
-      RegCloseKey((HKEY)oh.hHandle);
-      oh.hHandle=NULL;
-    }
+  }
+  else if (nType == PCL_ONLOAD)
+  {
+    //On load
+    return NULL;
   }
 
   //Read and register plugins hotkeys
@@ -4002,8 +4036,21 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
   //Read theams
   ReadThemes(mo);
 
-  //Free INI
-  StackFreeIni(&hIniFile);
+  //Read search history
+  SearchRead(mo);
+
+  //Read search history
+  RecentFilesRead(mo, &hRecentFilesStack);
+  bMenuRecentFiles=TRUE;
+
+  //Close handle
+  if (mo->nSaveSettings == SS_REGISTRY)
+  {
+    if (oh.hHandle) RegCloseKey((HKEY)oh.hHandle);
+  }
+  else StackFreeIni(&hAkelPadIni);
+
+  return NULL;
 }
 
 BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceWrite)
@@ -4054,14 +4101,17 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   }
   else
   {
-    if (!OpenIni(&hIniFile, wszIniFile, TRUE))
+    if (!OpenIni(&hAkelPadIni, wszAkelPadIni, TRUE))
       return FALSE;
-    if (!(oh.hHandle=(HANDLE)StackOpenIniSection(&hIniFile, L"Options", (int)xstrlenW(L"Options"), TRUE)))
+    if (!(oh.hHandle=(HANDLE)StackOpenIniSection(&hAkelPadIni, L"Options", -1, TRUE)))
       goto Error;
 
     if (!SaveOption(&oh, L"SaveSettings", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, nSaveSettings), sizeof(DWORD)))
       goto Error;
   }
+
+  if (!SaveOption(&oh, L"SaveHistory", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, nSaveHistory), sizeof(DWORD)))
+    goto Error;
 
   //Manual
   if (bForceWrite || bCmdLineChanged ||
@@ -4333,7 +4383,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (oh.nSaveSettings == SS_REGISTRY)
     bResult=TRUE;
   else
-    bResult=SaveIni(&hIniFile, wszIniFile);
+    bResult=SaveIni(&hAkelPadIni, wszAkelPadIni);
 
   if (bResult)
   {
@@ -4348,7 +4398,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (oh.nSaveSettings == SS_REGISTRY)
     RegCloseKey((HKEY)oh.hHandle);
   else
-    StackFreeIni(&hIniFile);
+    StackFreeIni(&hAkelPadIni);
   return bResult;
 }
 
@@ -4643,7 +4693,7 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
     if (IsDocActive(hDoc) && !(dwFlags & OD_NOUPDATE))
     {
       //Save position of the previous file before load new document
-      RecentFilesSaveFile(lpFrameCurrent);
+      RecentFilesFrameUpdate(lpFrameCurrent);
 
       //Create edit window if necessary
       if (nMDI && !(dwFlags & OD_REOPEN) && (!lpFrameCurrent->hWndEditParent || lpFrameCurrent->ei.bModified || lpFrameCurrent->wszFile[0]))
@@ -4702,10 +4752,8 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
           //Read position of the new document
           if (moCur.nRecentFiles)
           {
-            RecentFilesRead(&hRecentFilesStack);
             if (lpRecentFile=RecentFilesUpdate(wszFile))
               lpRecentFile->nCodePage=nCodePage;
-            RecentFilesSave(&hRecentFilesStack);
             if (nFileCmp) bMenuRecentFiles=TRUE;
           }
         }
@@ -5576,7 +5624,7 @@ int SaveDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, int nCodePage, B
             UpdateTitle(lpFrameCurrent);
           }
           if (nFileCmp || nCodePageCmp)
-            RecentFilesSaveFile(lpFrameCurrent);
+            RecentFilesFrameUpdate(lpFrameCurrent);
 
           if ((dwFlags & SD_SELECTION) || nLostLine ||
               //Is output new line format is changed?
@@ -9353,28 +9401,301 @@ unsigned int TranslateNewLinesToUnixW(wchar_t *wszWideString, unsigned int nWide
 
 //// Find/Replace
 
-void RegReadSearch()
+SEARCHITEM* SearchInsert(STACKSEARCH *hStack, int nIndex)
 {
-  wchar_t wszRegKey[MAX_PATH];
-  HKEY hKey;
-  DWORD dwType;
-  DWORD dwSize;
+  SEARCHITEM *lpSearchItem=NULL;
 
-  xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
-  if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
-    return;
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpSearchItem, nIndex, sizeof(SEARCHITEM)))
+    ++hStack->nElements;
 
-  if (RegQueryValueExWide(hKey, L"find0", NULL, &dwType, NULL, &dwSize) == ERROR_SUCCESS && dwSize > 0)
+  return lpSearchItem;
+}
+
+void SearchDelete(STACKSEARCH *hStack, SEARCHITEM *lpSearchItem)
+{
+  API_FreeWide(lpSearchItem->wpString);
+  StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpSearchItem);
+  --hStack->nElements;
+}
+
+void SearchMove(STACKSEARCH *hStack, SEARCHITEM *lpSearchItem, int nIndex)
+{
+  StackMoveIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpSearchItem, nIndex);
+}
+
+void SearchZero(STACKSEARCH *hStack)
+{
+  SEARCHITEM *lpSearchItem;
+
+  for (lpSearchItem=hStack->first; lpSearchItem; lpSearchItem=lpSearchItem->next)
   {
-    if (wszFindText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
+    API_FreeWide(lpSearchItem->wpString);
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+  hStack->nElements=0;
+}
+
+SEARCHITEM* SearchFindByIndex(STACKSEARCH *hStack, int nIndex)
+{
+  SEARCHITEM *lpSearchItem;
+  int i=0;
+
+  for (lpSearchItem=hStack->first; lpSearchItem; lpSearchItem=lpSearchItem->next)
+  {
+    if (i++ == nIndex)
+      return lpSearchItem;
+  }
+  return NULL;
+}
+
+SEARCHITEM* SearchFindByName(STACKSEARCH *hStack, const wchar_t *wpString, int nStringLen, int *lpIndex)
+{
+  SEARCHITEM *lpSearchItem;
+  int nIndex=0;
+
+  for (lpSearchItem=hStack->first; lpSearchItem; lpSearchItem=lpSearchItem->next)
+  {
+    if (lpSearchItem->nStringLen == nStringLen && !xstrcmpW(lpSearchItem->wpString, wpString))
     {
-      if (RegQueryValueExWide(hKey, L"find0", NULL, &dwType, (LPBYTE)wszFindText, &dwSize) == ERROR_SUCCESS)
+      if (lpIndex) *lpIndex=nIndex;
+      return lpSearchItem;
+    }
+    ++nIndex;
+  }
+  if (lpIndex) *lpIndex=-1;
+  return NULL;
+}
+
+SEARCHITEM* SearchUpdate(STACKSEARCH *hStack, wchar_t *wpString, int nStringLen, int *lpIndex)
+{
+  SEARCHITEM *lpSearchItem;
+
+  if (lpSearchItem=SearchFindByName(hStack, wpString, nStringLen, lpIndex))
+  {
+    StackMoveIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpSearchItem, 1);
+  }
+  else
+  {
+    if (lpSearchItem=SearchInsert(hStack, 1))
+    {
+      if (lpSearchItem->wpString=API_AllocWide(nStringLen + 1))
+        lpSearchItem->nStringLen=(int)xstrcpynW(lpSearchItem->wpString, wpString, nStringLen + 1);
+      if (hStack->nElements > moCur.nSearchStrings)
       {
-        nFindTextLen=dwSize / sizeof(wchar_t) - 1;
+        SearchDelete(hStack, hStack->last);
+        if (lpIndex) *lpIndex=moCur.nSearchStrings - 1;
       }
     }
   }
-  RegCloseKey(hKey);
+  return lpSearchItem;
+}
+
+void SearchFreeLast()
+{
+  if (wszFindText)
+  {
+    API_FreeWide(wszFindText);
+    wszFindText=NULL;
+  }
+  if (wszReplaceText)
+  {
+    API_FreeWide(wszReplaceText);
+    wszReplaceText=NULL;
+  }
+}
+
+int SearchRead(MAINOPTIONS *mo)
+{
+  wchar_t wszRegKey[MAX_PATH];
+  wchar_t wszRegValue[32];
+  wchar_t *wszData;
+  const wchar_t *wpKey;
+  STACKSEARCH *hStack;
+  SEARCHITEM *lpSearchItem;
+  HKEY hKey;
+  DWORD dwType;
+  DWORD dwSize;
+  DWORD dwDataLen;
+  int nIndex=0;
+
+  if (!mo->nSearchStrings) return 0;
+
+  if (mo->nSaveHistory == SS_REGISTRY)
+  {
+    xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
+    if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
+      return 0;
+
+    hStack=&hFindStack;
+    wpKey=L"find%d";
+
+    RegRead:
+    SearchZero(hStack);
+
+    while (nIndex < mo->nSearchStrings)
+    {
+      xprintfW(wszRegValue, wpKey, nIndex);
+      if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, NULL, &dwSize) != ERROR_SUCCESS)
+        break;
+
+      dwDataLen=dwSize / sizeof(wchar_t);
+      if (!(wszData=API_AllocWide(dwDataLen)))
+        break;
+      RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wszData, &dwSize);
+
+      if (lpSearchItem=SearchInsert(hStack, -1))
+      {
+        lpSearchItem->wpString=wszData;
+        lpSearchItem->nStringLen=(int)(dwDataLen - 1);
+      }
+      ++nIndex;
+    }
+
+    if (wpKey == L"find%d")
+    {
+      hStack=&hReplaceStack;
+      wpKey=L"replace%d";
+      nIndex=0;
+      goto RegRead;
+    }
+    RegCloseKey(hKey);
+  }
+  else
+  {
+    INISECTION *lpIniSection;
+    INIKEY *lpIniKey;
+
+    if (!OpenIni(&hAkelPadIni, wszAkelPadIni, FALSE))
+      return 0;
+
+    if (lpIniSection=StackOpenIniSection(&hAkelPadIni, L"Search", -1, FALSE))
+    {
+      hStack=&hFindStack;
+      wpKey=L"find";
+      lpIniKey=lpIniSection->first;
+
+      IniRead:
+      SearchZero(hStack);
+
+      for (; lpIniKey; lpIniKey=lpIniKey->next)
+      {
+        if (xstrcmpnW(wpKey, lpIniKey->wszKey, (UINT_PTR)-1))
+          break;
+        if (nIndex >= mo->nSearchStrings) break;
+
+        if ((dwSize=(DWORD)StackGetIniData(lpIniKey, INI_BINARY, NULL, 0)) == (DWORD)-1)
+          break;
+
+        dwDataLen=dwSize / sizeof(wchar_t);
+        if (!(wszData=API_AllocWide(dwDataLen)))
+          break;
+        StackGetIniData(lpIniKey, INI_BINARY, (LPBYTE)wszData, dwSize);
+
+        if (lpSearchItem=SearchInsert(hStack, -1))
+        {
+          lpSearchItem->wpString=wszData;
+          lpSearchItem->nStringLen=(int)(dwDataLen - 1);
+        }
+        ++nIndex;
+      }
+
+      if (wpKey == L"find")
+      {
+        hStack=&hReplaceStack;
+        wpKey=L"replace";
+        nIndex=0;
+
+        //Find first "replace" key
+        for (; lpIniKey; lpIniKey=lpIniKey->next)
+        {
+          if (!xstrcmpnW(wpKey, lpIniKey->wszKey, (UINT_PTR)-1))
+            break;
+        }
+        goto IniRead;
+      }
+    }
+    StackFreeIni(&hAkelPadIni);
+  }
+
+  if (lpSearchItem=hFindStack.first)
+  {
+    if (wszFindText=API_AllocWide(lpSearchItem->nStringLen + 1))
+      nFindTextLen=(int)xstrcpynW(wszFindText, lpSearchItem->wpString, lpSearchItem->nStringLen + 1);
+  }
+  if (lpSearchItem=hReplaceStack.first)
+  {
+    if (wszReplaceText=API_AllocWide(lpSearchItem->nStringLen + 1))
+      nReplaceTextLen=(int)xstrcpynW(wszReplaceText, lpSearchItem->wpString, lpSearchItem->nStringLen + 1);
+  }
+  return nIndex;
+}
+
+BOOL SearchSave(int nSaveHistory)
+{
+  wchar_t wszRegKey[MAX_PATH];
+  wchar_t wszRegValue[32];
+  const wchar_t *wpKey;
+  STACKSEARCH *hStack;
+  INISECTION *lpIniSection;
+  SEARCHITEM *lpSearchItem;
+  HKEY hKey;
+  int nIndex=0;
+  BOOL bResult;
+
+  if (!moCur.nSearchStrings) return FALSE;
+
+  if (nSaveHistory == SS_REGISTRY)
+  {
+    xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
+    //Clean old
+    RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
+    if (RegCreateKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
+      return FALSE;
+  }
+  else
+  {
+    if (!OpenIni(&hAkelPadIni, wszAkelPadIni, TRUE))
+      return FALSE;
+    //Clean old
+    if (lpIniSection=StackOpenIniSection(&hAkelPadIni, L"Search", -1, FALSE))
+      StackDeleteIniSection(&hAkelPadIni, lpIniSection, TRUE);
+  }
+
+  hStack=&hFindStack;
+  wpKey=L"find%d";
+
+  RegSave:
+  for (lpSearchItem=hStack->first; lpSearchItem; lpSearchItem=lpSearchItem->next)
+  {
+    if (nIndex >= moCur.nSearchStrings) break;
+    xprintfW(wszRegValue, wpKey, nIndex);
+    if (nSaveHistory == SS_REGISTRY)
+      RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)lpSearchItem->wpString, (lpSearchItem->nStringLen + 1) * sizeof(wchar_t));
+    else
+      IniSetValue(&hAkelPadIni, L"Search", wszRegValue, INI_BINARY, (LPBYTE)lpSearchItem->wpString, (lpSearchItem->nStringLen + 1) * sizeof(wchar_t));
+
+    ++nIndex;
+  }
+
+  if (wpKey == L"find%d")
+  {
+    hStack=&hReplaceStack;
+    wpKey=L"replace%d";
+    nIndex=0;
+    goto RegSave;
+  }
+
+  if (nSaveHistory == SS_REGISTRY)
+  {
+    RegCloseKey(hKey);
+    bResult=TRUE;
+  }
+  else
+  {
+    bResult=SaveIni(&hAkelPadIni, wszAkelPadIni);
+    StackFreeIni(&hAkelPadIni);
+  }
+  return bResult;
 }
 
 BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -9461,10 +9782,9 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         bInSelAutoCheck=TRUE;
       }
     }
-    if (moCur.nSearchStrings)
-    {
-      FillComboboxSearch(hWndFind, hWndReplace);
-    }
+    FillComboboxSearch(&hFindStack, hWndFind);
+    if (nModelessType == MLT_REPLACE)
+      FillComboboxSearch(&hReplaceStack, hWndReplace);
     if (!SendMessage(hDlg, AKDLG_PUTFIND, 0, 0))
       SendMessage(hWndFind, CB_SETCURSEL, 0, 0);
 
@@ -9474,9 +9794,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       ShowWindow(hWndAllFilesGroup, SW_HIDE);
     }
     if (nModelessType == MLT_REPLACE)
-    {
       SendMessage(hWndReplace, CB_SETCURSEL, 0, 0);
-    }
 
     if (moCur.dwSearchOptions & FRF_SELECTION)
       SendMessage(hWndInSelection, BM_SETCHECK, BST_CHECKED, 0);
@@ -9756,18 +10074,18 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         else if (wCommand == IDC_SEARCH_ALL_BUTTON)
           bReplaceAll=TRUE;
       }
-      FreeMemorySearch();
+      SearchFreeLast();
 
-      if ((nFindTextLen=GetComboboxSearchText(hWndFind, &wszFindText, NEWLINE_MAC)) <= 0)
+      if ((nFindTextLen=GetComboboxSearchText(&hFindStack, hWndFind, &wszFindText)) <= 0)
       {
-        FreeMemorySearch();
+        SearchFreeLast();
         return TRUE;
       }
       if (nModelessType == MLT_REPLACE)
       {
-        if ((nReplaceTextLen=GetComboboxSearchText(hWndReplace, &wszReplaceText, NEWLINE_MAC)) < 0)
+        if ((nReplaceTextLen=GetComboboxSearchText(&hReplaceStack, hWndReplace, &wszReplaceText)) < 0)
         {
-          FreeMemorySearch();
+          SearchFreeLast();
           return TRUE;
         }
       }
@@ -9888,8 +10206,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       }
       if (bInSelAutoCheck)
         moCur.dwSearchOptions&=~FRF_SELECTION;
-      if (moCur.nSearchStrings)
-        SaveComboboxSearch(hWndFind, hWndReplace);
+
       if (hMenuArrow)
       {
         DestroyMenu(hMenuArrow);
@@ -9908,11 +10225,11 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     {
       if (GetWindowTextLengthWide(hWndFind))
       {
-        FreeMemorySearch();
+        SearchFreeLast();
 
-        if ((nFindTextLen=GetComboboxSearchText(hWndFind, &wszFindText, NEWLINE_MAC)) <= 0)
+        if ((nFindTextLen=GetComboboxSearchText(&hFindStack, hWndFind, &wszFindText)) <= 0)
         {
-          FreeMemorySearch();
+          SearchFreeLast();
           return TRUE;
         }
 
@@ -9947,57 +10264,20 @@ LRESULT CALLBACK NewComboboxEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   return CallWindowProcWide(lpOldComboboxEdit, hWnd, uMsg, wParam, lParam);
 }
 
-void FillComboboxSearch(HWND hWndFind, HWND hWndReplace)
+void FillComboboxSearch(STACKSEARCH *hStack, HWND hWnd)
 {
-  wchar_t wszRegKey[MAX_PATH];
-  wchar_t wszRegValue[32];
-  wchar_t *wszData;
-  HWND hWnd;
-  HKEY hKey;
-  DWORD dwType;
-  DWORD dwSize;
-  int i;
+  SEARCHITEM *lpSearchItem;
 
-  xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
-  if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
-    return;
-
-  hWnd=hWndFind;
-  xstrcpyW(wbuf, L"find%d");
-
-  ReadW:
-  for (i=0; i < moCur.nSearchStrings; ++i)
+  for (lpSearchItem=hStack->first; lpSearchItem; lpSearchItem=lpSearchItem->next)
   {
-    xprintfW(wszRegValue, wbuf, i);
-
-    if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, NULL, &dwSize) == ERROR_SUCCESS && dwSize > 0)
-    {
-      if (wszData=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
-      {
-        if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wszData, &dwSize) == ERROR_SUCCESS)
-        {
-          ComboBox_AddStringWide(hWnd, wszData);
-          API_HeapFree(hHeap, 0, (LPVOID)wszData);
-          continue;
-        }
-      }
-    }
-    break;
+    ComboBox_AddStringWide(hWnd, lpSearchItem->wpString);
   }
-  if (nModelessType == MLT_REPLACE && hWnd != hWndReplace)
-  {
-    hWnd=hWndReplace;
-    xstrcpyW(wbuf, L"replace%d");
-    goto ReadW;
-  }
-  RegCloseKey(hKey);
 }
 
-int GetComboboxSearchText(HWND hWnd, wchar_t **wszText, int nNewLine)
+int GetComboboxSearchText(STACKSEARCH *hStack, HWND hWnd, wchar_t **wszText)
 {
   int nTextLen=-1;
   int nIndex;
-  int nItemLen;
 
   bLockSearchSetTextCatch=TRUE;
   nTextLen=GetWindowTextLengthWide(hWnd) + 1;
@@ -10008,20 +10288,9 @@ int GetComboboxSearchText(HWND hWnd, wchar_t **wszText, int nNewLine)
 
     if (moCur.nSearchStrings)
     {
-      if (**wszText)
-      {
-        if ((nIndex=ComboBox_FindStringExactWide(hWnd, 0, *wszText)) != CB_ERR)
-        {
-          if (nIndex == 0) goto End;
-          SendMessage(hWnd, CB_DELETESTRING, (WPARAM)nIndex, 0);
-        }
-      }
-      else
-      {
-        for (nIndex=0; (nItemLen=ComboBox_GetLBTextLenWide(hWnd, nIndex)) != CB_ERR && nItemLen; ++nIndex);
-        if (!nItemLen) SendMessage(hWnd, CB_DELETESTRING, (WPARAM)nIndex, 0);
-      }
-      SendMessage(hWnd, CB_DELETESTRING, moCur.nSearchStrings - 1, 0);
+      SearchUpdate(hStack, *wszText, nTextLen, &nIndex);
+      if (nIndex == 0) goto End;
+      if (nIndex > 0) SendMessage(hWnd, CB_DELETESTRING, (WPARAM)nIndex, 0);
       ComboBox_InsertStringWide(hWnd, 0, *wszText);
       SendMessage(hWnd, CB_SETCURSEL, 0, 0);
     }
@@ -10029,51 +10298,6 @@ int GetComboboxSearchText(HWND hWnd, wchar_t **wszText, int nNewLine)
   End:
   bLockSearchSetTextCatch=FALSE;
   return nTextLen;
-}
-
-void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace)
-{
-  wchar_t wszRegKey[MAX_PATH];
-  wchar_t wszRegValue[32];
-  wchar_t *wszRegData;
-  HWND hWnd;
-  HKEY hKey;
-  int nSize;
-  int i;
-
-  xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
-  if (RegCreateKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
-    return;
-
-  hWnd=hWndFind;
-  xstrcpyW(wbuf, L"find%d");
-
-  SaveW:
-  for (i=0; i < moCur.nSearchStrings; ++i)
-  {
-    xprintfW(wszRegValue, wbuf, i);
-
-    if ((nSize=ComboBox_GetLBTextLenWide(hWnd, i)) != CB_ERR)
-    {
-      ++nSize;
-
-      if (wszRegData=API_AllocWide(nSize + 1))
-      {
-        ComboBox_GetLBTextWide(hWnd, i, wszRegData);
-        RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)wszRegData, nSize * sizeof(wchar_t));
-        API_FreeWide(wszRegData);
-        continue;
-      }
-    }
-    break;
-  }
-  if (nModelessType == MLT_REPLACE && hWnd != hWndReplace)
-  {
-    hWnd=hWndReplace;
-    xstrcpyW(wbuf, L"replace%d");
-    goto SaveW;
-  }
-  RegCloseKey(hKey);
 }
 
 INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen)
@@ -11971,20 +12195,24 @@ RECENTFILE* RecentFilesUpdate(const wchar_t *wpFile)
   return lpRecentFile;
 }
 
-void RecentFilesRefresh(STACKRECENTFILE *hStack)
+BOOL RecentFilesCut(STACKRECENTFILE *hStack)
 {
-  RecentFilesZero(hStack);
-  RecentFilesRead(hStack);
-  bMenuRecentFiles=TRUE;
+  RECENTFILE *lpRecentFile;
+  RECENTFILE *lpNextRecentFile;
+  int nCount=1;
 
-  //Clean save
+  for (lpRecentFile=hStack->first; lpRecentFile; lpRecentFile=lpNextRecentFile)
   {
-    wchar_t wszRegKey[MAX_PATH];
+    lpNextRecentFile=lpRecentFile->next;
 
-    xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
-    RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
-    RecentFilesSave(hStack);
+    if (nCount > moCur.nRecentFiles)
+    {
+      bMenuRecentFiles=TRUE;
+      RecentFilesDelete(hStack, lpRecentFile);
+    }
+    ++nCount;
   }
+  return (nCount > moCur.nRecentFiles);
 }
 
 int RecentFilesDeleteOld(STACKRECENTFILE *hStack)
@@ -12000,6 +12228,7 @@ int RecentFilesDeleteOld(STACKRECENTFILE *hStack)
 
     if (!FileExistsWide(lpRecentFile->wszFile))
     {
+      bMenuRecentFiles=TRUE;
       RecentFilesDelete(hStack, lpRecentFile);
       ++nDead;
     }
@@ -12007,20 +12236,126 @@ int RecentFilesDeleteOld(STACKRECENTFILE *hStack)
   return nDead;
 }
 
-int RecentFilesRead(STACKRECENTFILE *hStack)
+int RecentFilesRead(MAINOPTIONS *mo, STACKRECENTFILE *hStack)
 {
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
-  wchar_t *wszRegData;
-  const wchar_t *wpCount;
+  wchar_t *wszData;
   HKEY hKey;
   DWORD dwType;
   DWORD dwSize;
+  DWORD dwDataLen;
   DWORD dwDataMax;
-  DWORD dwSaveTime;
-  int i=0;
+  DWORD dwSaveTime=0;
+  int nIndex=0;
 
-  //Params
+  if (!mo->nRecentFiles) return 0;
+
+  if (mo->nSaveHistory == SS_REGISTRY)
+  {
+    xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
+    if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
+      return 0;
+
+    //Tick count
+    dwSize=sizeof(DWORD);
+    RegQueryValueExWide(hKey, L"SaveTime", NULL, &dwType, (LPBYTE)&dwSaveTime, &dwSize);
+
+    if (hStack->dwSaveTime != dwSaveTime)
+    {
+      RecentFilesZero(hStack);
+
+      dwDataMax=BUFFER_SIZE;
+      if (wszData=API_AllocWide(dwDataMax))
+      {
+        while (nIndex < mo->nRecentFiles)
+        {
+          xprintfW(wszRegValue, L"file%d", nIndex);
+          if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, NULL, &dwSize) != ERROR_SUCCESS)
+            break;
+
+          dwDataLen=dwSize / sizeof(wchar_t);
+          if (dwDataLen + 1 > dwDataMax)
+          {
+            API_FreeWide(wszData);
+            dwDataMax=dwDataLen + 1;
+            if (!(wszData=API_AllocWide(dwDataMax)))
+              break;
+          }
+          RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wszData, &dwSize);
+          if (!*wszData || dwType != REG_MULTI_SZ)
+            break;
+          wszData[dwDataLen]=L'\0';
+
+          RecentFilesParseData(hStack, wszData);
+          ++nIndex;
+        }
+        API_FreeWide(wszData);
+      }
+    }
+    RegCloseKey(hKey);
+  }
+  else
+  {
+    INISECTION *lpIniSection;
+    INIKEY *lpIniKey;
+
+    if (!OpenIni(&hAkelPadIni, wszAkelPadIni, FALSE))
+      return 0;
+
+    if (lpIniSection=StackOpenIniSection(&hAkelPadIni, L"Recent", -1, FALSE))
+    {
+      if (lpIniKey=lpIniSection->first)
+      {
+        //Tick count
+        if (!xstrcmpiW(lpIniKey->wszKey, L"SaveTime"))
+        {
+          dwSaveTime=(DWORD)xatoiW(lpIniKey->wszString, NULL);
+          lpIniKey=lpIniKey->next;
+        }
+        else goto FreeIni;
+
+        if (hStack->dwSaveTime != dwSaveTime)
+        {
+          RecentFilesZero(hStack);
+
+          dwDataMax=BUFFER_SIZE;
+          if (wszData=API_AllocWide(dwDataMax))
+          {
+            for (; lpIniKey; lpIniKey=lpIniKey->next)
+            {
+              if (nIndex >= mo->nRecentFiles) break;
+
+              dwDataLen=(DWORD)(lpIniKey->nStringBytes / sizeof(wchar_t));
+              if (dwDataLen + 1 > dwDataMax)
+              {
+                API_FreeWide(wszData);
+                dwDataMax=dwDataLen + 1;
+                if (!(wszData=API_AllocWide(dwDataMax)))
+                  break;
+              }
+              StrReplace(lpIniKey->wszString, dwDataLen, L"|", 1, L"\x0000", 1, FRF_MATCHCASE, wszData, NULL, NULL, NULL, 0);
+              if (!*wszData)
+                break;
+              wszData[dwDataLen]=L'\0';
+
+              RecentFilesParseData(hStack, wszData);
+              ++nIndex;
+            }
+            API_FreeWide(wszData);
+          }
+        }
+      }
+    }
+    FreeIni:
+    StackFreeIni(&hAkelPadIni);
+  }
+  return nIndex;
+}
+
+void RecentFilesParseData(STACKRECENTFILE *hStack, const wchar_t *wpData)
+{
+  const wchar_t *wpCount;
   RECENTFILE *lpRecentFile;
   RECENTFILEPARAM *lpRecentFileParam;
   const wchar_t *wpParamName;
@@ -12028,107 +12363,67 @@ int RecentFilesRead(STACKRECENTFILE *hStack)
   int nParamNameLen;
   int nParamValueLen;
 
-  if (!moCur.nRecentFiles) return 0;
-
-  //Read recent files array
-  xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
-  if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
-    return 0;
-
-  //Tick count
-  dwSize=sizeof(DWORD);
-  RegQueryValueExWide(hKey, L"SaveTime", NULL, &dwType, (LPBYTE)&dwSaveTime, &dwSize);
-
-  if (hStack->dwSaveTime != dwSaveTime)
+  if (lpRecentFile=RecentFilesInsert(hStack, -1))
   {
-    RecentFilesZero(hStack);
+    //File
+    wpCount=wpData;
+    lpRecentFile->nFileLen=(int)xstrcpynW(lpRecentFile->wszFile, wpCount, MAX_PATH);
+    wpCount+=lpRecentFile->nFileLen + 1;
 
-    dwDataMax=BUFFER_SIZE;
-    if (wszRegData=API_AllocWide(dwDataMax))
+    //Codepage
+    if (*wpCount)
     {
-      for (i=0; i < moCur.nRecentFiles; ++i)
+      lpRecentFile->nCodePage=(int)xatoiW(wpCount, NULL);
+      wpCount+=xstrlenW(wpCount) + 1;
+    }
+
+    //Position
+    if (*wpCount)
+    {
+      lpRecentFile->cpMin=lpRecentFile->cpMax=xatoiW(wpCount, &wpCount);
+      if (*wpCount == L'-')
+        lpRecentFile->cpMax=xatoiW(++wpCount, NULL);
+      wpCount+=xstrlenW(wpCount) + 1;
+    }
+
+    //Parameters
+    if (*wpCount)
+    {
+      for (wpParamName=wpCount; *wpCount; ++wpCount)
       {
-        xprintfW(wszRegValue, L"file%d", i);
-        if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, NULL, &dwSize) != ERROR_SUCCESS)
-          break;
-
-        if (dwSize / sizeof(wchar_t) + 1 > dwDataMax)
+        if (*wpCount == L'=')
         {
-          API_FreeWide(wszRegData);
-          dwDataMax=dwSize / sizeof(wchar_t) + 1;
-          if (!(wszRegData=API_AllocWide(dwDataMax)))
-            break;
-        }
-        RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wszRegData, &dwSize);
-        if (!*wszRegData || dwType != REG_MULTI_SZ)
-          break;
-        wszRegData[dwSize / sizeof(wchar_t)]=L'\0';
+          nParamNameLen=(int)(wpCount - wpParamName);
+          wpParamValue=wpCount + 1;
+          while (*++wpCount);
+          nParamValueLen=(int)(wpCount - wpParamValue);
 
-        if (lpRecentFile=RecentFilesInsert(hStack, -1))
-        {
-          //File
-          wpCount=wszRegData;
-          lpRecentFile->nFileLen=(int)xstrcpynW(lpRecentFile->wszFile, wpCount, MAX_PATH);
-          wpCount+=lpRecentFile->nFileLen + 1;
-
-          //Codepage
-          if (*wpCount)
+          if (lpRecentFileParam=StackRecentFileParamAdd(lpRecentFile))
           {
-            lpRecentFile->nCodePage=(int)xatoiW(wpCount, NULL);
-            wpCount+=xstrlenW(wpCount) + 1;
+            if (lpRecentFileParam->pParamName=API_AllocWide(nParamNameLen + 1))
+              xstrcpynW(lpRecentFileParam->pParamName, wpParamName, nParamNameLen + 1);
+            if (lpRecentFileParam->pParamValue=API_AllocWide(nParamValueLen + 1))
+              xstrcpynW(lpRecentFileParam->pParamValue, wpParamValue, nParamValueLen + 1);
           }
-
-          //Position
-          if (*wpCount)
-          {
-            lpRecentFile->cpMin=lpRecentFile->cpMax=xatoiW(wpCount, &wpCount);
-            if (*wpCount == L'-')
-              lpRecentFile->cpMax=xatoiW(++wpCount, NULL);
-            wpCount+=xstrlenW(wpCount) + 1;
-          }
-
-          //Parameters
-          if (*wpCount)
-          {
-            for (wpParamName=wpCount; *wpCount; ++wpCount)
-            {
-              if (*wpCount == L'=')
-              {
-                nParamNameLen=(int)(wpCount - wpParamName);
-                wpParamValue=wpCount + 1;
-                while (*++wpCount);
-                nParamValueLen=(int)(wpCount - wpParamValue);
-
-                if (lpRecentFileParam=StackRecentFileParamAdd(lpRecentFile))
-                {
-                  if (lpRecentFileParam->pParamName=API_AllocWide(nParamNameLen + 1))
-                    xstrcpynW(lpRecentFileParam->pParamName, wpParamName, nParamNameLen + 1);
-                  if (lpRecentFileParam->pParamValue=API_AllocWide(nParamValueLen + 1))
-                    xstrcpynW(lpRecentFileParam->pParamValue, wpParamValue, nParamValueLen + 1);
-                }
-                wpParamName=wpCount + 1;
-              }
-            }
-          }
+          wpParamName=wpCount + 1;
         }
       }
-      API_FreeWide(wszRegData);
     }
   }
-  RegCloseKey(hKey);
-  return i;
 }
 
-void RecentFilesSave(STACKRECENTFILE *hStack)
+BOOL RecentFilesSave(STACKRECENTFILE *hStack, int nSaveSettings)
 {
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
-  wchar_t *wszRegData;
-  wchar_t wchNull=L'\0';
+  wchar_t *wszData;
+  wchar_t wchDelim;
   HKEY hKey;
+  INISECTION *lpIniSection;
   int nDataLen;
   DWORD dwSaveTime;
   int i=0;
+  BOOL bResult;
 
   //Params
   RECENTFILE *lpRecentFile;
@@ -12136,10 +12431,34 @@ void RecentFilesSave(STACKRECENTFILE *hStack)
   DWORD dwParamsLen;
   wchar_t *wszRecentFileParams=NULL;
 
-  //Save recent files array
-  xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
-  if (RegCreateKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
-    return;
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
+    //Clean old
+    RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
+    if (RegCreateKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
+      return FALSE;
+
+    wchDelim=L'\0';
+  }
+  else
+  {
+    if (!OpenIni(&hAkelPadIni, wszAkelPadIni, TRUE))
+      return FALSE;
+    //Clean old
+    if (lpIniSection=StackOpenIniSection(&hAkelPadIni, L"Recent", -1, FALSE))
+      StackDeleteIniSection(&hAkelPadIni, lpIniSection, TRUE);
+
+    wchDelim=L'|';
+  }
+
+  //Tick count
+  dwSaveTime=(DWORD)GetTickCount();
+  if (nSaveSettings == SS_REGISTRY)
+    RegSetValueExWide(hKey, L"SaveTime", 0, REG_DWORD, (LPBYTE)&dwSaveTime, sizeof(DWORD));
+  else
+    IniSetValue(&hAkelPadIni, L"Recent", L"SaveTime", INI_DWORD, (LPBYTE)&dwSaveTime, sizeof(DWORD));
+  hStack->dwSaveTime=dwSaveTime;
 
   for (lpRecentFile=hStack->first; lpRecentFile; lpRecentFile=lpRecentFile->next)
   {
@@ -12148,7 +12467,7 @@ void RecentFilesSave(STACKRECENTFILE *hStack)
     //Alloc params
     for (dwParamsLen=0, lpRecentFileParam=(RECENTFILEPARAM *)lpRecentFile->lpParamsStack.first; lpRecentFileParam; lpRecentFileParam=lpRecentFileParam->next)
     {
-      dwParamsLen+=(DWORD)xprintfW(NULL, L"%s=%s%c", lpRecentFileParam->pParamName, lpRecentFileParam->pParamValue, wchNull) - 1;
+      dwParamsLen+=(DWORD)xprintfW(NULL, L"%s=%s%c", lpRecentFileParam->pParamName, lpRecentFileParam->pParamValue, wchDelim) - 1;
     }
     if (dwParamsLen)
     {
@@ -12156,30 +12475,36 @@ void RecentFilesSave(STACKRECENTFILE *hStack)
       {
         for (dwParamsLen=0, lpRecentFileParam=(RECENTFILEPARAM *)lpRecentFile->lpParamsStack.first; lpRecentFileParam; lpRecentFileParam=lpRecentFileParam->next)
         {
-          dwParamsLen+=(DWORD)xprintfW(wszRecentFileParams + dwParamsLen, L"%s=%s%c", lpRecentFileParam->pParamName, lpRecentFileParam->pParamValue, wchNull);
+          dwParamsLen+=(DWORD)xprintfW(wszRecentFileParams + dwParamsLen, L"%s=%s%c", lpRecentFileParam->pParamName, lpRecentFileParam->pParamValue, wchDelim);
         }
       }
     }
 
     //Set value
-    for (wszRegData=NULL;;)
+    for (wszData=NULL;;)
     {
-      nDataLen=(int)xprintfW(wszRegData, L"%s%c%d%c%Id-%Id%c", lpRecentFile->wszFile, wchNull, lpRecentFile->nCodePage, wchNull, lpRecentFile->cpMin, lpRecentFile->cpMax, wchNull);
-      if (!wszRegData)
-        wszRegData=API_AllocWide(nDataLen + dwParamsLen);
+      nDataLen=(int)xprintfW(wszData, L"%s%c%d%c%Id-%Id%c", lpRecentFile->wszFile, wchDelim, lpRecentFile->nCodePage, wchDelim, lpRecentFile->cpMin, lpRecentFile->cpMax, wchDelim);
+      if (!wszData)
+        wszData=API_AllocWide(nDataLen + dwParamsLen);
       else
         break;
     }
-    if (wszRegData)
+    if (wszData)
     {
-      xmemcpy(wszRegData + nDataLen, wszRecentFileParams, dwParamsLen * sizeof(wchar_t));
-      wszRegData[nDataLen + dwParamsLen]=L'\0';
+      xmemcpy(wszData + nDataLen, wszRecentFileParams, dwParamsLen * sizeof(wchar_t));
+      wszData[nDataLen + dwParamsLen]=L'\0';
 
-      if (RegSetValueExWide(hKey, wszRegValue, 0, REG_MULTI_SZ, (LPBYTE)wszRegData, (nDataLen + dwParamsLen + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
+      if (nSaveSettings == SS_REGISTRY)
       {
-        //Too long string
+        if (RegSetValueExWide(hKey, wszRegValue, 0, REG_MULTI_SZ, (LPBYTE)wszData, (nDataLen + dwParamsLen + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
+          break;
       }
-      API_FreeWide(wszRegData);
+      else
+      {
+        if (!IniSetValue(&hAkelPadIni, L"Recent", wszRegValue, INI_STRINGUNICODE, (LPBYTE)wszData, (nDataLen + dwParamsLen + 1) * sizeof(wchar_t)))
+          break;
+      }
+      API_FreeWide(wszData);
     }
 
     //Free params
@@ -12190,22 +12515,20 @@ void RecentFilesSave(STACKRECENTFILE *hStack)
     }
   }
 
-  for (;;)
+  if (nSaveSettings == SS_REGISTRY)
   {
-    xprintfW(wszRegValue, L"file%d", i++);
-    if (RegDeleteValueWide(hKey, wszRegValue) != ERROR_SUCCESS)
-      break;
+    RegCloseKey(hKey);
+    bResult=TRUE;
   }
-
-  //Tick count
-  dwSaveTime=(DWORD)GetTickCount();
-  RegSetValueExWide(hKey, L"SaveTime", 0, REG_DWORD, (LPBYTE)&dwSaveTime, sizeof(DWORD));
-  hStack->dwSaveTime=dwSaveTime;
-
-  RegCloseKey(hKey);
+  else
+  {
+    bResult=SaveIni(&hAkelPadIni, wszAkelPadIni);
+    StackFreeIni(&hAkelPadIni);
+  }
+  return bResult;
 }
 
-void RecentFilesSaveFile(FRAMEDATA *lpFrame)
+void RecentFilesFrameUpdate(FRAMEDATA *lpFrame)
 {
   RECENTFILE *lpRecentFile;
   CHARRANGE64 cr;
@@ -12215,8 +12538,6 @@ void RecentFilesSaveFile(FRAMEDATA *lpFrame)
   {
     if (!nMainOnFinish || !nMDI || xstrcmpiW(fdDefault.wszFile, lpFrame->wszFile))
     {
-      RecentFilesRead(&hRecentFilesStack);
-
       //Get selection
       SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
       if (lpFrame == lpFrameCurrent)
@@ -12240,7 +12561,6 @@ void RecentFilesSaveFile(FRAMEDATA *lpFrame)
         lpRecentFile->cpMin=bSwitch?cr.cpMax:cr.cpMin;
         lpRecentFile->cpMax=bSwitch?cr.cpMin:cr.cpMax;
       }
-      RecentFilesSave(&hRecentFilesStack);
       bMenuRecentFiles=TRUE;
     }
   }
@@ -13470,7 +13790,7 @@ void ReadThemes(MAINOPTIONS *mo)
     INISECTION *lpIniSection;
     INIKEY *lpIniKey;
 
-    if (lpIniSection=StackOpenIniSection(&hIniFile, L"Themes", (int)xstrlenW(L"Themes"), FALSE))
+    if (lpIniSection=StackOpenIniSection(&hAkelPadIni, L"Themes", -1, FALSE))
     {
       for (lpIniKey=lpIniSection->first; lpIniKey; lpIniKey=lpIniKey->next)
       {
@@ -13505,12 +13825,12 @@ BOOL SaveThemes(int nSaveSettings)
   }
   else
   {
-    if (!OpenIni(&hIniFile, wszIniFile, TRUE))
+    if (!OpenIni(&hAkelPadIni, wszAkelPadIni, TRUE))
       return FALSE;
 
     //Clean old
-    if (lpIniSection=StackOpenIniSection(&hIniFile, L"Themes", (int)xstrlenW(L"Themes"), FALSE))
-      StackDeleteIniSection(&hIniFile, lpIniSection, TRUE);
+    if (lpIniSection=StackOpenIniSection(&hAkelPadIni, L"Themes", -1, FALSE))
+      StackDeleteIniSection(&hAkelPadIni, lpIniSection, TRUE);
   }
 
   //Skip "Standard" theme
@@ -13525,7 +13845,7 @@ BOOL SaveThemes(int nSaveSettings)
     }
     else
     {
-      if (!IniSetValue(&hIniFile, L"Themes", ctElement->wszName, INI_BINARY, (LPBYTE)&ctElement->aec, dwSizeData))
+      if (!IniSetValue(&hAkelPadIni, L"Themes", ctElement->wszName, INI_BINARY, (LPBYTE)&ctElement->aec, dwSizeData))
         break;
     }
     ctElement=ctElement->next;
@@ -13538,8 +13858,8 @@ BOOL SaveThemes(int nSaveSettings)
   }
   else
   {
-    bResult=SaveIni(&hIniFile, wszIniFile);
-    StackFreeIni(&hIniFile);
+    bResult=SaveIni(&hAkelPadIni, wszAkelPadIni);
+    StackFreeIni(&hAkelPadIni);
   }
   return bResult;
 }
@@ -13669,7 +13989,7 @@ void RegisterPluginsHotkeys(MAINOPTIONS *mo)
     INIKEY *lpIniKey;
     DWORD dwHotkey=0;
 
-    if (lpIniSection=StackOpenIniSection(&hIniFile, L"Plugs", (int)xstrlenW(L"Plugs"), FALSE))
+    if (lpIniSection=StackOpenIniSection(&hAkelPadIni, L"Plugs", -1, FALSE))
     {
       lpIniKey=(INIKEY *)lpIniSection->first;
 
@@ -13769,12 +14089,12 @@ BOOL StackPluginSave(STACKPLUGINFUNCTION *hStack, int nSaveSettings)
   }
   else
   {
-    if (!OpenIni(&hIniFile, wszIniFile, TRUE))
+    if (!OpenIni(&hAkelPadIni, wszAkelPadIni, TRUE))
       return FALSE;
 
     //Clean old
-    if (lpIniSection=StackOpenIniSection(&hIniFile, L"Plugs", (int)xstrlenW(L"Plugs"), FALSE))
-      StackDeleteIniSection(&hIniFile, lpIniSection, TRUE);
+    if (lpIniSection=StackOpenIniSection(&hAkelPadIni, L"Plugs", -1, FALSE))
+      StackDeleteIniSection(&hAkelPadIni, lpIniSection, TRUE);
   }
 
   for (pfElement=hStack->first; pfElement; pfElement=pfElement->next)
@@ -13792,7 +14112,7 @@ BOOL StackPluginSave(STACKPLUGINFUNCTION *hStack, int nSaveSettings)
         }
         else
         {
-          if (!IniSetValue(&hIniFile, L"Plugs", pfElement->wszFunction, INI_DWORD, (LPBYTE)&dwHotkey, sizeof(DWORD)))
+          if (!IniSetValue(&hAkelPadIni, L"Plugs", pfElement->wszFunction, INI_DWORD, (LPBYTE)&dwHotkey, sizeof(DWORD)))
             break;
         }
       }
@@ -13806,8 +14126,8 @@ BOOL StackPluginSave(STACKPLUGINFUNCTION *hStack, int nSaveSettings)
   }
   else
   {
-    bResult=SaveIni(&hIniFile, wszIniFile);
-    StackFreeIni(&hIniFile);
+    bResult=SaveIni(&hAkelPadIni, wszAkelPadIni);
+    StackFreeIni(&hAkelPadIni);
   }
   return bResult;
 }
@@ -14058,6 +14378,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, wchar_t *wpFunction, PLUGINCALL
                   pd.hLangModule=hLangModule;
                   pd.wLangSystem=(WORD)dwLangSystem;
                   pd.wLangModule=(WORD)dwLangModule;
+                  pd.nSaveHistory=moCur.nSaveHistory;
                   pd.moInit=&moInit;
                   pd.moCur=&moCur;
 
@@ -15361,8 +15682,10 @@ BOOL CALLBACK OptionsGeneralFilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
 
 BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndSaveRegistry;
-  static HWND hWndSaveINI;
+  static HWND hWndSaveSettingsRegistry;
+  static HWND hWndSaveSettingsINI;
+  static HWND hWndSaveHistoryRegistry;
+  static HWND hWndSaveHistoryINI;
   static HWND hWndSavePositions;
   static HWND hWndSaveCodepages;
   static HWND hWndRecentFiles;
@@ -15382,8 +15705,10 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   if (uMsg == WM_INITDIALOG)
   {
     hWndPropRegistry=hDlg;
-    hWndSaveRegistry=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_REGISTRY);
-    hWndSaveINI=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_INI);
+    hWndSaveSettingsRegistry=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_REGISTRY);
+    hWndSaveSettingsINI=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_INI);
+    hWndSaveHistoryRegistry=GetDlgItem(hDlg, IDC_OPTIONS_SAVEHISTORY_REGISTRY);
+    hWndSaveHistoryINI=GetDlgItem(hDlg, IDC_OPTIONS_SAVEHISTORY_INI);
     hWndSavePositions=GetDlgItem(hDlg, IDC_OPTIONS_SAVEPOSITIONS);
     hWndSaveCodepages=GetDlgItem(hDlg, IDC_OPTIONS_SAVECODEPAGES);
     hWndRecentFiles=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT);
@@ -15424,9 +15749,13 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     SetWindowTextWide(hWndFileTypesPrint, moCur.wszFileTypesPrint);
 
     if (moCur.nSaveSettings == SS_REGISTRY)
-      SendMessage(hWndSaveRegistry, BM_SETCHECK, BST_CHECKED, 0);
+      SendMessage(hWndSaveSettingsRegistry, BM_SETCHECK, BST_CHECKED, 0);
     else
-      SendMessage(hWndSaveINI, BM_SETCHECK, BST_CHECKED, 0);
+      SendMessage(hWndSaveSettingsINI, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.nSaveHistory == SS_REGISTRY)
+      SendMessage(hWndSaveHistoryRegistry, BM_SETCHECK, BST_CHECKED, 0);
+    else
+      SendMessage(hWndSaveHistoryINI, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.bSavePositions)
       SendMessage(hWndSavePositions, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.bSaveCodepages)
@@ -15439,7 +15768,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     if (LOWORD(wParam) == IDC_OPTIONS_RECENTFILES_CLEAR)
     {
       RecentFilesZero(&hRecentFilesStack);
-      RecentFilesSave(&hRecentFilesStack);
+      RecentFilesSave(&hRecentFilesStack, moCur.nSaveHistory);
       bMenuRecentFiles=TRUE;
       SetFocus(hWndRecentFiles);
       EnableWindow((HWND)lParam, FALSE);
@@ -15447,10 +15776,9 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_SEARCHSTRINGS_CLEAR)
     {
-      wchar_t wszRegKey[MAX_PATH];
-
-      xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
-      RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
+      SearchZero(&hFindStack);
+      SearchZero(&hReplaceStack);
+      SearchSave(moCur.nSaveHistory);
       SetFocus(hWndSearchStrings);
       EnableWindow((HWND)lParam, FALSE);
       return TRUE;
@@ -15491,14 +15819,25 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       int b;
 
       //Save settings
-      if (SendMessage(hWndSaveRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
+      if (SendMessage(hWndSaveSettingsRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
         a=SS_REGISTRY;
       else
         a=SS_INI;
       if (moCur.nSaveSettings != a)
       {
         moCur.nSaveSettings=a;
-        bOptionsSave=TRUE;
+        bSaveSettingsSwitch=TRUE;
+      }
+
+      //Save history
+      if (SendMessage(hWndSaveHistoryRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        a=SS_REGISTRY;
+      else
+        a=SS_INI;
+      if (moCur.nSaveHistory != a)
+      {
+        moCur.nSaveHistory=a;
+        bSaveHistorySwitch=TRUE;
       }
 
       //Recent files
@@ -15506,7 +15845,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (moCur.nRecentFiles != a)
       {
         moCur.nRecentFiles=a;
-        RecentFilesRefresh(&hRecentFilesStack);
+        RecentFilesCut(&hRecentFilesStack);
       }
       a=(int)SendMessage(hWndSavePositions, BM_GETCHECK, 0, 0);
       b=(int)SendMessage(hWndSaveCodepages, BM_GETCHECK, 0, 0);
@@ -22878,20 +23217,6 @@ BOOL DeleteTabItem(HWND hWnd, int nIndex)
     return TRUE;
   }
   return FALSE;
-}
-
-void FreeMemorySearch()
-{
-  if (wszFindText)
-  {
-    API_FreeWide(wszFindText);
-    wszFindText=NULL;
-  }
-  if (wszReplaceText)
-  {
-    API_FreeWide(wszReplaceText);
-    wszReplaceText=NULL;
-  }
 }
 
 int BytesInString(const wchar_t *wpString)

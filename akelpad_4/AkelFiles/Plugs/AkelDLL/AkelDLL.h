@@ -236,6 +236,7 @@
 #define MI_INSTANCEEXE               3    //Return: EXE instance.
 #define MI_PLUGINSSTACK              4    //Return: copied bytes. (HSTACK *)lParam - buffer that receives plugin stack.
 #define MI_SAVESETTINGS              5    //Return: see SS_* defines.
+#define MI_SAVEHISTORY               6    //Return: see SS_* defines.
 #define MI_WNDPROGRESS               10   //Return: progress bar window handle.
 #define MI_WNDSTATUS                 11   //Return: status bar window handle.
 #define MI_WNDMDICLIENT              12   //Return: MDI client window handle.
@@ -339,6 +340,7 @@
 
 //PLUGINDATA
 #define MIS_SAVESETTINGS              5    //(int)lParam - see SS_* defines.
+#define MIS_SAVEHISTORY               6    //(int)lParam - see SS_* defines.
 #define MIS_MDI                       45   //(int)lParam - window mode, see WMD_* defines. Required program restart.
 #define MIS_LANGMODULEA               51   //(char *)lParam - language module string. Required program restart.
 #define MIS_LANGMODULEW               52   //(wchar_t *)lParam - language module string. Required program restart.
@@ -989,6 +991,7 @@ typedef BOOL (CALLBACK *PLUGINPROC)(void *lpParameter, LPARAM lParam, DWORD dwSu
 typedef struct {
   //Save place
   int nSaveSettings;
+  int nSaveHistory;
 
   //Manual
   DWORD dwShowModify;
@@ -1366,6 +1369,7 @@ typedef struct {
   HMODULE hLangModule;                //Language module handle.
   LANGID wLangSystem;                 //System language ID.
   LANGID wLangModule;                 //Language module language ID.
+  int nSaveHistory;                   //See SS_* defines.
   MAINOPTIONS *moInit;                //Pointer to a initial (on start) MAINOPTIONS structure.
   MAINOPTIONS *moCur;                 //Pointer to a current FRAMEDATA structure.
 } PLUGINDATA;
@@ -1641,6 +1645,19 @@ typedef struct {
   RECENTFILEPARAM *first;
   RECENTFILEPARAM *last;
 } STACKRECENTFILEPARAM;
+
+typedef struct _SEARCHITEM {
+  struct _SEARCHITEM *next;
+  struct _SEARCHITEM *prev;
+  wchar_t *wpString;        //Find or replace string.
+  int nStringLen;           //String length.
+} SEARCHITEM;
+
+typedef struct {
+  SEARCHITEM *first;        //Pointer to the first SEARCHITEM structure.
+  SEARCHITEM *last;         //Pointer to the last SEARCHITEM structure.
+  int nElements;            //Items in stack.
+} STACKSEARCH;
 
 typedef struct {
   DWORD dwFlags;            //See FRF_* defines.

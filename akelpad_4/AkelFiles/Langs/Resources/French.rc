@@ -720,21 +720,24 @@ BEGIN
                     BS_AUTORADIOBUTTON,32,19,70,10
     CONTROL         "Un fichier INI",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
                     BS_AUTORADIOBUTTON,133,19,70,10
-    GROUPBOX        "Fichiers récents",IDC_STATIC,9,42,200,64
+    GROUPBOX        "Save history",IDC_STATIC,9,42,200,105
+    CONTROL         "Le registre",IDC_OPTIONS_SAVEHISTORY_REGISTRY,"Button",
+                    BS_AUTORADIOBUTTON,32,55,70,10
+    CONTROL         "Un fichier INI",IDC_OPTIONS_SAVEHISTORY_INI,"Button",
+                    BS_AUTORADIOBUTTON,134,55,70,10
     CONTROL         "Mémoriser la position du curseur",
                     IDC_OPTIONS_SAVEPOSITIONS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,55,185,10
+                    WS_TABSTOP,17,75,185,10
     CONTROL         "Mémoriser la page de code",IDC_OPTIONS_SAVECODEPAGES,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,66,185,10
-    LTEXT           "Nombre de fichiers:",IDC_STATIC,19,88,73,11,NOT 
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,86,185,10
+    LTEXT           "Fichiers récents:",IDC_STATIC,19,108,73,15,NOT 
                     WS_GROUP
-    EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,86,18,13,ES_NUMBER
+    EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,106,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,113,86,11,13
-    PUSHBUTTON      "Effacer",IDC_OPTIONS_RECENTFILES_CLEAR,141,85,54,14
-    GROUPBOX        "Historique des recherches",IDC_STATIC,9,113,200,33
-    LTEXT           "Nombre de lignes:",IDC_STATIC,19,128,73,11,NOT WS_GROUP
+                    UDS_NOTHOUSANDS,113,106,11,13
+    PUSHBUTTON      "Effacer",IDC_OPTIONS_RECENTFILES_CLEAR,141,105,54,14
+    LTEXT           "Historique des recherches:",IDC_STATIC,19,128,73,15,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
