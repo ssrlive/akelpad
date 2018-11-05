@@ -1630,7 +1630,6 @@ typedef struct {
   RECENTFILE *first;          //Pointer to the first RECENTFILE structure.
   RECENTFILE *last;           //Pointer to the last RECENTFILE structure.
   int nElements;              //Items in stack.
-  DWORD dwSaveTime;           //GetTickCount() for the last recent files save operation.
 } STACKRECENTFILE;
 
 typedef struct _RECENTFILEPARAM {

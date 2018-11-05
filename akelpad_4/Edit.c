@@ -9551,7 +9551,7 @@ int SearchRead(MAINOPTIONS *mo)
       ++nIndex;
     }
 
-    if (wpKey == L"find%d")
+    if (!xstrcmpW(wpKey, L"find%d"))
     {
       hStack=&hReplaceStack;
       wpKey=L"replace%d";
@@ -9599,7 +9599,7 @@ int SearchRead(MAINOPTIONS *mo)
         ++nIndex;
       }
 
-      if (wpKey == L"find")
+      if (!xstrcmpW(wpKey, L"find"))
       {
         hStack=&hReplaceStack;
         wpKey=L"replace";
@@ -9677,7 +9677,7 @@ BOOL SearchSave(int nSaveHistory)
     ++nIndex;
   }
 
-  if (wpKey == L"find%d")
+  if (!xstrcmpW(wpKey, L"find%d"))
   {
     hStack=&hReplaceStack;
     wpKey=L"replace%d";
@@ -12134,7 +12134,6 @@ void RecentFilesZero(STACKRECENTFILE *hStack)
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
   hStack->nElements=0;
-  hStack->dwSaveTime=0;
 }
 
 RECENTFILE* RecentFilesFindByName(const wchar_t *wpFile, int *lpIndex)
@@ -12246,10 +12245,10 @@ int RecentFilesRead(MAINOPTIONS *mo, STACKRECENTFILE *hStack)
   DWORD dwSize;
   DWORD dwDataLen;
   DWORD dwDataMax;
-  DWORD dwSaveTime=0;
   int nIndex=0;
 
   if (!mo->nRecentFiles) return 0;
+  RecentFilesZero(hStack);
 
   if (mo->nSaveHistory == SS_REGISTRY)
   {
@@ -12257,41 +12256,32 @@ int RecentFilesRead(MAINOPTIONS *mo, STACKRECENTFILE *hStack)
     if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
       return 0;
 
-    //Tick count
-    dwSize=sizeof(DWORD);
-    RegQueryValueExWide(hKey, L"SaveTime", NULL, &dwType, (LPBYTE)&dwSaveTime, &dwSize);
-
-    if (hStack->dwSaveTime != dwSaveTime)
+    dwDataMax=BUFFER_SIZE;
+    if (wszData=API_AllocWide(dwDataMax))
     {
-      RecentFilesZero(hStack);
-
-      dwDataMax=BUFFER_SIZE;
-      if (wszData=API_AllocWide(dwDataMax))
+      while (nIndex < mo->nRecentFiles)
       {
-        while (nIndex < mo->nRecentFiles)
+        xprintfW(wszRegValue, L"file%d", nIndex);
+        if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, NULL, &dwSize) != ERROR_SUCCESS)
+          break;
+
+        dwDataLen=dwSize / sizeof(wchar_t);
+        if (dwDataLen + 1 > dwDataMax)
         {
-          xprintfW(wszRegValue, L"file%d", nIndex);
-          if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, NULL, &dwSize) != ERROR_SUCCESS)
+          API_FreeWide(wszData);
+          dwDataMax=dwDataLen + 1;
+          if (!(wszData=API_AllocWide(dwDataMax)))
             break;
-
-          dwDataLen=dwSize / sizeof(wchar_t);
-          if (dwDataLen + 1 > dwDataMax)
-          {
-            API_FreeWide(wszData);
-            dwDataMax=dwDataLen + 1;
-            if (!(wszData=API_AllocWide(dwDataMax)))
-              break;
-          }
-          RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wszData, &dwSize);
-          if (!*wszData || dwType != REG_MULTI_SZ)
-            break;
-          wszData[dwDataLen]=L'\0';
-
-          RecentFilesParseData(hStack, wszData);
-          ++nIndex;
         }
-        API_FreeWide(wszData);
+        RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wszData, &dwSize);
+        if (!*wszData || dwType != REG_MULTI_SZ)
+          break;
+        wszData[dwDataLen]=L'\0';
+
+        RecentFilesParseData(hStack, wszData);
+        ++nIndex;
       }
+      API_FreeWide(wszData);
     }
     RegCloseKey(hKey);
   }
@@ -12305,49 +12295,32 @@ int RecentFilesRead(MAINOPTIONS *mo, STACKRECENTFILE *hStack)
 
     if (lpIniSection=StackOpenIniSection(&hAkelPadIni, L"Recent", -1, FALSE))
     {
-      if (lpIniKey=lpIniSection->first)
+      dwDataMax=BUFFER_SIZE;
+      if (wszData=API_AllocWide(dwDataMax))
       {
-        //Tick count
-        if (!xstrcmpiW(lpIniKey->wszKey, L"SaveTime"))
+        for (lpIniKey=lpIniSection->first; lpIniKey; lpIniKey=lpIniKey->next)
         {
-          dwSaveTime=(DWORD)xatoiW(lpIniKey->wszString, NULL);
-          lpIniKey=lpIniKey->next;
-        }
-        else goto FreeIni;
+          if (nIndex >= mo->nRecentFiles) break;
 
-        if (hStack->dwSaveTime != dwSaveTime)
-        {
-          RecentFilesZero(hStack);
-
-          dwDataMax=BUFFER_SIZE;
-          if (wszData=API_AllocWide(dwDataMax))
+          dwDataLen=(DWORD)(lpIniKey->nStringBytes / sizeof(wchar_t));
+          if (dwDataLen + 1 > dwDataMax)
           {
-            for (; lpIniKey; lpIniKey=lpIniKey->next)
-            {
-              if (nIndex >= mo->nRecentFiles) break;
-
-              dwDataLen=(DWORD)(lpIniKey->nStringBytes / sizeof(wchar_t));
-              if (dwDataLen + 1 > dwDataMax)
-              {
-                API_FreeWide(wszData);
-                dwDataMax=dwDataLen + 1;
-                if (!(wszData=API_AllocWide(dwDataMax)))
-                  break;
-              }
-              StrReplace(lpIniKey->wszString, dwDataLen, L"|", 1, L"\x0000", 1, FRF_MATCHCASE, wszData, NULL, NULL, NULL, 0);
-              if (!*wszData)
-                break;
-              wszData[dwDataLen]=L'\0';
-
-              RecentFilesParseData(hStack, wszData);
-              ++nIndex;
-            }
             API_FreeWide(wszData);
+            dwDataMax=dwDataLen + 1;
+            if (!(wszData=API_AllocWide(dwDataMax)))
+              break;
           }
+          StrReplace(lpIniKey->wszString, dwDataLen, L"|", 1, L"\x0000", 1, FRF_MATCHCASE, wszData, NULL, NULL, NULL, 0);
+          if (!*wszData)
+            break;
+          wszData[dwDataLen]=L'\0';
+
+          RecentFilesParseData(hStack, wszData);
+          ++nIndex;
         }
+        API_FreeWide(wszData);
       }
     }
-    FreeIni:
     StackFreeIni(&hAkelPadIni);
   }
   return nIndex;
@@ -12421,7 +12394,6 @@ BOOL RecentFilesSave(STACKRECENTFILE *hStack, int nSaveSettings)
   HKEY hKey;
   INISECTION *lpIniSection;
   int nDataLen;
-  DWORD dwSaveTime;
   int i=0;
   BOOL bResult;
 
@@ -12451,14 +12423,6 @@ BOOL RecentFilesSave(STACKRECENTFILE *hStack, int nSaveSettings)
 
     wchDelim=L'|';
   }
-
-  //Tick count
-  dwSaveTime=(DWORD)GetTickCount();
-  if (nSaveSettings == SS_REGISTRY)
-    RegSetValueExWide(hKey, L"SaveTime", 0, REG_DWORD, (LPBYTE)&dwSaveTime, sizeof(DWORD));
-  else
-    IniSetValue(&hAkelPadIni, L"Recent", L"SaveTime", INI_DWORD, (LPBYTE)&dwSaveTime, sizeof(DWORD));
-  hStack->dwSaveTime=dwSaveTime;
 
   for (lpRecentFile=hStack->first; lpRecentFile; lpRecentFile=lpRecentFile->next)
   {
