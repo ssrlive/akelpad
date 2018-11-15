@@ -393,6 +393,8 @@ void AE_UnregisterClassCommon(HINSTANCE hInstance)
 LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   AKELEDIT *ae;
+  HANDLE hThread=GetCurrentThread();
+  LRESULT lResult;
 
   if (uMsg == WM_CREATE)
   {
@@ -406,15 +408,39 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     return -1;
   }
 
+  GetAkelEdit:
   if (ae=AE_StackWindowGet(&hAkelEditWindowsStack, hWnd))
   {
     //Move found AKELEDIT in first place. To make next AE_StackWindowGet calls faster.
     AE_StackWindowMakeFirst(&hAkelEditWindowsStack, ae);
 
-    //if (ae->bSkipMessages)
-    //  return 0;
+    if (ae->hThreadWork == NULL || ae->hThreadWork == hThread)
+    {
+      //Assign working thread
+      ae->hThreadWork=hThread;
+      ++ae->nThreadCount;
+    }
+    else
+    {
+      //Other threads is waiting for signal
+      if (!ae->hThreadMutex) ae->hThreadMutex=CreateEventA(NULL, FALSE, FALSE, NULL);
+      WaitForSingleObject(ae->hThreadMutex, INFINITE);
 
-    return AE_EditProc(ae, uMsg, wParam, lParam);
+      //Check that window still exist
+      goto GetAkelEdit;
+    }
+    lResult=AE_EditProc(ae, uMsg, wParam, lParam);
+
+    if (AE_StackWindowValid(&hAkelEditWindowsStack, ae))
+    {
+      if (!--ae->nThreadCount)
+      {
+        //No messages in working thread, send signal
+        ae->hThreadWork=NULL;
+        if (ae->hThreadMutex) SetEvent(ae->hThreadMutex);
+      }
+    }
+    return lResult;
   }
 
   if (!IsWindowUnicode(hWnd))
@@ -5157,6 +5183,13 @@ AKELEDIT* AE_SetWindowData(AKELEDIT *aeOld, AKELEDIT *aeNew, DWORD dwFlags)
 
 void AE_DestroyWindowData(AKELEDIT *ae)
 {
+  if (ae->hThreadMutex)
+  {
+    SetEvent(ae->hThreadMutex);
+    CloseHandle(ae->hThreadMutex);
+    ae->hThreadMutex=NULL;
+  }
+
   if (!ae->lpMaster)
   {
     //Destroying master - uncloning all clones
@@ -5539,6 +5572,18 @@ AKELEDIT* AE_StackWindowGet(AESTACKEDIT *hStack, HWND hWndEdit)
       return lpElement;
   }
   return NULL;
+}
+
+BOOL AE_StackWindowValid(AESTACKEDIT *hStack, AKELEDIT *ae)
+{
+  AKELEDIT *lpElement;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement == ae)
+      return TRUE;
+  }
+  return FALSE;
 }
 
 void AE_StackWindowMakeFirst(AESTACKEDIT *hStack, AKELEDIT *ae)
@@ -17196,7 +17241,6 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
   }
 
   //Free old and create new heap
-  //ae->bSkipMessages=TRUE;
   AE_HeapCreate(ae);
 
   //Get DC for faster AE_GetTextExtentPoint32
@@ -17295,7 +17339,6 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
                 ae->ciSelStartIndex=ciCaretChar;
                 ae->ciSelEndIndex=ciCaretChar;
               }
-              //ae->bSkipMessages=FALSE;
               InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
               UpdateWindow(ae->hWndEdit);
 
@@ -17305,7 +17348,6 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
 
                 InvalidateRect(ae->hWndEdit, &rcOnePixel, TRUE);
               }
-              //ae->bSkipMessages=TRUE;
 
               //Restore variables
               ++ae->ptxt->nLastCharOffset;
@@ -17404,9 +17446,7 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
       ReleaseDC(ae->hWndEdit, ae->hDC);
       ae->hDC=NULL;
     }
-    //ae->bSkipMessages=FALSE;
   }
-  //ae->bSkipMessages=FALSE;
 
   if (!bOnInitWindow)
   {
@@ -17510,7 +17550,6 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
     else
     {
       //Free old and create new heap
-      //ae->bSkipMessages=TRUE;
       AE_HeapCreate(ae);
 
       //Get DC for faster AE_GetTextExtentPoint32
@@ -17630,7 +17669,6 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
                   ae->ciSelStartIndex=ciCaretChar;
                   ae->ciSelEndIndex=ciCaretChar;
                 }
-                //ae->bSkipMessages=FALSE;
                 InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
                 UpdateWindow(ae->hWndEdit);
 
@@ -17640,7 +17678,6 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
 
                   InvalidateRect(ae->hWndEdit, &rcOnePixel, TRUE);
                 }
-                //ae->bSkipMessages=TRUE;
 
                 //Restore variables
                 ++ae->ptxt->nLastCharOffset;
@@ -17741,12 +17778,10 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           ReleaseDC(ae->hWndEdit, ae->hDC);
           ae->hDC=NULL;
         }
-        //ae->bSkipMessages=FALSE;
       }
     }
     AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
   }
-  //ae->bSkipMessages=FALSE;
 
   AE_NotifyChanged(ae); //AETCT_STREAMIN
 

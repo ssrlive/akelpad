@@ -609,10 +609,14 @@ typedef struct _AKELEDIT {
   struct _AKELEDIT *next;
   struct _AKELEDIT *prev;
 
+  //Thread
+  int nThreadCount;
+  HANDLE hThreadWork;
+  HANDLE hThreadMutex;
+
   //Text
   AKELTEXT *ptxt;
   AKELTEXT txt;
-  BOOL bSkipMessages;
 
   //Options
   AKELOPTIONS *popt;
@@ -792,6 +796,7 @@ int AE_HeapStackDelete(AKELEDIT *ae, stack **first, stack **last, stack *element
 void AE_HeapStackClear(AKELEDIT *ae, stack **first, stack **last);
 AKELEDIT* AE_StackWindowInsert(AESTACKEDIT *hStack);
 AKELEDIT* AE_StackWindowGet(AESTACKEDIT *hStack, HWND hWndEdit);
+BOOL AE_StackWindowValid(AESTACKEDIT *hStack, AKELEDIT *ae);
 void AE_StackWindowMakeFirst(AESTACKEDIT *hStack, AKELEDIT *ae);
 void AE_StackWindowFree(AESTACKEDIT *hStack);
 AECLONE* AE_StackCloneIndex(AKELEDIT *ae, DWORD dwIndex);
