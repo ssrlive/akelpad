@@ -989,117 +989,6 @@ typedef BOOL (CALLBACK *PLUGINPROC)(void *lpParameter, LPARAM lParam, DWORD dwSu
 // FALSE do default hotkey processing.
 
 typedef struct {
-  //Save place
-  int nSaveSettings;
-  int nSaveHistory;
-
-  //Manual
-  DWORD dwShowModify;
-  DWORD dwStatusPosType;
-  wchar_t wszStatusUserFormat[MAX_PATH];
-  int nStatusUserFormatLen;
-  DWORD dwStatusUserFlags;
-  DWORD dwWordBreakCustom;
-  DWORD dwPaintOptions;
-  int nFixedCharWidth;
-  DWORD dwEditStyle;
-  BOOL bRichEditClass;
-  BOOL bAkelAdminResident;
-  wchar_t wszDateLogFormat[128];
-  wchar_t wszDateInsertFormat[128];
-  wchar_t wszAkelUpdaterOptions[MAX_PATH];
-  wchar_t wszUrlCommand[MAX_PATH];
-  wchar_t wszTabNameFind[MAX_PATH];
-  wchar_t wszTabNameRep[MAX_PATH];
-
-  //Menu settings
-  BOOL bOnTop;
-  BOOL bStatusBar;
-  char szLangModule[MAX_PATH];
-  wchar_t wszLangModule[MAX_PATH];
-  BOOL bKeepSpace;
-  BOOL bWatchFile;
-  BOOL bSaveTime;
-  BOOL bSingleOpenFile;
-  DWORD dwSingleOpenProgram;
-  int nMDI;
-  DWORD dwTabOptionsMDI;
-
-  //Settings dialog
-  RECT rcPropCurrentDialog;
-  wchar_t wszExecuteCommand[BUFFER_SIZE];
-  wchar_t wszExecuteDirectory[MAX_PATH];
-  int nDefaultCodePage;
-  int bDefaultBOM;
-  int nNewFileCodePage;
-  int bNewFileBOM;
-  int nNewFileNewLine;
-  DWORD dwLangCodepageRecognition;
-  DWORD dwCodepageRecognitionBuffer;
-  BOOL bSavePositions;
-  BOOL bSaveCodepages;
-  int nRecentFiles;
-  int nSearchStrings;
-  wchar_t wszFileTypesOpen[MAX_PATH];
-  wchar_t wszFileTypesEdit[MAX_PATH];
-  wchar_t wszFileTypesPrint[MAX_PATH];
-  DWORD dwFileTypesAssociated;
-  DWORD dwKeybLayoutOptions;
-  BOOL bSilentCloseEmptyMDI;
-  BOOL bDateLog;
-  BOOL bSaveInReadOnlyMsg;
-  wchar_t wszDefaultSaveExt[MAX_PATH];
-
-  //Modeless dialog
-  BOOL bModelessSavePos;
-
-  //Recode dialog
-  RECT rcRecodeCurrentDialog;
-
-  //Find/Replace dialog
-  RECT rcSearchCurrentDialog;
-  DWORD dwSearchOptions;
-
-  //Go to line dialog
-  RECT rcGotoCurrentDialog;
-  DWORD dwGotoOptions;
-
-  //Open file dialog
-  wchar_t wszOfnDir[MAX_PATH];
-  wchar_t wszLastDir[MAX_PATH];
-  BOOL bShowPlacesBar;
-
-  //Print dialog
-  RECT rcPrintMargins;
-  DWORD dwPrintColor;
-  BOOL bPrintHeaderEnable;
-  wchar_t wszPrintHeader[MAX_PATH];
-  BOOL bPrintFooterEnable;
-  wchar_t wszPrintFooter[MAX_PATH];
-  BOOL bPrintFontEnable;
-  LOGFONTW lfPrintFont;
-
-  //Colors dialog
-  RECT rcColorsCurrentDialog;
-
-  //Plugin dialog
-  RECT rcPluginsCurrentDialog;
-
-  //Mdi list dialog
-  DWORD dwMdiListOptions;
-  RECT rcMdiListCurrentDialog;
-
-  //Main window
-  DWORD dwMainStyle;
-  RECT rcMainWindowRestored;
-  DWORD dwMdiStyle;
-
-  //Events
-  BOOL bMessageTranslating;
-  int nTextChanging;
-} MAINOPTIONS;
-
-typedef struct {
   HWND hWndEdit;           //Edit window.
   AEHDOC hDocEdit;         //Edit document.
   const BYTE *pFile;       //Current editing file.
@@ -1370,8 +1259,6 @@ typedef struct {
   LANGID wLangSystem;                 //System language ID.
   LANGID wLangModule;                 //Language module language ID.
   int nSaveHistory;                   //See SS_* defines.
-  MAINOPTIONS *moInit;                //Pointer to a initial (on start) MAINOPTIONS structure.
-  MAINOPTIONS *moCur;                 //Pointer to a current FRAMEDATA structure.
 } PLUGINDATA;
 
 typedef struct {

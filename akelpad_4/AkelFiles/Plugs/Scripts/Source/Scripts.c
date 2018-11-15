@@ -104,7 +104,6 @@ BOOL bOldWindows;
 BOOL bAkelEdit;
 int nMDI;
 LANGID wLangModule;
-MAINOPTIONS *g_moCur=NULL;
 HICON g_hPluginIcon=NULL;
 BOOL g_MainMessageBox=FALSE;
 BOOL bInitCommon=FALSE;
@@ -3333,7 +3332,6 @@ void InitCommon(PLUGINDATA *pd)
   nMDI=pd->nMDI;
   wLangModule=pd->wLangModule;
   hMainThread=GetCurrentThread();
-  g_moCur=pd->moCur;
 
   //Plugin name
   {

@@ -258,7 +258,6 @@ extern BOOL bOldWindows;
 extern BOOL bAkelEdit;
 extern int nMDI;
 extern LANGID wLangModule;
-extern MAINOPTIONS *g_moCur;
 extern HICON g_hPluginIcon;
 extern BOOL g_MainMessageBox;
 extern BOOL bInitCommon;
