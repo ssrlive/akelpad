@@ -917,7 +917,6 @@ HRESULT GetTextRange(HWND hWnd, INT_PTR nRangeStart, INT_PTR nRangeEnd, int nNew
 
 HRESULT STDMETHODCALLTYPE Document_ReplaceSel(IDocument *this, BSTR wpText, int nSelect)
 {
-  SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   HWND hWndCurEdit;
 
   if (hWndCurEdit=GetCurEdit(this))
@@ -930,8 +929,6 @@ HRESULT STDMETHODCALLTYPE Document_ReplaceSel(IDocument *this, BSTR wpText, int 
       AECHARINDEX ciInitialCaret;
       int nFirstLine;
 
-      if (lpScriptThread->hThread != hMainThread)
-        WaitMainForIndle(INFINITE);
       if (nSelect == RST_SELECTRESTORESCROLL)
       {
         //Save scroll
@@ -983,13 +980,10 @@ HRESULT STDMETHODCALLTYPE Document_TextFind(IDocument *this, VARIANT vtWnd, BSTR
 
 HRESULT STDMETHODCALLTYPE Document_TextReplace(IDocument *this, VARIANT vtWnd, BSTR wpFindIt, BSTR wpReplaceWith, DWORD dwFindFlags, DWORD dwReplaceFlags, VARIANT *vtResult)
 {
-  SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   HWND hWnd=(HWND)GetVariantInt(&vtWnd, NULL);
   TEXTREPLACEW tr;
   INT_PTR nResult;
 
-  if (lpScriptThread->hThread != hMainThread)
-    WaitMainForIndle(INFINITE);
   tr.dwFindFlags=dwFindFlags;
   tr.pFindIt=wpFindIt;
   tr.nFindItLen=SysStringLen(wpFindIt);
@@ -4001,20 +3995,3 @@ HRESULT CallScriptProc(IDispatch *objFunction, HWND hWnd, UINT uMsg, WPARAM wPar
   return hr;
 }
 
-BOOL WaitMainForIndle(DWORD dwMilliseconds)
-{
-  DWORD dwStart=GetTickCount();
-
-  for (;;)
-  {
-    if (!g_moCur->bMessageTranslating)
-    {
-      if (SendMessage(hMainWnd, AKD_GETQUEUE, QS_ALLINPUT, 0) == 0)
-        break;
-    }
-    Sleep(100);
-    if (GetTickCount() - dwStart >= dwMilliseconds)
-      return FALSE;
-  }
-  return TRUE;
-}

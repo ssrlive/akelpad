@@ -14343,8 +14343,6 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, wchar_t *wpFunction, PLUGINCALL
                   pd.wLangSystem=(WORD)dwLangSystem;
                   pd.wLangModule=(WORD)dwLangModule;
                   pd.nSaveHistory=moCur.nSaveHistory;
-                  pd.moInit=&moInit;
-                  pd.moCur=&moCur;
 
                   (*PluginFunctionPtr)(&pd);
                   SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
