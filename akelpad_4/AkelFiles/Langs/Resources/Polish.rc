@@ -713,12 +713,12 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Zapisz ustawienia",IDC_STATIC,9,6,200,29
     CONTROL         "W rejestrze",IDC_OPTIONS_SAVESETTINGS_REGISTRY,"Button",
-                    BS_AUTORADIOBUTTON,32,19,70,10
+                    BS_AUTORADIOBUTTON | WS_GROUP,32,19,70,10
     CONTROL         "W pliku INI",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
                     BS_AUTORADIOBUTTON,133,19,70,10
     GROUPBOX        "Save history",IDC_STATIC,9,42,200,105
     CONTROL         "W rejestrze",IDC_OPTIONS_SAVEHISTORY_REGISTRY,"Button",
-                    BS_AUTORADIOBUTTON,32,55,70,10
+                    BS_AUTORADIOBUTTON | WS_GROUP,32,55,70,10
     CONTROL         "W pliku INI",IDC_OPTIONS_SAVEHISTORY_INI,"Button",
                     BS_AUTORADIOBUTTON,134,55,70,10
     CONTROL         "Zapamiêtaj pozycjê kursora",IDC_OPTIONS_SAVEPOSITIONS,
