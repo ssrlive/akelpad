@@ -718,9 +718,6 @@ void _WinMain()
       dwCmdShow=lpStartupInfoA.wShowWindow;
   #endif
 
-  //Command line
-  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
-
   //Get program HINSTANCE
   #ifndef AKELPAD_DLLBUILD
     hInstance=GetModuleHandleWide(NULL);
@@ -966,6 +963,9 @@ void _WinMain()
   hReadOptions=ReadOptions(&moInit, &fdInit, PCL_ONLOAD, NULL);
   xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));
   nMDI=moInit.nMDI;
+
+  //Command line
+  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
 
   //Parse commmand line on load
   if (wpCmdLine)

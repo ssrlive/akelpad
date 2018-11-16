@@ -3815,6 +3815,26 @@ HANDLE ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nType, HANDLE hHandle)
     if (nType == PCL_ONLOAD)
     {
       //On load
+      if (dwSize=ReadOption(&oh, L"CmdLineBegin", MOT_STRING, NULL, 0))
+      {
+        if (wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
+        {
+          ReadOption(&oh, L"CmdLineBegin", MOT_STRING, wpCmdLineBegin, dwSize);
+          nCmdLineBeginLen=dwSize / sizeof(wchar_t) - 1;
+        }
+      }
+      else bSaveManual=TRUE;
+
+      if (dwSize=ReadOption(&oh, L"CmdLineEnd", MOT_STRING, NULL, 0))
+      {
+        if (wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
+        {
+          ReadOption(&oh, L"CmdLineEnd", MOT_STRING, wpCmdLineEnd, dwSize);
+          nCmdLineEndLen=dwSize / sizeof(wchar_t) - 1;
+        }
+      }
+      else bSaveManual=TRUE;
+
       ReadOption(&oh, L"MDI", MOT_DWORD, &mo->nMDI, sizeof(DWORD));
       ReadOption(&oh, L"SingleOpenFile", MOT_DWORD, &mo->bSingleOpenFile, sizeof(DWORD));
       ReadOption(&oh, L"SingleOpenProgram", MOT_DWORD, &mo->dwSingleOpenProgram, sizeof(DWORD));
@@ -3828,26 +3848,6 @@ HANDLE ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nType, HANDLE hHandle)
     ReadOption(&oh, L"SaveHistory", MOT_DWORD, &mo->nSaveHistory, sizeof(DWORD));
 
     //Manual
-    if (dwSize=ReadOption(&oh, L"CmdLineBegin", MOT_STRING, NULL, 0))
-    {
-      if (wpCmdLineBegin=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
-      {
-        ReadOption(&oh, L"CmdLineBegin", MOT_STRING, wpCmdLineBegin, dwSize);
-        nCmdLineBeginLen=dwSize / sizeof(wchar_t) - 1;
-      }
-    }
-    else bSaveManual=TRUE;
-
-    if (dwSize=ReadOption(&oh, L"CmdLineEnd", MOT_STRING, NULL, 0))
-    {
-      if (wpCmdLineEnd=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
-      {
-        ReadOption(&oh, L"CmdLineEnd", MOT_STRING, wpCmdLineEnd, dwSize);
-        nCmdLineEndLen=dwSize / sizeof(wchar_t) - 1;
-      }
-    }
-    else bSaveManual=TRUE;
-
     if (!ReadOption(&oh, L"ShowModify", MOT_DWORD, &mo->dwShowModify, sizeof(DWORD)))
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"StatusPosType", MOT_DWORD, &mo->dwStatusPosType, sizeof(DWORD)))
