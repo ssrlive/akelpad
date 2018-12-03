@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v6.6                  *
+ *                 AkelUpdater NSIS plugin v6.7                  *
  *                                                               *
  * 2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -1000,10 +1000,10 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ++nCountDLL;
           }
 
-          //"Type|Pack|OrigName"
-          nOffset=xprintfW(wszBuffer, L"%d|%s|%s", lpFileItem->nType, lpFileItem->wszPack, lpFileItem->wszName);
+          //"Type|Pack|Path64|OrigName"
+          nOffset=xprintfW(wszBuffer, L"%d|%s|%d|%s", lpFileItem->nType, lpFileItem->wszPack, lpFileItem->bPath64, lpFileItem->wszName);
 
-          //Append copies and push them in format "Type|Pack|OrigName|CopyName1|CopyName2"
+          //Append copies and push them in format "Type|Pack|Path64|OrigName|CopyName1|CopyName2"
           for (lpCopyItem=lpFileItem->firstCopy; lpCopyItem; lpCopyItem=lpCopyItem->next)
           {
             nOffset+=xprintfW(wszBuffer + nOffset, L"|%s", lpCopyItem->wszName);
@@ -1221,7 +1221,7 @@ void ParseLst(HWND hDlg)
                     else
                     {
                       lpFileItem->nType=FIT_PLUGIN;
-                      xstrcpynW(lpFileItem->wszPack, STR_PLUGSPACK, MAX_PATH);
+                      xstrcpynW(lpFileItem->wszPack, (nInputBit == 64 ? STR_PLUGSPACK64 : STR_PLUGSPACK), MAX_PATH);
 
                       if (wszPlugsDir64[0] && !xstrstrW(wszNoSupport64Bit, -1, wszName, nNameLen, FALSE, NULL, NULL))
                       {
