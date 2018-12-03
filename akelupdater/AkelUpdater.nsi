@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "6.6"
+!define PRODUCT_VERSION "6.7"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -112,6 +112,7 @@ Var AKELSCRIPTSDIR
 Var LISTITEM
 Var ITEMTYPE
 Var ITEMPACK
+Var ITEM64
 Var ITEMNAME
 Var EXEBIT
 Var EXEVERSIONFULL
@@ -631,15 +632,20 @@ Function ExtractZip
 
     ${WordFind} "$LISTITEM" "|" "+1" $ITEMTYPE
     ${WordFind} "$LISTITEM" "|" "+2" $ITEMPACK
-    ${WordFind} "$LISTITEM" "|" "+3" $ITEMNAME
-    ${WordFind} "$LISTITEM" "|" "E+3}" $PLUGINCOPIES
+    ${WordFind} "$LISTITEM" "|" "+3" $ITEM64
+    ${WordFind} "$LISTITEM" "|" "+4" $ITEMNAME
+    ${WordFind} "$LISTITEM" "|" "E+4}" $PLUGINCOPIES
     ${If} ${Errors}
       StrCpy $PLUGINCOPIES ''
     ${EndIf}
 
     ;We pop all items from stack in first ExtractZip call
     ${If} $ITEMPACK == "PlugsPack64"
-      StrCpy $DL_PATH64 "64"
+      ${If} $ITEM64 == "1"
+        StrCpy $DL_PATH64 "64"
+      ${Else}
+        StrCpy $DL_PATH64 ""
+      ${EndIf}
       StrCpy $BITSUFFIXMINUS "-x64"
       StrCpy $BITSUFFIXSLASH "/x64"
     ${Else}
