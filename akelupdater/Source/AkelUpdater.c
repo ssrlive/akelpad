@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v6.7                  *
+ *                 AkelUpdater NSIS plugin v6.8                  *
  *                                                               *
  * 2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -340,7 +340,7 @@ int GetNextWord(const wchar_t *wpStr, INT_PTR nStrLen, const wchar_t *wpDelim, i
 void StackFilesFill(STACKFILEITEM *hStack, const wchar_t *wpPlugsDir, BOOL bPath64);
 FILEREFITEM* StackFileRefInsert(STACKFILEREFITEM *hStack, FILEITEM *lpFileItem);
 FILEITEM* StackFileInsert(STACKFILEITEM *hStack, const wchar_t *wpName);
-FILEITEM* StackFileGet(STACKFILEITEM *hStack, const wchar_t *wpName, const wchar_t *wpPack);
+FILEITEM* StackFileGet(STACKFILEITEM *hStack, const wchar_t *wpName, BOOL bPath64);
 int StackFileSelCount(STACKFILEITEM *hStack);
 void StackFilesSort(STACKFILEITEM *hStack);
 int StackSort(FILEITEM **first, FILEITEM **last, int nUpDown);
@@ -988,7 +988,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lpFileItem->nType == FIT_SCRIPT || lpFileItem->nType == FIT_FORSCRIPT)
           {
             //Get checked pack
-            if (!(lpPackItem=StackFileGet(&hPackStack, lpFileItem->wszPack, NULL)))
+            if (!(lpPackItem=StackFileGet(&hPackStack, lpFileItem->wszPack, -1)))
               lpPackItem=StackFileInsert(&hPackStack, lpFileItem->wszPack);
             ++nCountScript;
           }
@@ -1192,7 +1192,7 @@ void ParseLst(HWND hDlg)
                 }
                 else
                 {
-                  if (!(lpFileItem=StackFileGet(&hFileStack, wszName, NULL)))
+                  if (!(lpFileItem=StackFileGet(&hFileStack, wszName, -1)))
                     lpFileItem=StackFileInsert(&hFileStack, wszName);
                   if (lpFileItem)
                   {
@@ -1313,7 +1313,7 @@ void ParseLst(HWND hDlg)
                     wszString[--nVersionLen]=L'\0';
 
                   //Main script
-                  if (!(lpMainScript=StackFileGet(&hFileStack, wszName, NULL)))
+                  if (!(lpMainScript=StackFileGet(&hFileStack, wszName, -1)))
                     lpMainScript=StackFileInsert(&hFileStack, wszName);
                   if (lpMainScript)
                   {
@@ -1334,7 +1334,7 @@ void ParseLst(HWND hDlg)
                   {
                     while (GetNextWord(wpCount, wpLineEnd - wpCount, L"\"", 1, wszName, MAX_PATH, &wpCount))
                     {
-                      if (!(lpFileItem=StackFileGet(&hFileStack, wszName, NULL)))
+                      if (!(lpFileItem=StackFileGet(&hFileStack, wszName, -1)))
                         lpFileItem=StackFileInsert(&hFileStack, wszName);
                       if (lpFileItem)
                       {
@@ -1670,14 +1670,11 @@ void StackFilesFill(STACKFILEITEM *hStack, const wchar_t *wpPlugsDir, BOOL bPath
 {
   wchar_t wszSearchDir[MAX_PATH];
   wchar_t wszFile[MAX_PATH];
-  const wchar_t *wpPack;
-  wchar_t wszNameInList[MAX_PATH];
   wchar_t wszBaseName[MAX_PATH];
   const wchar_t *pDllExt=L"dll";
   WIN32_FIND_DATAW wfd;
   PLUGINVERSION pv;
   FILEITEM *lpFileItem;
-  FILEITEM *lpFileStandard;
   HANDLE hSearch;
   HMODULE hInstance;
   int nMajor;
@@ -1734,28 +1731,23 @@ void StackFilesFill(STACKFILEITEM *hStack, const wchar_t *wpPlugsDir, BOOL bPath
       //Add to stack
       if (diGlobal.wszName[0])
       {
-        if (bPath64)
+        if (!(lpFileItem=StackFileGet(hStack, diGlobal.wszName, bPath64)))
         {
-          xprintfW(wszNameInList, L"%s[64]", diGlobal.wszName);
-          wpPack=STR_PLUGSPACK64;
+          //Non-standard plugin
+          if (lpFileItem=StackFileInsert(hStack, diGlobal.wszName))
+          {
+            lpFileItem->nType=FIT_PLUGIN;
+            lpFileItem->bPath64=bPath64;
+            xstrcpynW(lpFileItem->wszPack, (nInputBit == 64 ? STR_PLUGSPACK64 : STR_PLUGSPACK), MAX_PATH);
+            if (bPath64)
+              xprintfW(lpFileItem->wszNameInList, L"%s[64]", diGlobal.wszName);
+            else
+              xprintfW(lpFileItem->wszNameInList, L"%s", diGlobal.wszName);
+          }
         }
-        else
-        {
-          xprintfW(wszNameInList, L"%s", diGlobal.wszName);
-          wpPack=STR_PLUGSPACK;
-        }
-        if (!(lpFileItem=StackFileGet(hStack, diGlobal.wszName, wpPack)))
-          lpFileItem=StackFileInsert(hStack, diGlobal.wszName);
 
         if (lpFileItem)
         {
-          lpFileItem->nType=FIT_PLUGIN;
-          lpFileItem->bPath64=bPath64;
-          xstrcpynW(lpFileItem->wszPack, wpPack, MAX_PATH);
-          xstrcpynW(lpFileItem->wszNameInList, wszNameInList, MAX_PATH);
-          if (lpFileStandard=StackFileGet(hStack, diGlobal.wszName, STR_PLUGSPACK))
-            xstrcpynW(lpFileItem->wszLastVer, lpFileStandard->wszLastVer, MAX_PATH);
-
           //Is copy?
           GetBaseName(wfd.cFileName, -1, wszBaseName, MAX_PATH);
           if (xstrcmpiW(wszBaseName, diGlobal.wszName))
@@ -1810,14 +1802,14 @@ FILEITEM* StackFileInsert(STACKFILEITEM *hStack, const wchar_t *wpName)
   return lpElement;
 }
 
-FILEITEM* StackFileGet(STACKFILEITEM *hStack, const wchar_t *wpName, const wchar_t *wpPack)
+FILEITEM* StackFileGet(STACKFILEITEM *hStack, const wchar_t *wpName, BOOL bPath64)
 {
   FILEITEM *lpElement;
 
   for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
   {
     if (!xstrcmpiW(lpElement->wszName, wpName) &&
-        (!wpPack || !xstrcmpiW(lpElement->wszPack, wpPack)))
+        (bPath64 == -1 || lpElement->bPath64 == bPath64))
       return lpElement;
   }
   return NULL;
