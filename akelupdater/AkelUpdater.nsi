@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "6.7"
+!define PRODUCT_VERSION "6.8"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
