@@ -1375,7 +1375,7 @@ void CompareItems()
       //Unofficial file
       if (!lpFileItem->dwError)
       {
-        xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName, GetLangStringW(wLangModule, STRID_ERRORNOTINLIST));
+        xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszNameInList, GetLangStringW(wLangModule, STRID_ERRORNOTINLIST));
         lpFileItem->dwError=PE_NOTINLIST;
       }
       lpFileItem->nChecked=0;
@@ -1672,6 +1672,7 @@ void StackFilesFill(STACKFILEITEM *hStack, const wchar_t *wpPlugsDir, BOOL bPath
   wchar_t wszFile[MAX_PATH];
   wchar_t wszBaseName[MAX_PATH];
   const wchar_t *pDllExt=L"dll";
+  const wchar_t *wpName;
   WIN32_FIND_DATAW wfd;
   PLUGINVERSION pv;
   FILEITEM *lpFileItem;
@@ -1738,7 +1739,7 @@ void StackFilesFill(STACKFILEITEM *hStack, const wchar_t *wpPlugsDir, BOOL bPath
           {
             lpFileItem->nType=FIT_PLUGIN;
             lpFileItem->bPath64=bPath64;
-            xstrcpynW(lpFileItem->wszPack, (nInputBit == 64 ? STR_PLUGSPACK64 : STR_PLUGSPACK), MAX_PATH);
+            //xstrcpynW(lpFileItem->wszPack, (nInputBit == 64 ? STR_PLUGSPACK64 : STR_PLUGSPACK), MAX_PATH);
             if (bPath64)
               xprintfW(lpFileItem->wszNameInList, L"%s[64]", diGlobal.wszName);
             else
@@ -1762,12 +1763,17 @@ void StackFilesFill(STACKFILEITEM *hStack, const wchar_t *wpPlugsDir, BOOL bPath
       {
         if (lpFileItem=StackFileInsert(hStack, wfd.cFileName))
         {
-          if (diGlobal.dwError == PE_NOTPLUGIN)
-            xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName, GetLangStringW(wLangModule, STRID_ERRORNOTPLUGIN));
-          else if (diGlobal.dwError == PE_CANTLOAD)
-            xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszName,  GetLangStringW(wLangModule, STRID_ERRORCANTLOAD));
+          if (lpFileItem->wszNameInList[0])
+            wpName=lpFileItem->wszNameInList;
           else
-            xprintfW(lpFileItem->wszError, L"%s", lpFileItem->wszName);
+            wpName=lpFileItem->wszName;
+
+          if (diGlobal.dwError == PE_NOTPLUGIN)
+            xprintfW(lpFileItem->wszError, L"%s %s", wpName, GetLangStringW(wLangModule, STRID_ERRORNOTPLUGIN));
+          else if (diGlobal.dwError == PE_CANTLOAD)
+            xprintfW(lpFileItem->wszError, L"%s %s", wpName,  GetLangStringW(wLangModule, STRID_ERRORCANTLOAD));
+          else
+            xprintfW(lpFileItem->wszError, L"%s", wpName);
           lpFileItem->nType=FIT_PLUGIN;
           lpFileItem->dwError=diGlobal.dwError;
         }
