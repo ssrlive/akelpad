@@ -1672,7 +1672,6 @@ void StackFilesFill(STACKFILEITEM *hStack, const wchar_t *wpPlugsDir, BOOL bPath
   wchar_t wszFile[MAX_PATH];
   wchar_t wszBaseName[MAX_PATH];
   const wchar_t *pDllExt=L"dll";
-  const wchar_t *wpName;
   WIN32_FIND_DATAW wfd;
   PLUGINVERSION pv;
   FILEITEM *lpFileItem;
@@ -1763,17 +1762,17 @@ void StackFilesFill(STACKFILEITEM *hStack, const wchar_t *wpPlugsDir, BOOL bPath
       {
         if (lpFileItem=StackFileInsert(hStack, wfd.cFileName))
         {
-          if (lpFileItem->wszNameInList[0])
-            wpName=lpFileItem->wszNameInList;
+          if (bPath64)
+            xprintfW(lpFileItem->wszNameInList, L"%s[64]", lpFileItem->wszName);
           else
-            wpName=lpFileItem->wszName;
+            xprintfW(lpFileItem->wszNameInList, L"%s", lpFileItem->wszName);
 
           if (diGlobal.dwError == PE_NOTPLUGIN)
-            xprintfW(lpFileItem->wszError, L"%s %s", wpName, GetLangStringW(wLangModule, STRID_ERRORNOTPLUGIN));
+            xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszNameInList, GetLangStringW(wLangModule, STRID_ERRORNOTPLUGIN));
           else if (diGlobal.dwError == PE_CANTLOAD)
-            xprintfW(lpFileItem->wszError, L"%s %s", wpName,  GetLangStringW(wLangModule, STRID_ERRORCANTLOAD));
+            xprintfW(lpFileItem->wszError, L"%s %s", lpFileItem->wszNameInList,  GetLangStringW(wLangModule, STRID_ERRORCANTLOAD));
           else
-            xprintfW(lpFileItem->wszError, L"%s", wpName);
+            xprintfW(lpFileItem->wszError, L"%s", lpFileItem->wszNameInList);
           lpFileItem->nType=FIT_PLUGIN;
           lpFileItem->dwError=diGlobal.dwError;
         }
