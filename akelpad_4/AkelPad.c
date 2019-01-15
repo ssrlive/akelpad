@@ -4678,6 +4678,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_ACTIVATEAPP)
   {
+    //if (nMDI == WMD_SDI)
+    //{
+    //  if (wParam)
+    //  {
+    //    //Activate keyboard layout
+    //    if (moCur.dwKeybLayoutOptions & KLO_REMEMBERLAYOUT)
+    //      ActivateKeyboard(lpFrameCurrent->dwInputLocale);
+    //  }
+    //  else
+    //  {
+    //    //Remember keyboard layout
+    //    if (moCur.dwKeybLayoutOptions & KLO_REMEMBERLAYOUT)
+    //      lpFrameCurrent->dwInputLocale=(HKL)GetKeyboardLayout(0);
+    //  }
+    //}
     if (wParam)
       UpdateStatusUser(lpFrameCurrent, CSB_NUMLOCK|CSB_CAPSLOCK);
   }
@@ -6352,7 +6367,8 @@ BOOL CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
               if (bStop)
               {
-                PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
+                CloseDocument(0);
+                //PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
                 *lResult=1;
                 return TRUE;
               }

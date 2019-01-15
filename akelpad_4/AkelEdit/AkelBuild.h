@@ -1012,6 +1012,7 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 UINT_PTR AE_SetTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR dwTextLen, int nNewLine);
 UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int nNewLine, BOOL bOnInitWindow);
 UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi);
+void AE_FixEdit(AKELEDIT *ae, BOOL bJoinNewLines);
 int AE_JoinNewLines(AKELEDIT *ae);
 UINT_PTR AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso);
 BOOL AE_StreamOutHelper(AESTREAMOUT *aeso, AECHARINDEX *ciCount, const AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, UINT_PTR *dwResult);
@@ -1073,7 +1074,7 @@ void AE_NotifyVScroll(AKELEDIT *ae);
 void AE_NotifySetRect(AKELEDIT *ae);
 void AE_NotifyPaint(AKELEDIT *ae, DWORD dwType, AENPAINT *pnt);
 void AE_NotifyMaxText(AKELEDIT *ae);
-BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, DWORD dwTimeElapsed, INT_PTR nCurrent, INT_PTR nMaximum);
+DWORD AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, DWORD dwTimeElapsed, INT_PTR nCurrent, INT_PTR nMaximum);
 void AE_NotifyModify(AKELEDIT *ae);
 void AE_NotifySelChanging(AKELEDIT *ae, DWORD dwType);
 void AE_NotifySelChanged(AKELEDIT *ae);

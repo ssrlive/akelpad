@@ -799,9 +799,7 @@ void SaveFrameData(FRAMEDATA *lpFrame)
   {
     //Remember keyboard layout
     if (moCur.dwKeybLayoutOptions & KLO_REMEMBERLAYOUT)
-    {
       lpFrame->dwInputLocale=(HKL)GetKeyboardLayout(0);
-    }
   }
 }
 
@@ -858,9 +856,7 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
   {
     //Activate keyboard layout
     if (moCur.dwKeybLayoutOptions & KLO_REMEMBERLAYOUT)
-    {
       ActivateKeyboard(lpFrame->dwInputLocale);
-    }
 
     //Update tabs
     if (!bTabPressing)
