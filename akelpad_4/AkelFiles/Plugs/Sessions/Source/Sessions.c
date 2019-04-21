@@ -421,7 +421,6 @@ BOOL TreeDeleteItem(HWND hWndTreeView, HTREEITEM hItem);
 void TreeUpdateItem(HWND hWndTreeView, HTREEITEM hItem);
 LPARAM TreeItemParam(HWND hWndTreeView, HTREEITEM hItem);
 HTREEITEM TreeCursorItem(HWND hWndTreeView);
-void ClearTreeView(HWND hWndTreeView, BOOL bRedraw);
 
 void GetCoderColors(HWND hWnd);
 void SetListColors(HWND hWndEdit, HWND hWndList);
@@ -1194,9 +1193,11 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         lpVirtualSession=NULL;
         lpRealSession=NULL;
 
+        SendMessage(hWndItemsList, WM_SETREDRAW, FALSE, 0);
+        SendMessage(hWndItemsList, TVM_DELETEITEM, 0, (LPARAM)NULL);
+
         if (!(nCurrentSessionIndex=(int)SendMessage(hWndSessionList, CB_GETCURSEL, 0, 0)))
         {
-          ClearTreeView(hWndItemsList, FALSE);
           TreeFillItemsCurrent(hWndItemsList);
 
           if (nDialogType != DLGT_DOCKABLE)
@@ -1215,7 +1216,6 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else
         {
-          ClearTreeView(hWndItemsList, FALSE);
           ComboBox_GetLBTextWide(hWndSessionList, nCurrentSessionIndex, wszBuffer);
 
           if (lpRealSession=GetSession(&hSessionStack, wszBuffer))
@@ -1244,6 +1244,11 @@ LRESULT CALLBACK MainDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             EnableWindow(hWndDeleteButton, TRUE);
           }
         }
+        SendMessage(hWndItemsList, WM_SETREDRAW, TRUE, 0);
+        //SetScrollRange(hWndItemsList, SB_HORZ, 0, 0, TRUE);
+        //SetScrollRange(hWndItemsList, SB_VERT, 0, 0, TRUE);
+        //InvalidateRect(hWndItemsList, NULL, TRUE);
+
         PostMessage(hDlg, AKDLL_UPDATESAVEBUTTON, 0, 0);
       }
     }
@@ -4450,14 +4455,6 @@ HTREEITEM TreeCursorItem(HWND hWndTreeView)
       return tvhti.hItem;
   }
   return NULL;
-}
-
-void ClearTreeView(HWND hWndTreeView, BOOL bRedraw)
-{
-  SendMessage(hWndTreeView, WM_SETREDRAW, FALSE, 0);
-  TreeDeleteItem(hWndTreeView, NULL);
-  SendMessage(hWndTreeView, WM_SETREDRAW, TRUE, 0);
-  if (bRedraw) InvalidateRect(hWndTreeView, NULL, TRUE);
 }
 
 void GetCoderColors(HWND hWnd)
