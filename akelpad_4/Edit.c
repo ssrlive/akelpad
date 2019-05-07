@@ -799,7 +799,9 @@ void SaveFrameData(FRAMEDATA *lpFrame)
   {
     //Remember keyboard layout
     if (moCur.dwKeybLayoutOptions & KLO_REMEMBERLAYOUT)
+    {
       lpFrame->dwInputLocale=(HKL)GetKeyboardLayout(0);
+    }
   }
 }
 
@@ -856,7 +858,9 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
   {
     //Activate keyboard layout
     if (moCur.dwKeybLayoutOptions & KLO_REMEMBERLAYOUT)
+    {
       ActivateKeyboard(lpFrame->dwInputLocale);
+    }
 
     //Update tabs
     if (!bTabPressing)
@@ -5348,10 +5352,14 @@ int SaveDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, int nCodePage, B
   int nStreamOffset;
   BOOL bFileExist;
 
-  if (!wpFile[0])
+  if (!wpFile || !wpFile[0])
   {
-    SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
-    return nResult;
+    if (!lpFrameCurrent->wszFile[0])
+    {
+      SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
+      return nResult;
+    }
+    wpFile=lpFrameCurrent->wszFile;
   }
   if (!hWnd)
   {
