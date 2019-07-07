@@ -799,9 +799,7 @@ void SaveFrameData(FRAMEDATA *lpFrame)
   {
     //Remember keyboard layout
     if (moCur.dwKeybLayoutOptions & KLO_REMEMBERLAYOUT)
-    {
       lpFrame->dwInputLocale=(HKL)GetKeyboardLayout(0);
-    }
   }
 }
 
@@ -858,9 +856,7 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
   {
     //Activate keyboard layout
     if (moCur.dwKeybLayoutOptions & KLO_REMEMBERLAYOUT)
-    {
       ActivateKeyboard(lpFrame->dwInputLocale);
-    }
 
     //Update tabs
     if (!bTabPressing)
@@ -4027,7 +4023,7 @@ HANDLE ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nType, HANDLE hHandle)
   else if (nType == PCL_ONLOAD)
   {
     //On load
-    return NULL;
+    goto End;
   }
 
   //Read and register plugins hotkeys
@@ -4044,12 +4040,13 @@ HANDLE ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nType, HANDLE hHandle)
   bMenuRecentFiles=TRUE;
 
   //Close handle
+  End:
+  StackFreeIni(&hAkelPadIni);
+
   if (mo->nSaveSettings == SS_REGISTRY)
   {
     if (oh.hHandle) RegCloseKey((HKEY)oh.hHandle);
   }
-  else StackFreeIni(&hAkelPadIni);
-
   return NULL;
 }
 
