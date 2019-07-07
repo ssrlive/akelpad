@@ -403,7 +403,7 @@ WNDPROC lpOldOutputProc;
 
 wchar_t wszRunCmdLine[COMMANDLINE_SIZE];
 wchar_t wszRunDir[MAX_PATH];
-RECT rcRunMinMaxDialog={363, 270, 0, 270};
+RECT rcRunMinMaxDialog={363, 270, 0, 0};
 RECT rcRunCurrentDialog={0};
 
 PLUGINFUNCTION *pfWatch=NULL;
