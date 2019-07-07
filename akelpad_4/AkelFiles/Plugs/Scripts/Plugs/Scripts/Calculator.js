@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.0
+// Version: 1.1
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -126,6 +126,8 @@ if (pSelText)
     {
       nResult=eval(pSelText);
     }
+    if (IsFloat(nResult))
+      nResult=Number(nResult.toPrecision(7));
   }
   catch (nError)
   {
@@ -141,6 +143,11 @@ else
 
 
 //Functions
+function IsFloat(n)
+{
+  return Number(n) == n && n % 1 != 0;
+}
+
 function Trace(nResult, pLabel)
 {
   var nValue;
