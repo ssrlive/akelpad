@@ -84,10 +84,10 @@ Special items:
                   Specifies additional message-specific information.
               Call("Plugin::Function"[, additional parameters])
                 - If a plugin is called, then exit code transfered via special parameter &nResult. &nResult must be located in a place where external call syntax requires a pointer to an integer.
-                  SET(64, If(`Call("Coder::CodeFold", 1, &nResult)`)
+                  SET(64, If(`Call("Coder::CodeFold", 1, &nResult)`))
                     parse following lines, if CodeFold window is open.
                 - If a script is called, then it is necessary to use external calls 2 or 4 and also transfer exit code from script via AkelPad.ScriptExitCode.
-                  SET(64, If(`Call("Scripts::Main", 4, "EvalCmd.js", 'if (AkelPad.GetEditFile(0)) AkelPad.ScriptExitCode(1);')`)
+                  SET(64, If(`Call("Scripts::Main", 4, "EvalCmd.js", 'if (AkelPad.GetEditFile(0)) AkelPad.ScriptExitCode(1);')`))
                     parse following lines, if current document has name.
                 - It is possible to call Scripts plugin method directly. Allowed in SET(128).
                   SET(64, If(`AkelPad.Constants._X64 == 1`))

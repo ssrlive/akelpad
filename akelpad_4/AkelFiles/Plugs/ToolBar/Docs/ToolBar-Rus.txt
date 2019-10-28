@@ -85,10 +85,10 @@ ToolBar::Main
                   Дополнительная информация.
               Call("Плагин::Функция"[, дополнительные параметры])
                 - Если вызывается плагин, то код выхода передаётся через специальный параметр &nResult. &nResult должен находится на месте, где синтаксис внешнего вызова требует указатель на число.
-                  SET(64, If(`Call("Coder::CodeFold", 1, &nResult)`)
+                  SET(64, If(`Call("Coder::CodeFold", 1, &nResult)`))
                     обрабатывать последующие строки, если открыто окно CodeFold.
                 - Если вызывается скрипт, то необходимо использовать внешние вызовы 2 или 4, а также передавать код выхода из скрипта через AkelPad.ScriptExitCode.
-                  SET(64, If(`Call("Scripts::Main", 4, "EvalCmd.js", 'if (AkelPad.GetEditFile(0)) AkelPad.ScriptExitCode(1);')`)
+                  SET(64, If(`Call("Scripts::Main", 4, "EvalCmd.js", 'if (AkelPad.GetEditFile(0)) AkelPad.ScriptExitCode(1);')`))
                     обрабатывать последующие строки, если текущий документ имеет имя.
                 - Возможно вызывать метод Scripts плагина напрямую. Разрешено в SET(128).
                   SET(64, If(`AkelPad.Constants._X64 == 1`))
