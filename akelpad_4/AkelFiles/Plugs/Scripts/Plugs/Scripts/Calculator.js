@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.1
+// Version: 1.2
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -116,6 +116,8 @@ var WM_USER=1024;
 
 if (pSelText)
 {
+  //Уберём разделитель групп (используется в 1С)
+  pSelText=pSelText.replace(/\xa0/g, "");
   pSelText=pSelText.replace(/(\d),(\d)/g, "$1.$2");
   if (pSelText.substr(0, 2) == "0x")
     bHex=true;
@@ -127,7 +129,7 @@ if (pSelText)
       nResult=eval(pSelText);
     }
     if (IsFloat(nResult))
-      nResult=Number(nResult.toPrecision(7));
+      nResult=Number(nResult.toFixed(9));
   }
   catch (nError)
   {
