@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 1.2
+// Version: 1.3
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -116,9 +116,11 @@ var WM_USER=1024;
 
 if (pSelText)
 {
-  //Уберём разделитель групп (используется в 1С)
+  //Remove group separator (used in 1C)
   pSelText=pSelText.replace(/\xa0/g, "");
   pSelText=pSelText.replace(/(\d),(\d)/g, "$1.$2");
+  //Sum values in the lines
+  pSelText=pSelText.replace(/\r/g, "+");
   if (pSelText.substr(0, 2) == "0x")
     bHex=true;
 
