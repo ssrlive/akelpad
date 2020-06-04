@@ -46,7 +46,7 @@ void _WinMain()
   int nStartTime;
   DWORD dwOptions=RESE_MATCHCASE|RESE_GLOBAL|RESE_MULTILINE;
 
-  ////http://akelpad.sourceforge.net/forum/viewtopic.php?p=33712#33712
+  //http://akelpad.sourceforge.net/forum/viewtopic.php?p=33712#33712
   nLine=__LINE__;
   TextReplaceRE(L"abcd abcd", L"a((?!a).){3,}?", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"[x]")) goto Error;
@@ -56,11 +56,15 @@ void _WinMain()
   TextReplaceRE(L"ab", L"(?!z?a).+b", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"ab")) goto Error;
 
-  //nLine=__LINE__;
-  //TextReplaceRE(L"ababc", L"(a+b)+c", L"[x]", dwOptions, &wpResult);
-  //if (xstrcmpW(wpResult, L"[x]")) goto Error;
+  nLine=__LINE__;
+  TextReplaceRE(L"ababc", L"(a+b)+c", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"[x]")) goto Error;
 
   //Test compilation
+  nLine=__LINE__;
+  TextReplaceRE(L"abc", L"[a][b", L"[x]", dwOptions, &wpResult);
+  if (xstrcmpW(wpResult, L"")) goto Error;
+
   nLine=__LINE__;
   TextReplaceRE(L"abc", L"\\", L"[x]", dwOptions, &wpResult);
   if (xstrcmpW(wpResult, L"")) goto Error;

@@ -1,7 +1,7 @@
 /******************************************************************
  *                  RegExp functions header v2.5                  *
  *                                                                *
- * 2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2020 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *                                                                *
  * RegExpFunc.h header uses functions:                            *
@@ -1013,7 +1013,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     }
     ++wpPat;
   }
-  if (wpClassStart > wpClassEnd)
+  if (wpClassStart && wpClassStart >= wpClassEnd)
   {
     wpPat=wpClassStart;
     goto Error;
