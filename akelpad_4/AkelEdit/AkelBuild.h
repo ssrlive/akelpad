@@ -562,6 +562,7 @@ typedef struct {
   int nVScrollLock;
   int nHScrollLock;
   DWORD dwVScrollMaxOffset;
+  DWORD dwMScrollSpeed;
   BOOL bHideSelection;
   DWORD dwLockUpdate;
   BOOL bHeapSerialize;

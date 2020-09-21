@@ -1861,6 +1861,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       ae->ptxt->nFixedTabWidth=ae->ptxt->nFixedCharWidth * ae->ptxt->nTabStop;
       return nPrevWidth;
     }
+    case AEM_GETSCROLLSPEED:
+    {
+      return ae->popt->dwMScrollSpeed;
+    }
+    case AEM_SETSCROLLSPEED:
+    {
+      ae->popt->dwMScrollSpeed=(DWORD)wParam;
+      return 0;
+    }
 
     //Draw
     case AEM_SHOWSCROLLBAR:
@@ -4990,6 +4999,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     ae->bCaretVisible=TRUE;
     ae->nCurrentCursor=AECC_IBEAM;
     ae->popt->dwVScrollMaxOffset=0;
+    ae->popt->dwMScrollSpeed=10;
 
     //OLE Drag'n'Drop
     ae->idtVtbl.QueryInterface=AEIDropTarget_QueryInterface;
@@ -10282,39 +10292,39 @@ void AE_MouseMove(AKELEDIT *ae)
     }
     else if (ae->nCurrentCursor == AECC_MLEFT)
     {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5) * ae->popt->dwMScrollSpeed / 100);
     }
     else if (ae->nCurrentCursor == AECC_MLEFTTOP)
     {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5) * ae->popt->dwMScrollSpeed / 100);
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5) * ae->popt->dwMScrollSpeed / 100);
     }
     else if (ae->nCurrentCursor == AECC_MTOP)
     {
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5) * ae->popt->dwMScrollSpeed / 100);
     }
     else if (ae->nCurrentCursor == AECC_MRIGHTTOP)
     {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5) * ae->popt->dwMScrollSpeed / 100);
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5) * ae->popt->dwMScrollSpeed / 100);
     }
     else if (ae->nCurrentCursor == AECC_MRIGHT)
     {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5) * ae->popt->dwMScrollSpeed / 100);
     }
     else if (ae->nCurrentCursor == AECC_MRIGHTBOTTOM)
     {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5) * ae->popt->dwMScrollSpeed / 100);
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5) * ae->popt->dwMScrollSpeed / 100);
     }
     else if (ae->nCurrentCursor == AECC_MBOTTOM)
     {
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5) * ae->popt->dwMScrollSpeed / 100);
     }
     else if (ae->nCurrentCursor == AECC_MLEFTBOTTOM)
     {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5) * ae->popt->dwMScrollSpeed / 100);
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5) * ae->popt->dwMScrollSpeed / 100);
     }
   }
   if (ae->dwMouseMoveTimer)
