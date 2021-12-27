@@ -2648,15 +2648,19 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_CLOSE ||
            uMsg == WM_QUERYENDSESSION)
   {
-    if (bSaveOnExit)
+    //Check that WM_CLOSE is called for the first time
+    if (SendMessage(hMainWnd, AKD_GETMAININFO, MI_ONFINISH, 0) == MOF_NONE)
     {
-      if (*wszSaveOnExit)
-        SaveCurrentSession(wszSaveOnExit);
-    }
-    if (hWndMainDlg)
-    {
-      if (SaveSessionPrompt() == IDCANCEL)
-        return FALSE;
+      if (bSaveOnExit)
+      {
+        if (*wszSaveOnExit)
+          SaveCurrentSession(wszSaveOnExit);
+      }
+      if (hWndMainDlg)
+      {
+        if (SaveSessionPrompt() == IDCANCEL)
+          return FALSE;
+      }
     }
   }
   else if (uMsg == AKDN_MAIN_ONFINISH)
