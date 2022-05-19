@@ -1187,7 +1187,18 @@ HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **
             }
             dwParameter=(UINT_PTR)szString;
           }
-          else dwParameter=(UINT_PTR)pvtParameter->bstrVal;
+          else
+          {
+            #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0x7FFFFFFF)
+              if (pvtParameter->bstrVal && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
+              {
+                //JScript doesn't support VT_I8, so __int64 number converted to string.
+                dwParameter=xatoiW(pvtParameter->bstrVal + 1, NULL);
+              }
+              else
+            #endif
+            dwParameter=(UINT_PTR)pvtParameter->bstrVal;
+          }
         }
         else dwParameter=GetVariantInt(pvtParameter, NULL);
 
