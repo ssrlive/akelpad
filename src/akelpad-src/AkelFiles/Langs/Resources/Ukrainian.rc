@@ -1,0 +1,1176 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef RC_EXEVERSION
+  #if (RC_VERSIONBIT == 64)
+    #define RC_VERSIONDESCRIPTION "AkelPad (x64) language module"
+  #else
+    #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
+  #endif
+  #define RC_VERSIONCOPYRIGHT "© 2010-2015 Fedorow Olexandr (www.olexandr@mail.ru), Yurii Petrashko aka YuriPet (yuripet@gmail.com)"
+  #define RC_VERSIONNAME "Ukrainian.dll"
+#endif
+#include "winresrc.h"
+#include "staticedit.h"
+#include "version.h"
+#include "..\..\Plugs\AkelDLL\AkelDLL.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Unknown language: 0x22, 0x1 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_UKR)
+#ifdef _WIN32
+LANGUAGE 0x22, 0x1
+#pragma code_page(1251)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDM_MENU_MAIN MENU DISCARDABLE 
+BEGIN
+    POPUP "&Файл"
+    BEGIN
+        MENUITEM "&Новий\tCtrl+N",              IDM_FILE_NEW
+        MENUITEM "Створи&ти вікно\tCtrl+Shift+N", IDM_FILE_CREATENEW
+        MENUITEM "В&ідкрити...\tCtrl+O",        IDM_FILE_OPEN
+        MENUITEM "&Перевідкрити\tF5",           IDM_FILE_REOPEN
+        MENUITEM SEPARATOR
+        MENUITEM "&Зберегти\tCtrl+S",           IDM_FILE_SAVE
+        MENUITEM "Зберегти я&к...\tCtrl+Shift+S", IDM_FILE_SAVEAS
+        MENUITEM "Зберегти &все\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
+        MENUITEM "Зберегти все як...",          IDM_FILE_SAVEALLAS
+        MENUITEM SEPARATOR
+        MENUITEM "Пара&метри сторінки...",      IDM_FILE_PAGESETUP
+        MENUITEM "Попередній пере&гляд...",     IDM_FILE_PRINTPREVIEW
+        MENUITEM "&Друкувати...\tCtrl+P",       IDM_FILE_PRINT
+        MENUITEM SEPARATOR
+        POPUP "Останні &файли"
+        BEGIN
+            MENUITEM "_",                           IDM_RECENT_FILES
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "В&ихід\tEsc",                 IDM_FILE_EXIT
+    END
+    POPUP "&Редагування"
+    BEGIN
+        MENUITEM "&Скасувати\tCtrl+Z",          IDM_EDIT_UNDO
+        MENUITEM "Пов&торити\tCtrl+Shift+Z",    IDM_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "&Вирізати\tCtrl+X",           IDM_EDIT_CUT
+        MENUITEM "&Копіювати\tCtrl+C",          IDM_EDIT_COPY
+        MENUITEM "Вст&авити\tCtrl+V",           IDM_EDIT_PASTE
+        MENUITEM "Вида&лити\tDel",              IDM_EDIT_CLEAR
+        MENUITEM "Познач&ити все\tCtrl+A",      IDM_EDIT_SELECTALL
+        MENUITEM SEPARATOR
+        MENUITEM "Знайт&и...\tCtrl+F",          IDM_EDIT_FIND
+        MENUITEM "Знайти далі в&низ\tF3",       IDM_EDIT_FINDNEXTDOWN
+        MENUITEM "Знайти далі вгор&у\tShift+F3", IDM_EDIT_FINDNEXTUP
+        MENUITEM "&Замінити...\tCtrl+R",        IDM_EDIT_REPLACE
+        MENUITEM "&Перейти...\tCtrl+G",         IDM_EDIT_GOTO
+        MENUITEM SEPARATOR
+        MENUITEM "Вставити &символ\tCtrl+I",    IDM_EDIT_INSERTCHAR
+        MENUITEM "Вставити &дату\tCtrl+D",      IDM_EDIT_INSERTDATE
+        POPUP "Позна&чене"
+        BEGIN
+            MENUITEM "Вертикальна вставка\tAlt+V",  IDM_EDIT_PASTECOLUMN
+            MENUITEM SEPARATOR
+            MENUITEM "&Додати табуляцію\tTab",            IDM_EDIT_INSERT_TAB_MENU
+            MENUITEM "&Прибрати табуляцію\tShift+Tab",    IDM_EDIT_DELETE_TAB_MENU
+            MENUITEM "Д&одати пробіл\tSpace",       IDM_EDIT_INSERT_SPACE_MENU
+
+            MENUITEM "При&брати пробіл\tShift+Space", 
+                                                    IDM_EDIT_DELETE_SPACE_MENU
+
+            MENUITEM "Прибр&ати перший символ\tShift+Backspace", 
+                                                    IDM_EDIT_DELETE_FIRST_CHAR_MENU
+
+   MENUITEM "Прибра&ти табуляцію та пробіли в кінці\tAlt+Backspace",
+                                                    IDM_EDIT_DELETE_TRAILING_WHITESPACES
+   MENUITEM "Прибрати табуляцію та пробіли у позначеному",
+                                                    IDM_EDIT_DELETESELWHITESPACES
+
+            MENUITEM SEPARATOR
+            MENUITEM "УСІ &ПРОПИСНІ\tCtrl+6",       IDM_EDIT_UPPERCASE
+            MENUITEM "усі &рядкові\tCtrl+7",        IDM_EDIT_LOWERCASE
+            MENUITEM "Я&к у реченнях\tCtrl+8",      IDM_EDIT_SENTENCECASE
+            MENUITEM "Почи&нати З Прописних\tCtrl+9", IDM_EDIT_TITLECASE
+            MENUITEM "&іНВЕРТУВАТИ\tCtrl+0",        IDM_EDIT_INVERTCASE
+            MENUITEM SEPARATOR
+            MENUITEM "Перекод&увати...\tAlt+R",     IDM_EDIT_RECODE
+        END
+        POPUP "&Формат нового рядка"
+        BEGIN
+            MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
+            MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
+            MENUITEM "Mac (0Dh)",                   IDM_EDIT_NEWLINE_MAC
+        END
+    END
+    POPUP "&Вигляд"
+    BEGIN
+        MENUITEM "&Шрифт...",                   IDM_VIEW_FONT
+        MENUITEM "&Кольори...",                 IDM_VIEW_COLORS
+        MENUITEM SEPARATOR
+        MENUITEM "&Лише для читання",         IDM_VIEW_READONLY
+        MENUITEM "Пере&несення по словах\tCtrl+U", IDM_VIEW_WORDWRAP
+        MENUITEM "&Розділити вікно",            IDM_VIEW_SPLIT_WINDOW_ONOFF
+        MENUITEM "&Поверх усіх вікон\tCtrl+T",  IDM_VIEW_ONTOP
+        MENUITEM "Рядок &стану",                IDM_VIEW_SHOW_STATUSBAR
+        MENUITEM SEPARATOR
+        POPUP "&Мова (Language)"
+        BEGIN
+            MENUITEM "_",                           IDM_LANGUAGE
+        END
+    END
+    POPUP "&Налаштування"
+    BEGIN
+        MENUITEM "П&лаґіни...\tAlt+P",          IDM_OPTIONS_PLUGINS
+        MENUITEM "&Виконати\tCtrl+F5",          IDM_OPTIONS_EXEC
+        MENUITEM SEPARATOR
+        MENUITEM "Зб&ерігати відступи зліва\tCtrl+L", IDM_OPTIONS_KEEPSPACE
+        MENUITEM "Слідкувати за змінам&и файлу", IDM_OPTIONS_WATCHFILE
+        MENUITEM "Зберігати ча&с файлу",         IDM_OPTIONS_SAVETIME
+        MENUITEM "Не відкривати ф&айл двічі",   IDM_OPTIONS_SINGLEOPEN_FILE
+        MENUITEM "Не відкривати про&граму двічі", 
+                                                IDM_OPTIONS_SINGLEOPEN_PROGRAM
+
+        MENUITEM SEPARATOR
+        POPUP "Вік&онний режим"
+        BEGIN
+            MENUITEM "&Одновіконний (SDI)",         IDM_OPTIONS_SDI
+            MENUITEM "&Багатовіконний (MDI)",       IDM_OPTIONS_MDI
+            MENUITEM "&Псевдобагатовіконний (PMDI)", IDM_OPTIONS_PMDI
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Параметри...",               IDM_OPTIONS
+    END
+    POPUP "Вікн&о"
+    BEGIN
+        POPUP "Вк&ладинки"
+        BEGIN
+            MENUITEM "&Вгорі",                      IDM_WINDOW_TABVIEW_TOP
+            MENUITEM "В&низу",                      IDM_WINDOW_TABVIEW_BOTTOM
+
+            MENUITEM "П&риховати",                  IDM_WINDOW_TABVIEW_NONE
+            MENUITEM SEPARATOR
+            MENUITEM "&Стандартні",                 IDM_WINDOW_TABTYPE_STANDARD
+
+            MENUITEM "Кн&опки",                     IDM_WINDOW_TABTYPE_BUTTONS
+
+            MENUITEM "&Плоскі кнопки",              IDM_WINDOW_TABTYPE_FLATBUTTONS
+
+            MENUITEM SEPARATOR
+            MENUITEM "Нас&тупна-Попередня",         IDM_WINDOW_TABSWITCH_NEXTPREV
+
+            MENUITEM "Права-&Ліва",                 IDM_WINDOW_TABSWITCH_RIGHTLEFT
+
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Горизонтально",              IDM_WINDOW_TILEHORIZONTAL
+        MENUITEM "&Вертикально",                IDM_WINDOW_TILEVERTICAL
+        MENUITEM "&Каскадом",                   IDM_WINDOW_CASCADE
+        MENUITEM "Закрити",                     IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Закрити все",                 IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Закрити все, окрім активного", 
+                                                IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+
+        MENUITEM SEPARATOR
+        MENUITEM "Кло&нувати",                IDM_WINDOW_FRAMECLONE
+        MENUITEM "Ко&піювати шлях",            IDM_WINDOW_COPYPATH
+        MENUITEM "Вибір вікна...",              IDM_WINDOW_MDILIST
+    END
+    POPUP "&Довідка"
+    BEGIN
+        MENUITEM "&Керівництво",                IDM_MANUAL
+        MENUITEM "О&новлення...",              IDM_UPDATE
+        MENUITEM SEPARATOR
+        MENUITEM "Пр&о програму",               IDM_ABOUT
+    END
+END
+
+IDM_MENU_POPUP MENU DISCARDABLE 
+BEGIN
+    POPUP "EditPopup"
+    BEGIN
+        MENUITEM "&Скасувати",                  IDM_EDIT_UNDO
+        MENUITEM "&Повторити",                  IDM_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "&Вирізати",                   IDM_EDIT_CUT
+        MENUITEM "&Копіювати",                  IDM_EDIT_COPY
+        MENUITEM "Вст&авити",                   IDM_EDIT_PASTE
+        MENUITEM "Ви&далити",                   IDM_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "Познач&ити все",              IDM_EDIT_SELECTALL
+    END
+    POPUP "ViewPopup"
+    BEGIN
+        MENUITEM "&Копіювати",                  IDM_EDIT_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "Познач&ити все",              IDM_EDIT_SELECTALL
+    END
+    POPUP "CodepagePopup"
+    BEGIN
+        POPUP "Відкрити як"
+        BEGIN
+            MENUITEM "_",                           IDM_POPUP_OPENAS
+        END
+        MENUITEM SEPARATOR
+        POPUP "Зберегти як"
+        BEGIN
+            MENUITEM "_",                           IDM_POPUP_SAVEAS
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Визначити заново",            IDM_FILE_REDETECT
+    END
+    POPUP "HeadlinePopup"
+    BEGIN
+        MENUITEM "Номер сторінки[перша сторінка]\t%n[1]", 
+                                                IDM_POPUP_HEADLINE_PAGE_NUMBER
+
+        MENUITEM "Ім'я файлу\t%f",              IDM_POPUP_HEADLINE_FILENAME
+        MENUITEM "Каталог файлу\t%d",           IDM_POPUP_HEADLINE_FILEDIR
+        MENUITEM "Символ %\t%%",                IDM_POPUP_HEADLINE_SYMBOL
+        MENUITEM SEPARATOR
+        MENUITEM "Вирівнювання по центру\t%c",  IDM_POPUP_HEADLINE_ALIGN_CENTER
+
+        MENUITEM "Вирівнювання по лівому краю\t%l", 
+                                                IDM_POPUP_HEADLINE_ALIGN_LEFT
+
+        MENUITEM "Вирівнювання по правому краю\t%r", 
+                                                IDM_POPUP_HEADLINE_ALIGN_RIGHT
+
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_MAIN           ICON    DISCARDABLE     "AkelPad.ico"
+IDI_ICON_EMPTY          ICON    DISCARDABLE     "Empty.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_CURSOR_DRAGMOVE     CURSOR  DISCARDABLE     "DragMove.cur"
+IDC_CURSOR_HANDOPEN     CURSOR  DISCARDABLE     "HandOpen.cur"
+IDC_CURSOR_HANDCLOSE    CURSOR  DISCARDABLE     "HandClose.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDA_ACCEL_GLOBAL ACCELERATORS MOVEABLE PURE 
+BEGIN
+    VK_F6,          IDM_WINDOW_DLGNEXT,     VIRTKEY, NOINVERT
+    VK_F6,          IDM_WINDOW_DLGPREV,     VIRTKEY, SHIFT, NOINVERT
+END
+
+IDA_ACCEL_MAIN ACCELERATORS MOVEABLE PURE 
+BEGIN
+    "0",            IDM_EDIT_INVERTCASE,    VIRTKEY, CONTROL, NOINVERT
+    "5",            IDM_EDIT_LOOPCASE,      VIRTKEY, CONTROL, NOINVERT
+    "6",            IDM_EDIT_UPPERCASE,     VIRTKEY, CONTROL, NOINVERT
+    "7",            IDM_EDIT_LOWERCASE,     VIRTKEY, CONTROL, NOINVERT
+    "8",            IDM_EDIT_SENTENCECASE,  VIRTKEY, CONTROL, NOINVERT
+    "9",            IDM_EDIT_TITLECASE,     VIRTKEY, CONTROL, NOINVERT
+    "A",            IDM_EDIT_SELECTALL,     VIRTKEY, CONTROL, NOINVERT
+    "B",            IDM_FILE_REOPENAS_UTF16BE, VIRTKEY, ALT, NOINVERT
+    "B",            IDM_FILE_SAVEAS_UTF16BE, VIRTKEY, SHIFT, ALT, NOINVERT
+    "C",            IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
+    "C",            IDM_EDIT_COPY,          VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "D",            IDM_EDIT_INSERTDATE,    VIRTKEY, CONTROL, NOINVERT
+    "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
+    "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
+    "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,          VIRTKEY, CONTROL, NOINVERT
+    "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
+    "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
+    "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT
+    "K",            IDM_FILE_REOPENAS_KOIR, VIRTKEY, ALT, NOINVERT
+    "K",            IDM_FILE_SAVEAS_KOIR,   VIRTKEY, SHIFT, ALT, NOINVERT
+    "L",            IDM_OPTIONS_KEEPSPACE,  VIRTKEY, CONTROL, NOINVERT
+    "L",            IDM_FILE_REOPENAS_UTF16LE, VIRTKEY, ALT, NOINVERT
+    "L",            IDM_FILE_SAVEAS_UTF16LE, VIRTKEY, SHIFT, ALT, NOINVERT
+    "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL, NOINVERT
+    "N",            IDM_FILE_CREATENEW,     VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "O",            IDM_FILE_OPEN,          VIRTKEY, CONTROL, NOINVERT
+    "O",            IDM_FILE_REOPEN,        VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "P",            IDM_FILE_PRINT,         VIRTKEY, CONTROL, NOINVERT
+    "P",            IDM_OPTIONS_PLUGINS,    VIRTKEY, ALT, NOINVERT
+    "R",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
+    "R",            IDM_EDIT_RECODE,        VIRTKEY, ALT, NOINVERT
+    "S",            IDM_FILE_SAVE,          VIRTKEY, CONTROL, NOINVERT
+    "S",            IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "T",            IDM_VIEW_ONTOP,         VIRTKEY, CONTROL, NOINVERT
+    "U",            IDM_VIEW_WORDWRAP,      VIRTKEY, CONTROL, NOINVERT
+    "U",            IDM_FILE_REOPENAS_UTF8, VIRTKEY, ALT, NOINVERT
+    "U",            IDM_FILE_SAVEAS_UTF8,   VIRTKEY, SHIFT, ALT, NOINVERT
+    "V",            IDM_EDIT_PASTE,         VIRTKEY, CONTROL, NOINVERT
+    "V",            IDM_EDIT_PASTECOLUMN,   VIRTKEY, ALT, NOINVERT
+    "V",            IDM_EDIT_PASTEANSI,     VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    VK_ADD,         IDM_VIEW_FONTSIZE_INCREASE, VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        IDM_EDIT_DELETE_TRAILING_WHITESPACES, VIRTKEY, ALT, 
+                                                    NOINVERT
+    VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT
+    VK_DELETE,      IDM_EDIT_CUT,           VIRTKEY, SHIFT, NOINVERT
+    VK_MULTIPLY,    IDM_VIEW_FONTSIZE_RESTORE, VIRTKEY, CONTROL, NOINVERT
+    VK_ESCAPE,      IDM_FILE_EXIT,          VIRTKEY, NOINVERT
+    VK_F10,         IDM_SELECTWINDOW,       VIRTKEY, NOINVERT
+    VK_F12,         IDM_FILE_CODEPAGEMENU,  VIRTKEY, NOINVERT
+    VK_F2,          IDM_FILE_SAVE,          VIRTKEY, NOINVERT
+    VK_F2,          IDM_FILE_SAVEALL,       VIRTKEY, CONTROL, ALT, NOINVERT
+    VK_F2,          IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, NOINVERT
+    VK_F3,          IDM_EDIT_FINDNEXTDOWN,  VIRTKEY, NOINVERT
+    VK_F3,          IDM_EDIT_FINDNEXTUP,    VIRTKEY, SHIFT, NOINVERT
+    VK_F4,          IDM_WINDOW_CHANGESIZE,  VIRTKEY, NOINVERT
+    VK_F4,          IDM_WINDOW_FRAMECLOSE,  VIRTKEY, CONTROL, NOINVERT
+    VK_F4,          IDM_WINDOW_FRAMECLOSEALL, VIRTKEY, CONTROL, ALT, 
+                                                    NOINVERT
+    VK_F5,          IDM_FILE_REOPEN,        VIRTKEY, NOINVERT
+    VK_F5,          IDM_OPTIONS_EXEC,       VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          IDM_FILE_REDETECT,      VIRTKEY, ALT, NOINVERT
+    VK_F6,          IDM_WINDOW_FRAMENEXT,   VIRTKEY, CONTROL, NOINVERT
+    VK_F6,          IDM_WINDOW_FRAMEPREV,   VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    VK_F8,          IDM_EDIT_DELLINE,       VIRTKEY, NOINVERT
+    VK_F9,          IDM_WINDOW_CLONENEXT,   VIRTKEY, NOINVERT
+    VK_F9,          IDM_WINDOW_CLONEPREV,   VIRTKEY, SHIFT, NOINVERT
+    VK_INSERT,      IDM_EDIT_INSERTMODE,    VIRTKEY, NOINVERT
+    VK_INSERT,      IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      IDM_EDIT_PASTE,         VIRTKEY, SHIFT, NOINVERT
+    VK_INSERT,      IDM_EDIT_PASTEANSI,     VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    VK_RETURN,      IDM_EDIT_AUTOINDENT,    VIRTKEY, CONTROL, NOINVERT
+    VK_RETURN,      IDM_WINDOW_CHANGESIZE,  VIRTKEY, ALT, NOINVERT
+    VK_SPACE,       IDM_EDIT_INSERT_SPACE,  VIRTKEY, NOINVERT
+    VK_SPACE,       IDM_EDIT_DELETE_SPACE,  VIRTKEY, SHIFT, NOINVERT
+    VK_SUBTRACT,    IDM_VIEW_FONTSIZE_DECREASE, VIRTKEY, CONTROL, NOINVERT
+    VK_TAB,         IDM_EDIT_INSERT_TAB,    VIRTKEY, NOINVERT
+    VK_TAB,         IDM_WINDOW_FRAMENEXT,   VIRTKEY, CONTROL, NOINVERT
+    VK_TAB,         IDM_EDIT_DELETE_TAB,    VIRTKEY, SHIFT, NOINVERT
+    VK_TAB,         IDM_WINDOW_FRAMEPREV,   VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "W",            IDM_WINDOW_FRAMECLOSE,  VIRTKEY, CONTROL, NOINVERT
+    "W",            IDM_FILE_REOPENAS_ANSI, VIRTKEY, ALT, NOINVERT
+    "W",            IDM_FILE_SAVEAS_ANSI,   VIRTKEY, SHIFT, ALT, NOINVERT
+    "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
+    "Y",            IDM_EDIT_DELLINE,       VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDM_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDM_EDIT_REDO,          VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    188,            IDM_EDIT_RECENTCARETPREV, VIRTKEY, ALT, NOINVERT
+    190,            IDM_EDIT_RECENTCARETNEXT, VIRTKEY, ALT, NOINVERT
+    220,            IDM_EDIT_SELJUMPCARET,  VIRTKEY, ALT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_OFN DIALOGEX 0, 0, 275, 120
+STYLE DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_CLIPSIBLINGS
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Кодування:",IDC_OFN_CODEPAGE_LABEL,8,3,40,8
+    COMBOBOX        IDC_OFN_CODEPAGE,53,1,145,130,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_OFN_AUTODETECT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,211,4,55,8
+    CONTROL         "",IDC_OFN_PREVIEW,"AkelEditA",WS_VSCROLL | WS_HSCROLL | 
+                    WS_TABSTOP | 0x2904,6,20,263,98,WS_EX_CLIENTEDGE
+    CONTROL         "",IDC_OFN_SHOWPLACESBAR,"Button",BS_OWNERDRAW,0,112,6,7
+END
+
+IDD_SAVEALLAS DIALOG DISCARDABLE  70, 70, 200, 135
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Зберегти все як"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "&Кодування:",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
+    GROUPBOX        "",IDC_STATIC,9,16,182,35
+    COMBOBOX        IDC_SAVEALLAS_CODEPAGE_LIST,18,29,131,82,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,155,31,27,10
+    CONTROL         "&Формат нового рядка:",IDC_SAVEALLAS_NEWLINE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    GROUPBOX        "",IDC_STATIC,9,69,182,35
+    CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
+                    BS_AUTORADIOBUTTON,17,85,60,8
+    CONTROL         "Unix",IDC_SAVEALLAS_NEWLINE_UNIX,"Button",
+                    BS_AUTORADIOBUTTON,84,85,50,8
+    CONTROL         "Mac",IDC_SAVEALLAS_NEWLINE_MAC,"Button",
+                    BS_AUTORADIOBUTTON,140,85,40,8
+    DEFPUSHBUTTON   "OK",IDOK,47,115,50,14,BS_CENTER
+    PUSHBUTTON      "Скасувати",IDCANCEL,102,115,50,14,BS_CENTER
+END
+
+IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 264
+STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Вибір вікна"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LISTBOX         IDC_MDILIST_LIST,6,9,178,219,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "",IDC_MDILIST_STATS,92,232,89,8
+    EDITTEXT        IDC_MDILIST_SEARCH,6,243,178,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,198,10,50,14
+    GROUPBOX        "Вирівнювання",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
+    PUSHBUTTON      "Горизонт.",IDC_MDILIST_HORZ,198,45,50,14
+    PUSHBUTTON      "Вертик.",IDC_MDILIST_VERT,198,60,50,14
+    GROUPBOX        "Вкладки",IDC_MDILIST_TABS_GROUP,191,86,64,72
+    PUSHBUTTON      "Вгору",IDC_MDILIST_UP,198,100,50,14
+    PUSHBUTTON      "Вниз",IDC_MDILIST_DOWN,198,115,50,14
+    PUSHBUTTON      "Сортувати",IDC_MDILIST_SORT,198,138,50,14
+    GROUPBOX        "Файли",IDC_MDILIST_FILES_GROUP,191,163,64,49
+    PUSHBUTTON      "Зберегти",IDC_MDILIST_SAVE,198,177,50,14
+    PUSHBUTTON      "Закрити",IDC_MDILIST_CLOSE,198,192,50,14
+    CONTROL         "Тільки імена",IDC_MDILIST_ONLYNAMES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,191,219,67,10
+    PUSHBUTTON      "Скасувати",IDCANCEL,198,243,50,14
+END
+
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
+STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+EXSTYLE WS_EX_CLIENTEDGE
+CAPTION "Попередній перегляд"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Друкувати...",IDC_PREVIEW_PRINT,9,9,55,14
+    PUSHBUTTON      "&Сторінка...",IDC_PREVIEW_PAGESETUP,67,9,55,14
+    GROUPBOX        "",IDC_STATIC,131,2,121,24
+    PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
+    EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
+                    ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUTTON      ">",IDC_PREVIEW_NEXTPAGE,223,10,20,12
+    COMBOBOX        IDC_PREVIEW_ZOOM,267,10,48,200,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Позна&чене",IDC_PREVIEW_SELECTION,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "&Закрити",IDC_PREVIEW_CLOSE,390,9,50,14
+END
+
+IDD_FIND DIALOGEX 70, 70, 262, 108
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_DLGMODALFRAME
+CAPTION "Пошук"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_SEARCH_FIND,27,9,165,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Враховувати реґістр",IDC_SEARCH_MATCHCASE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
+    CONTROL         "Слово повністю",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
+    CONTROL         "Регулярні вирази",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,53,95,12
+    CONTROL         "",IDC_SEARCH_REGEXP_ARROW,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,106,55,10,9
+    CONTROL         "Esc-послідовності",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,77,96,12,NOT 
+                    WS_GROUP
+    GROUPBOX        "Напрямок",IDC_STATIC,121,27,71,58
+    CONTROL         "Вниз",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
+                    126,37,65,10
+    CONTROL         "Вгору",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+                    126,48,65,10
+    CONTROL         "З початку",IDC_SEARCH_BEGINNING,"Button",
+                    BS_AUTORADIOBUTTON,126,59,65,10
+    CONTROL         "У позначеному",IDC_SEARCH_INSEL,"Button",
+                    BS_AUTORADIOBUTTON,126,70,65,10
+    CONTROL         "Усі файли",IDC_SEARCH_ALLFILES,"Button",
+                    BS_AUTORADIOBUTTON,126,87,65,10
+    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,71,19
+    DEFPUSHBUTTON   "З&найти далі",IDC_SEARCH_FIND_BUTTON,201,6,54,14,
+                    BS_CENTER
+    PUSHBUTTON      "Скасувати",IDCANCEL,201,23,54,14,BS_CENTER
+    LTEXT           "Що:",IDC_STATIC,5,11,22,12,NOT WS_GROUP
+END
+
+IDD_REPLACE DIALOGEX 70, 70, 262, 122
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_DLGMODALFRAME
+CAPTION "Заміна"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_SEARCH_FIND,27,9,165,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_SEARCH_REPLACE,27,23,165,100,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Враховувати реґістр",IDC_SEARCH_MATCHCASE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
+    CONTROL         "Слово повністю",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
+    CONTROL         "Регулярні вирази",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,95,12
+    CONTROL         "",IDC_SEARCH_REGEXP_ARROW,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,106,69,10,9
+    CONTROL         "Esc-послідовності",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,91,96,12,NOT 
+                    WS_GROUP
+    GROUPBOX        "Напрямок",IDC_STATIC,121,41,71,58
+    CONTROL         "Вниз",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
+                    126,51,65,10
+    CONTROL         "Вгору",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+                    126,62,65,10
+    CONTROL         "З початку",IDC_SEARCH_BEGINNING,"Button",
+                    BS_AUTORADIOBUTTON,126,73,65,10
+    CONTROL         "У позначеному",IDC_SEARCH_INSEL,"Button",
+                    BS_AUTORADIOBUTTON,126,84,65,10
+    CONTROL         "Усі файли",IDC_SEARCH_ALLFILES,"Button",
+                    BS_AUTORADIOBUTTON,126,101,65,10
+    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,94,71,19
+    DEFPUSHBUTTON   "З&найти далі",IDC_SEARCH_FIND_BUTTON,201,6,54,14,
+                    BS_CENTER
+    PUSHBUTTON      "&Замінити",IDC_SEARCH_REPLACE_BUTTON,201,23,54,14,
+                    BS_CENTER
+    PUSHBUTTON      "Замінити &все",IDC_SEARCH_ALL_BUTTON,201,39,54,14,
+                    BS_CENTER
+    PUSHBUTTON      "Скасувати",IDCANCEL,201,55,54,14,BS_CENTER
+    LTEXT           "Що:",IDC_STATIC,5,11,22,12,NOT WS_GROUP
+    LTEXT           "Чим:",IDC_STATIC,5,25,22,12,NOT WS_GROUP
+END
+
+IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Перейти"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Номер:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
+    EDITTEXT        IDC_GOTO_NUMBER,14,20,122,13
+    CONTROL         "Рядок:Стовпчик",IDC_GOTO_LINE,"Button",
+                    BS_AUTORADIOBUTTON,14,41,70,10
+    CONTROL         "Зміщення",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,
+                    86,41,50,10
+    PUSHBUTTON      "Перейти",IDOK,23,63,50,14,BS_CENTER
+    PUSHBUTTON      "Скасувати",IDCANCEL,77,63,50,14,BS_CENTER
+END
+
+IDD_RECODE DIALOGEX 70, 70, 278, 214
+STYLE DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | 
+    WS_THICKFRAME
+CAPTION "Перекодувати"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    RTEXT           "Із:",IDC_RECODE_CODEPAGEFROM_LABEL,6,11,35,8
+    COMBOBOX        IDC_RECODE_CODEPAGEFROM_LIST,45,9,152,130,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    RTEXT           "У:",IDC_RECODE_CODEPAGETO_LABEL,6,29,35,8
+    COMBOBOX        IDC_RECODE_CODEPAGETO_LIST,45,27,152,130,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_RECODE_AUTODETECT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,207,19,65,12
+    CONTROL         "",IDC_RECODE_PREVIEW,"AkelEditA",WS_VSCROLL | 
+                    WS_HSCROLL | WS_TABSTOP | 0x2904,6,50,263,134,
+                    WS_EX_CLIENTEDGE
+    PUSHBUTTON      "OK",IDOK,165,193,50,14,BS_CENTER
+    PUSHBUTTON      "Скасувати",IDCANCEL,219,193,50,14,BS_CENTER
+END
+
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 260, 246
+STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU | WS_THICKFRAME
+CAPTION "Кольори"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Колірна тема:",IDC_COLORS_THEMENAME_LABEL,11,6,103,8
+    COMBOBOX        IDC_COLORS_THEMENAME_COMBO,9,17,129,83,CBS_DROPDOWN | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Зберегти",IDC_COLORS_THEMESAVE,145,16,50,14
+    PUSHBUTTON      "Видалити",IDC_COLORS_THEMEDELETE,197,16,50,14
+    CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
+                    WS_BORDER | WS_TABSTOP,9,40,239,144
+    LTEXT           "Зображення тла (%a - каталог AkelPad):",
+                    IDC_COLORS_BKIMAGEFILE_LABEL,14,189,190,8,NOT WS_GROUP
+    EDITTEXT        IDC_COLORS_BKIMAGEFILE_EDIT,10,200,177,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_COLORS_BKIMAGEFILE_BROWSE,190,200,14,13
+    LTEXT           "Альфа:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,8
+    EDITTEXT        IDC_COLORS_BKIMAGEALPHA_EDIT,211,200,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_COLORS_BKIMAGEALPHA_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,233,
+                    200,11,13
+    PUSHBUTTON      "OK",IDOK,145,224,50,14,BS_CENTER
+    PUSHBUTTON      "Скасувати",IDCANCEL,198,224,50,14,BS_CENTER
+END
+
+IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 230
+STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU | WS_THICKFRAME
+CAPTION "Плаґіни"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "List1",IDC_PLUGINS_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
+                    LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,9,11,265,178
+    LTEXT           "Встановіть позначку для автозавантаження плаґіна.",
+                    IDC_PLUGINS_LIST_INFO,11,192,264,8
+    LTEXT           "Гаряча клавіша:",IDC_PLUGINS_HOTKEY_LABEL,280,13,57,8
+    CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,282,24,50,14
+    PUSHBUTTON      "Призначити",IDC_PLUGINS_ASSIGN,282,42,50,14
+    DEFPUSHBUTTON   "Викликати",IDC_PLUGINS_CALL,9,209,50,14
+    PUSHBUTTON      "OK",IDOK,228,209,50,14,BS_CENTER
+    PUSHBUTTON      "Скасувати",IDCANCEL,282,209,50,14,BS_CENTER
+END
+
+IDD_OPTIONS_GENERAL DIALOG DISCARDABLE  0, 0, 220, 230
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Загальні"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    GROUPBOX        "Виконати",IDC_STATIC,9,6,200,90
+    LTEXT           "Команда (%f - файл, %a - каталог AkelPad):",IDC_STATIC,21,
+                    24,160,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
+    LTEXT           "Робочий каталог (%d - каталог файлу):",IDC_STATIC,21,59,
+                    160,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
+    LTEXT           "Розпізнавання кодувань:",IDC_STATIC,12,107,150,8
+    COMBOBOX        IDC_OPTIONS_CODEPAGE_RECOGNITION,9,118,154,90,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Буфер:",IDC_STATIC,170,107,37,8
+    EDITTEXT        IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER,168,118,40,13,
+                    ES_NUMBER
+    LTEXT           "Типове кодування:",IDC_STATIC,12,144,150,8
+    COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,155,154,90,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Фільтр",IDC_OPTIONS_CODEPAGE_FILTER,168,155,40,13
+    GROUPBOX        "Новий файл",IDC_STATIC,9,182,200,41
+    COMBOBOX        IDC_OPTIONS_NEWFILE_CODEPAGE,18,200,110,90,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "BOM",IDC_OPTIONS_NEWFILE_BOM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,134,202,27,8
+    COMBOBOX        IDC_OPTIONS_NEWFILE_NEWLINE,168,200,33,90,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_OPTIONS_GENERAL_FILTER DIALOG DISCARDABLE  0, 0, 364, 255
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Фільтр"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Користувацький:",IDC_STATIC,11,7,135,8
+    LISTBOX         IDC_OPTIONS_CODEPAGES_FILTER_CUSTOM,7,18,141,209,
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Вгору",IDC_OPTIONS_CODEPAGES_FILTER_UP,155,19,50,14
+    PUSHBUTTON      "Вниз",IDC_OPTIONS_CODEPAGES_FILTER_DOWN,155,34,50,14
+    PUSHBUTTON      "<",IDC_OPTIONS_CODEPAGES_FILTER_ADD,155,56,50,14
+    PUSHBUTTON      ">",IDC_OPTIONS_CODEPAGES_FILTER_DELETE,155,71,50,14
+    PUSHBUTTON      "<<",IDC_OPTIONS_CODEPAGES_FILTER_ADDALL,155,93,50,14
+    PUSHBUTTON      ">>",IDC_OPTIONS_CODEPAGES_FILTER_DELETEALL,155,108,50,
+                    14
+    LTEXT           "Системний:",IDC_STATIC,217,7,135,8
+    LISTBOX         IDC_OPTIONS_CODEPAGES_FILTER_SYSTEM,213,18,141,209,
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "OK",IDOK,127,235,50,14,BS_CENTER
+    PUSHBUTTON      "Скасувати",IDCANCEL,181,235,50,14,BS_CENTER
+END
+
+IDD_OPTIONS_REGISTRY DIALOG DISCARDABLE  0, 0, 220, 230
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Реєстр"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    GROUPBOX        "Зберігати налаштування",IDC_STATIC,9,6,200,29
+    CONTROL         "У реєстрі",IDC_OPTIONS_SAVESETTINGS_REGISTRY,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,32,19,70,10
+    CONTROL         "У INI-файлі",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
+                    BS_AUTORADIOBUTTON,133,19,70,10
+    GROUPBOX        "Сохранять историю",IDC_STATIC,9,42,200,105
+    CONTROL         "У реєстрі",IDC_OPTIONS_SAVEHISTORY_REGISTRY,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,32,55,70,10
+    CONTROL         "У INI-файлі",IDC_OPTIONS_SAVEHISTORY_INI,"Button",
+                    BS_AUTORADIOBUTTON,134,55,70,10
+    CONTROL         "Запам'ятовувати позицію каретки",
+                    IDC_OPTIONS_SAVEPOSITIONS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,75,185,10
+    CONTROL         "Запам'ятовувати кодування",IDC_OPTIONS_SAVECODEPAGES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,86,185,10
+    LTEXT           "Останні файли:",IDC_STATIC,19,108,73,15,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,106,18,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
+                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,113,106,11,13
+    PUSHBUTTON      "Очистити",IDC_OPTIONS_RECENTFILES_CLEAR,141,105,54,14
+    LTEXT           "Історія пошуку:",IDC_STATIC,19,128,73,15,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,
+                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,113,126,11,13
+    PUSHBUTTON      "Очистити",IDC_OPTIONS_SEARCHSTRINGS_CLEAR,141,125,54,14
+    GROUPBOX        "Типи файлів",IDC_STATIC,9,153,200,70
+    CONTROL         "Відкрити:",IDC_OPTIONS_ASSOCIATE_OPEN,"Button",
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,169,49,10
+    EDITTEXT        IDC_OPTIONS_FILETYPES_OPEN,69,167,133,13,ES_AUTOHSCROLL
+    CONTROL         "Змінити:",IDC_OPTIONS_ASSOCIATE_EDIT,"Button",
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,187,49,10
+    EDITTEXT        IDC_OPTIONS_FILETYPES_EDIT,69,185,133,13,ES_AUTOHSCROLL
+    CONTROL         "Друкувати:",IDC_OPTIONS_ASSOCIATE_PRINT,"Button",
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,205,49,10
+    EDITTEXT        IDC_OPTIONS_FILETYPES_PRINT,69,203,133,13,ES_AUTOHSCROLL
+END
+
+IDD_OPTIONS_EDITOR1 DIALOG DISCARDABLE  0, 0, 220, 230
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Редактор 1"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    GROUPBOX        "Розмір табуляції",IDC_STATIC,9,6,105,34
+    EDITTEXT        IDC_OPTIONS_TABSIZE,18,20,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_TABSIZE_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,20,
+                    11,13
+    CONTROL         "Пробілами",IDC_OPTIONS_TABSIZE_SPACES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,58,22,50,10
+    GROUPBOX        "Ліміт скасування",IDC_STATIC,9,46,105,34
+    EDITTEXT        IDC_OPTIONS_UNDO_LIMIT,18,59,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,59,
+                    11,13
+    CONTROL         "Докладно",IDC_OPTIONS_UNDO_DETAILED,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,58,61,50,10
+    GROUPBOX        "Перенесення",IDC_STATIC,124,6,87,74
+    CONTROL         "По словах",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
+                    BS_AUTORADIOBUTTON,133,19,72,10
+    CONTROL         "По символах",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
+                    BS_AUTORADIOBUTTON,133,31,72,10
+    LTEXT           "Ліміт:",IDC_STATIC,131,49,36,8
+    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,131,60,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,153,60,
+                    11,13
+    LTEXT           "Маркер:",IDC_STATIC,171,49,36,8
+    EDITTEXT        IDC_OPTIONS_MARKER,171,60,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
+                    11,13
+    GROUPBOX        "Каретка",IDC_STATIC,9,86,202,51
+    CONTROL         "Вихід каретки за межі рядків",IDC_OPTIONS_CARETOUTEDGE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
+    CONTROL         "Показувати активний стовпчик",IDC_OPTIONS_CARETVERTLINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
+    CONTROL         "Показувати активний рядок",
+                    IDC_OPTIONS_CARETACTIVELINE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,16,122,132,10
+    CONTROL         "Межа",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
+    LTEXT           "Ширина:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_CARETWIDTH,151,105,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    105,11,13
+    GROUPBOX        "Зебра",IDC_STATIC,9,144,105,62
+    LTEXT           "Пропуск:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_ALTLINESKIP,18,171,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_ALTLINESKIP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,171,
+                    11,13
+    LTEXT           "Заливка:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_ALTLINEFILL,67,171,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
+                    11,13
+    CONTROL         "Межа",IDC_OPTIONS_ALTLINEBORDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,191,90,10
+    GROUPBOX        "Відступ тексту",IDC_STATIC,124,144,87,62
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,131,171,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_LEFT_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,153,
+                    171,11,13
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_RIGHT,171,172,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
+                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,193,172,11,13
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
+                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,173,187,11,13
+    RTEXT           "Міжрядковий інтервал:",IDC_STATIC,94,214,80,8,NOT 
+                    WS_GROUP
+    EDITTEXT        IDC_OPTIONS_LINEGAP,178,212,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,200,
+                    212,11,13
+END
+
+IDD_OPTIONS_EDITOR2 DIALOG DISCARDABLE  0, 0, 220, 230
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Редактор 2"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "Клацання лівою кнопкою миші на межі виділяє рядок",
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,9,200,10
+    CONTROL         "RichEdit виділення мишею",IDC_OPTIONS_MOUSERICHEDIT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
+    CONTROL         "Перетягування мишею",IDC_OPTIONS_MOUSEDRAGGING,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
+    CONTROL         "Клацання правою кнопкою миші переміщує каретку",IDC_OPTIONS_RCLICKMOVECARET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
+    GROUPBOX        "Гіперпосилання",IDC_STATIC,9,60,200,100
+    CONTROL         "Відображати",IDC_OPTIONS_URL_SHOW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,76,90,10
+    CONTROL         "Одне клацання",IDC_OPTIONS_URL_SINGLECLICK,"Button",
+                    BS_AUTORADIOBUTTON,112,76,90,10
+    CONTROL         "Подвійне клацання",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
+                    BS_AUTORADIOBUTTON,112,87,90,10
+    CONTROL         "Префікси:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,97,172,10
+    EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,109,172,13,ES_AUTOHSCROLL
+    CONTROL         "Роздільники:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,128,172,10
+    EDITTEXT        IDC_OPTIONS_URL_LEFTDELIMITERS,23,140,83,13,
+                    ES_AUTOHSCROLL
+    EDITTEXT        IDC_OPTIONS_URL_RIGHTDELIMITERS,112,140,83,13,
+                    ES_AUTOHSCROLL
+    CONTROL         "Роздільники слів:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
+    EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "Скинути",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,
+                    13,BS_CENTER
+    CONTROL         "Роздільники переносів:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "Скинути",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,
+                    13,BS_CENTER
+END
+
+IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Додатково"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "Автоперемикання розкладки клавіатури",
+                    IDC_OPTIONS_SWITCH_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,11,200,10
+    CONTROL         "Запам'ятовувати розкладку клавіат. для вкладки (MDI)",
+                    IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,23,200,10
+    CONTROL         "Мовчки закривати незбереж. порожню вкладку (MDI)",
+                    IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,35,200,10
+    CONTROL         "Вставити дату, якщо файл містить на початку .LOG",
+                    IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,47,200,10
+    CONTROL         "Попереджати про збереження в файли, призначені лише для читання",
+                    IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
+                    BS_MULTILINE | WS_TABSTOP,9,57,200,16
+    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,176,75,24,13,ES_AUTOHSCROLL
+    LTEXT           "Типове розширення при збереженні документа:",
+                    IDC_STATIC,37,77,171,8
+    GROUPBOX        "Діалог пошуку/заміни",IDC_STATIC,9,96,200,66
+    CONTROL         """Замінити все"" закриває діалог",
+                    IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,109,185,10
+    CONTROL         """Замінити все"" без повідомлення",
+                    IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,121,185,10
+    CONTROL         "Відмітити ""У позначеному"" якщо є позначення",
+                    IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,133,185,10
+    CONTROL         "Пошук по колу",IDC_OPTIONS_CYCLESEARCH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
+    CONTROL         "Запит",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+    CONTROL         "Зберігати позицію немодальних діалогів",
+                    IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,169,185,10
+END
+
+IDD_ABOUT DIALOGEX 0, 0, 220, 207
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Про програму"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDI_ICON_MAIN,IDC_ABOUT_ICON,10,10,20,20
+    CONTROL         "",IDC_ABOUT_VERSION,"Static",SS_LEFTNOWORDWRAP,44,16,
+                    150,11
+    LTEXT           "Домашня сторінка:",IDC_STATIC,19,41,85,11
+    PUSHBUTTON      "",IDC_ABOUT_HOMEPAGE,105,40,92,14,0,WS_EX_STATICEDGE
+    GROUPBOX        "Автори:",IDC_STATIC,20,62,177,109
+    LTEXT           "Шенгальц Олександр, 2006-2017",IDC_STATIC,73,82,120,12,
+                    NOT WS_GROUP
+    LTEXT           "E-Mail:",IDC_STATIC,46,98,22,12,NOT WS_GROUP,
+                    WS_EX_RIGHT
+    EDITTEXT        IDC_ABOUT_EMAIL_SHENGALTS,74,96,107,12,ES_READONLY | NOT 
+                    WS_BORDER,WS_EX_STATICEDGE
+    LTEXT           "Олексій Кузнєцов, 2003-2006",IDC_STATIC,73,125,120,12,
+                    NOT WS_GROUP
+    LTEXT           "E-Mail:",IDC_STATIC,46,142,22,12,WS_DISABLED | NOT 
+                    WS_GROUP,WS_EX_RIGHT
+    EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY | 
+                    WS_DISABLED | NOT WS_BORDER | NOT WS_TABSTOP,
+                    WS_EX_STATICEDGE
+    PUSHBUTTON      "OK",IDOK,148,183,50,14,BS_CENTER
+END
+
+IDD_MESSAGEBOX DIALOG DISCARDABLE  0, 0, 227, 58
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#ifndef RC_EXEVERSION\r\n"
+    "  #if (RC_VERSIONBIT == 64)\r\n"
+    "    #define RC_VERSIONDESCRIPTION ""AkelPad (x64) language module""\r\n"
+    "  #else\r\n"
+    "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
+    "  #endif\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""© 2014 Fedorow Olexandr (www.olexandr@mail.ru), Yurii Petrashko aka YuriPet""\r\n"
+    "  #define RC_VERSIONNAME ""Ukrainian.dll""\r\n"
+    "#endif\r\n"
+    "#include ""winresrc.h""\r\n"
+    "#include ""staticedit.h""\r\n"
+    "#include ""version.h""\r\n"
+    "#include ""..\\..\\Plugs\\AkelDLL\\AkelDLL.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_OFN, DIALOG
+    BEGIN
+        RIGHTMARGIN, 284
+    END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 206
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    MSG_ERROR_IN_MESSAGE_QUEUE "Помилка в черзі повідомлень."
+    MSG_ERROR_NOT_ENOUGH_MEMORY 
+                            "Критична помилка: недостатньо пам'яті. Рекомендовано завершити роботу програми."
+    MSG_ERROR_BINARY        """%s"" бінарний файл. Продовжити?"
+    MSG_ERROR_IO            "Помилка введення/виведення."
+    MSG_ERROR_SYNTAX        "Синтаксична помилка (%d)."
+    MSG_ERROR_PRINT         "Не вдається надрукувати документ."
+    MSG_ERROR_RUN           "Не вдається запустити програму."
+    MSG_ERROR_LOAD_DLL      "Не вдається завантажити ""%s""."
+    MSG_ERROR_UNLOAD_DLL    "Не вдається вивантажити ""%s""."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" не підтримує автозавантаження."
+    MSG_FUNCTION_NOT_FOUND  "Не вдається знайти функцію ""%s::%s"" у ""%s""."
+    MSG_UPDATE_PROGRAM      "Оновіть AkelPad.\n\nПотрібен AkelPad версії не нижче: %d.%d.%d.%d\nПоточна версія AkelPad: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x не підтримується."
+    MSG_UPDATE_PLUGIN       "Оновіть %s.\n\nАрхітектура AkelPad: %d.%d.%d.%d\nАрхітектура плаґіну %s: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" не розпізнано як плаґін AkelPad."
+    MSG_UPDATE_LANGMODULE   "Оновіть %s\n\nПоточна версія: %d.%d.%d.%d\nПотрібна версія: %d.%d.%d.%d"
+    MSG_HOTKEY_EXISTS       "Гарячу клавішу вже призначено для ""%s""."
+    MSG_CANNOT_OPEN_FILE    "Не вдається відкрити файл ""%s""."
+    MSG_WRONG_STRING        "Неправильний номер рядка."
+    MSG_LONG_FILELIST       "Обрано занадто багато файлів."
+    MSG_DOCUMENT_CHANGED    "Документ було змінено. Зберегти?"
+    MSG_FILE_DOES_NOT_EXIST "Створити новий файл ""%s""?"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    MSG_RECENTFILES_DELETED "Видалено записів: %d"
+    MSG_SEARCH_ENDED        "Пошук завершено."
+    MSG_SEARCH_CYCLEPROMPT  "Досягнуто межі файлу. Продовжити?"
+    MSG_REPLACE_COUNT       "Кількість замін: %d"
+    MSG_REPLACE_COUNT_ALLFILES "Змінено файлів: %d\nКількість замін: %Id"
+    MSG_FILE_WILL_BE_REOPENED 
+                            "Файл буде відкрито повторно, всі зміни буде втрачено."
+    MSG_FILE_CHANGED        """%s"" було змінено ззовні.\n\nВідкрити його повторно?"
+    MSG_CP_UNIMPLEMENTED    "Кодова сторінка ""%d"" не підтримується."
+    MSG_CP_MISMATCH         "Рядок ""%d"" містить символи, які буде втрачено при збереженні в цьому кодуванні. Продовжити?"
+    MSG_ACCESSDENIED        "Потрібні права адміністратора.\n\n""%s""\n\n"
+    MSG_RESTART_PROGRAM     "Зміни набудуть чинності після перезавантаження програми."
+    MSG_SAVEIN_READONLY     """%s"" файл має атрибут ""Тільки для читання"". Продовжити?"
+    MSG_OVERWRITEPROMPT     """%s"" вже існує. Перезаписати?"
+    MSG_DOCUMENTSLIMIT      "Досягнуто межі кількості документів. Щоб відкрити більше документів, використовуйте режим PMDI."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_DOCNAME             "Документ AkelPad"
+    STR_MODIFIED            "Змінено"
+    STR_READONLY            "Тільки для читання"
+    STR_COUNT               "%d із %d"
+    STR_WITHOUT             "без"
+    STR_AUTODETECT          "&Автовибір"
+    STR_RECENT_FILES_EMPTY  "Порожньо"
+    STR_RECENT_FILES_DELETE_DEAD "Видалити неіснуючі"
+    STR_OPTIONS             "Параметри..."
+    STR_LANGUAGE_NONE       "Внутрішня"
+    STR_FILE_FILTER         "Текстові файли (*.txt)|*.txt|Всі файли (*.*)|*.*"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_EXECUTABLE_FILTER   "Виконувані файли (*.exe)|*.exe|Всі файли (*.*)|*.*"
+    STR_NONE                "Ні"
+    STR_PLUGIN              "Плаґін"
+    STR_FUNCTION            "Функція"
+    STR_HOTKEY              "Гаряча клавіша"
+    STR_STATUS              "Стан"
+    STR_RUNNING             "Працює"
+    STR_FONT                "Шрифт"
+    STR_COLOR               "Кольори"
+    STR_HEADLINE            "Колонтитули"
+    STR_TOP                 "Верхній:"
+    STR_BOTTOM              "Нижній:"
+    STR_ELEMENT             "Елемент"
+    STR_STANDARDTHEME       "Стандартна"
+    STR_TEXT                "Текст"
+    STR_BACKGROUND          "Фон"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_SAMPLE              "Зразок"
+    STR_BASIC               "Основний колір"
+    STR_SELECTION           "Виділення"
+    STR_ACTIVELINE          "Активний рядок"
+    STR_ACTIVELINEBORDER    "Межа активного посилання"
+    STR_ALTLINE             "Зебра"
+    STR_ALTLINEBORDER       "Межа зебри"
+    STR_ACTIVECOLUMN        "Активний стовпчик"
+    STR_COLUMNMARKER        "Маркер"
+    STR_CARET               "Каретка"
+    STR_URL                 "Посилання"
+    STR_ACTIVEURL           "Активне посилання"
+    STR_VISITURL            "Відвідане посилання"
+    STR_PAGEFIT             "Повністю"
+    STR_PAGEWIDTH           "За шириною"
+    STR_ALLFILES            "Усі файли"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_ONLYMODIFIED        "Змінені"
+    STR_ONLYUNMODIFIED      "Незмінені"
+    STR_INVERTSELECTION     "Інвертувати позначення"
+    STR_NEWLINEDOT          ". захоплює \\n"
+    STR_MESSAGEBOX_OK       "OK"
+    STR_MESSAGEBOX_YES      "&Так"
+    STR_MESSAGEBOX_NO       "&Ні"
+    STR_MESSAGEBOX_CANCEL   "Скасувати"
+    STR_MESSAGEBOX_YESTOALL "Так для всіх"
+    STR_MESSAGEBOX_NOTOALL  "Ні для всіх"
+    STR_MESSAGEBOX_GOTO     "Перейти"
+    STR_MESSAGEBOX_TERMINATE "Завершити"
+    STR_MESSAGEBOX_CONTINUE "Продовжити"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_AUTODETECT_RUSSIAN  "Кириличних (1251, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE "Східноєвропейских (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE "Західноєвропейских (1252, OEM, UTF-8)"
+    STR_AUTODETECT_TURKISH  "Турецьких (1254, OEM, UTF-8)"
+    STR_AUTODETECT_CHINESE  "Китайських (ANSI, UTF-8)"
+    STR_AUTODETECT_JAPANESE "Японських (932, UTF-8)"
+    STR_AUTODETECT_KOREAN   "Корейських (949, UTF-8)"
+END
+
+#endif    // Unknown language: 0x22, 0x1 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

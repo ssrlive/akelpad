@@ -1,0 +1,1070 @@
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html; charset=windows-1251">
+<title>AkelPad 3 - Help</title>
+</head>
+
+<body bgcolor="#dadae0">
+
+<font color=green><h2>AkelPad 3 - User's Manual</h2></font>
+
+<h3>Contents:</h3>
+<ol>
+  <li><a href=#ch0>Compatibility</a>
+  <li><a href=#ch1>General remarks</a>
+  <li><a href=#ch2>Features</a>
+  <li><a href=#ch3>Command line parameters</a>
+  <li><a href=#ch4>Keyboard commands</a>
+  <li><a href=#ch5>Internal commands</a>
+  <li><a href=#ch6>License</a>
+  <li><a href=#ch7>Contributors</a>
+</ol>
+
+<a name=ch0><h3>Compatibility</h3></a>
+  Programs is intended to work under Windows 95/98/Me and Windows NT 4.0/2000/XP/2003.
+
+<a name=ch1><h3>General remarks</h3></a>
+  Notepad is a wonderful editor, being used to edit files in plain text format, thus it is irreplaceable for programming, designing of Web documents, and so on. However, the one comprised in Windows, is very inconvenient due to several limitations. This program claims to be able to fill up these drawbacks.
+  <br><i>Attention:</i> this program takes a lot of advantages from Unicode representation. It is strongly recommended that you set up TrueType font (as Courier New) to gain more advantages from this feature.
+
+<a name=ch2><h3>Features</h3></a>
+  As long as the program is intended to replace standard Notepad, it's target is plain text files, it <font color=red>doesn't</font> support RTF files and so on - it isn't a drawback, it's a feature.
+  Brief description of general features:
+  <ul>
+    <li>Single window mode (SDI), multi window mode (MDI);
+    <li>Editing of files, which size is more than 64K (generally speaking, size isn't theoretically limited);
+    <li>Full support of Unicode strings on Unicode systems (NT/2000/XP/2003);
+    <li>Support of Unicode codepages (UTF-16 little endian, UTF-16 big endian, UTF-8);
+    <li>Support of any code page installed in the system;
+    <li>Support of DOS/Windows and Unix newline formats;
+    <li>Preview file open;
+    <li>Correct pseudographics displaying;
+    <li>Editing of files with "Read Only" attribute;
+    <li>Multi-level undo;
+    <li>Search/replace text strings, escape-sequences and also search/replace by hexadecimal code;
+    <li>Remember file codepage and caret position;
+    <li>Remember last opened files;
+    <li>Printing of a document;
+    <li>Support of language modules;
+    <li>Plugins support (syntax highlighting, auto-completion, scripts execution, keyboard macros and much more).
+  </ul>
+  Settings are saved in AkelPad.ini or in registry (<i>HKEY_CURRENT_USER\Software\Akelsoft\AkelPad</i>).
+
+<a name=ch3><h3>Command line parameters</h3></a>
+  AkelPad.exe [options] "file1.ext" "file2.ext" ...
+  <ul>
+    <table cellspacing=0 cellpadding=0 border=0>
+      <tr>
+        <td width="80"><li><b>/p</b></td>
+        <td>- print</td>
+      </tr>
+      <tr>
+        <td><li><b>/c+</b></td>
+        <td>- silently create new file, if doesn't exist</td>
+      </tr>
+      <tr>
+        <td><li><b>/c-</b></td>
+        <td>- don't create new file, if doesn't exist</td>
+      </tr>
+      <tr>
+        <td><li><b>/b+</b></td>
+        <td>- silently open file, if binary</td>
+      </tr>
+      <tr>
+        <td><li><b>/b-</b></td>
+        <td>- don't open file, if binary</td>
+      </tr>
+      <tr>
+        <td><li><b>/x</b></td>
+        <td>- don't use MS Notepad compatibility mode when parse command line parameters</td>
+      </tr>
+      <tr>
+        <td><li><b>/reassoc</b></td>
+        <td>- reinstall assigned earlier associations of file types</td>
+      </tr>
+      <tr>
+        <td><li><b>/deassoc</b></td>
+        <td>- uninstall assigned earlier associations of file types</td>
+      </tr>
+      <tr>
+        <td><li><b>/quit</b></td>
+        <td>- stop parsing command line parameters and close program</td>
+      </tr>
+      <tr>
+        <td><li><b>/end</b></td>
+        <td>- stop parsing command line parameters</td>
+      </tr>
+    </table>
+  </ul>
+
+
+<a name=ch4><h3>Keyboard commands</h3></a>
+  <ul>
+  <table cellspacing=0 cellpadding=1 border=1>
+    <tr>
+      <td><b>Ctrl+X</b><br><b>Shift+Del</b></td>
+      <td>cut</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+C</b><br><b>Ctrl+Ins</b></td>
+      <td>copy</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+V</b><br><b>Shift+Ins</b></td>
+      <td>paste</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+V</b><br><b>Ctrl+Shift+Ins</b></td>
+      <td>paste text as ANSI</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+A</b></td>
+      <td>select all</td>
+    </tr>
+
+    <tr>
+      <td><b>Backspace</b></td>
+      <td>delete from left</td>
+    </tr>
+
+    <tr>
+      <td><b>Del</b></td>
+      <td>delete from right</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Z</b></td>
+      <td>undo</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+Z</b></td>
+      <td>redo</td>
+    </tr>
+
+    <tr>
+      <td><b>Home</b></td>
+      <td>go to start of line</td>
+    </tr>
+
+    <tr>
+      <td><b>End</b></td>
+      <td>go to end of line</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Home</b></td>
+      <td>go to start of text</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+End</b></td>
+      <td>go to end of text</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Left</b></td>
+      <td>go to start of word</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Right</b></td>
+      <td>go to end of word</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Up</b></td>
+      <td>go to start of previous line</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Down</b></td>
+      <td>go to start of next line</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+PageUp</b></td>
+      <td>go to first visible character</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+PageDown</b></td>
+      <td>go to last visible character</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Backspace</b></td>
+      <td>delete left word</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Del</b></td>
+      <td>delete right word</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+N</b></td>
+      <td>create new file</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+N</b></td>
+      <td>create new window</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+O</b></td>
+      <td>open file</td>
+    </tr>
+
+    <tr>
+      <td><b>F5</b><br><b>Ctrl+Shift+O</b></td>
+      <td>reopen file</td>
+    </tr>
+
+    <tr>
+      <td><b>F2</b><br><b>Ctrl+S</b></td>
+      <td>save</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+F2</b><br><b>Ctrl+Shift+S</b></td>
+      <td>save as</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Alt+F2</b></td>
+      <td>save all</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Alt+F4</b></td>
+      <td>close all</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+P</b></td>
+      <td>print</td>
+    </tr>
+
+    <tr>
+      <td><b>Esc</b><br><b>Alt+F4</b></td>
+      <td>exit</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+F</b></td>
+      <td>find</td>
+    </tr>
+
+    <tr>
+      <td><b>F3</b></td>
+      <td>find next down. Search/replace dialog: close dialog and find next down.</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+F3</b></td>
+      <td>find next up. Search/replace dialog: close dialog and find next up.</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+R</b><br><b>Ctrl+H</b></td>
+      <td>find and replace</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+G</b></td>
+      <td>go to line (by number)</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+I</b></td>
+      <td>run "Character map"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+D</b></td>
+      <td>insert date</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+T</b></td>
+      <td>on/off "Always on top"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+U</b></td>
+      <td>on/off "Word wrap"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+E</b></td>
+      <td>on/off "Read only"</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+W</b></td>
+      <td>reopen file as ANSI (Windows)</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+D</b></td>
+      <td>reopen file as OEM (DOS)</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+K</b></td>
+      <td>reopen file as KOI8-R</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+L</b></td>
+      <td>reopen file as UTF-16LE</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+B</b></td>
+      <td>reopen file as UTF-16BE</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+U</b></td>
+      <td>reopen file as UTF-8</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+W</b></td>
+      <td>save file as ANSI (Windows)</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+D</b></td>
+      <td>save file as OEM (DOS)</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+K</b></td>
+      <td>save file as KOI8-R</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+L</b></td>
+      <td>save file as UTF-16LE</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+B</b></td>
+      <td>save file as UTF-16BE</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+U</b></td>
+      <td>save file as UTF-8</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+F5</b></td>
+      <td>reopen file with code page detect</td>
+    </tr>
+
+    <tr>
+      <td><b>F12</b></td>
+      <td>show context menu for fast reopenning/saving in wanted code page</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+R</b></td>
+      <td>recode text</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Backspace</b></td>
+      <td>delete first char</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+Backspace</b></td>
+      <td>trim trailing whitespaces</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+P</b></td>
+      <td>plugins</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+F5</b></td>
+      <td>execute command</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+L</b></td>
+      <td>on/off "Keep left spaces"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Enter</b></td>
+      <td>new line with keeping left spaces</td>
+    </tr>
+
+    <tr>
+      <td><b>F4</b><br><b>Alt+Enter</b></td>
+      <td>maximize/restore window</td>
+    </tr>
+
+    <tr>
+      <td><b>F8</b><br><b>Ctrl+Y</b></td>
+      <td>delete current line</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Num +</b></td>
+      <td>increase font by 1 pt</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Num -</b></td>
+      <td>decrease font by 1 pt</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+6</b></td>
+      <td>selected text, as "UPPERCASE"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+7</b></td>
+      <td>selected text, as "lowercase"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+8</b></td>
+      <td>selected text, as "Sentence case."</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+9</b></td>
+      <td>selected text, as "Title Case"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+0</b></td>
+      <td>selected text, as "iNVERT cASE"</td>
+    </tr>
+
+    <tr>
+      <td><b>F6</b></td>
+      <td>go to next dialog</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+F6</b></td>
+      <td>go to previous dialog</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Tab</b><br><b>Ctrl+F6</b></td>
+      <td>next window (MDI)</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+Tab</b><br><b>Ctrl+Shift+F6</b></td>
+      <td>previous window (MDI)</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+F4</b><br><b>Ctrl+W</b></td>
+      <td>close window (MDI)</td>
+    </tr>
+
+  </table>
+  </ul>
+
+<a name=ch5><h3>Internal commands</h3></a>
+  Can be used in ContextMenu, ToolBar, Hotkeys and Scripts plugins.
+  <ul>
+  <table cellspacing=0 cellpadding=1 border=1>
+    <tr>
+      <td align=center><b>4101</b></td>
+      <td>Create new edit window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4102</b></td>
+      <td>Create new instance of program</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4103</b></td>
+      <td>Open file dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4104</b></td>
+      <td>Reopen file</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4105</b></td>
+      <td>Save file</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4106</b></td>
+      <td>Save file dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4107</b></td>
+      <td>Print setup dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4108</b></td>
+      <td>Print dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4109</b></td>
+      <td>Exit program</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4110</b></td>
+      <td>Save all documents</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4111</b></td>
+      <td>Close all documents</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4112</b></td>
+      <td>Close all documents, but active</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4113</b></td>
+      <td>Print without dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4151</b></td>
+      <td>Undo last operation</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4152</b></td>
+      <td>Redo last operation</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4153</b></td>
+      <td>Cut</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4154</b></td>
+      <td>Copy</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4155</b></td>
+      <td>Paste</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4156</b></td>
+      <td>Delete</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4157</b></td>
+      <td>Select all</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4158</b></td>
+      <td>Find dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4159</b></td>
+      <td>Find last string down</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4160</b></td>
+      <td>Find last string up</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4161</b></td>
+      <td>Replace dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4162</b></td>
+      <td>Go to line dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4163</b></td>
+      <td>Run charmap.exe</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4164</b></td>
+      <td>Insert tabulation</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4165</b></td>
+      <td>Insert tabulation only if several lines selected</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4166</b></td>
+      <td>Delete tabulation</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4167</b></td>
+      <td>Delete tabulation only if several lines selected</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4168</b></td>
+      <td>Insert space</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4169</b></td>
+      <td>Insert space only if several lines selected</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4170</b></td>
+      <td>Delete space</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4171</b></td>
+      <td>Delete space only if several lines selected</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4172</b></td>
+      <td>Delete first char</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4173</b></td>
+      <td>Delete first char only if selection not empty</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4174</b></td>
+      <td>Delete trailing whitespaces</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4175</b></td>
+      <td>Convert text to "UPPERCASE"</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4176</b></td>
+      <td>Convert text to "lowercase"</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4177</b></td>
+      <td>Convert text to "Sentence case."</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4178</b></td>
+      <td>Convert text to "Title Case"</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4179</b></td>
+      <td>Convert text to "iNVERT cASE"</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4180</b></td>
+      <td>Cycle case</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4182</b></td>
+      <td>Recode dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4183</b></td>
+      <td>Insert date</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4184</b></td>
+      <td>Windows new line format</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4185</b></td>
+      <td>Unix new line format</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4201</b></td>
+      <td>Font dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4202</b></td>
+      <td>Text color dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4203</b></td>
+      <td>Background color dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4204</b></td>
+      <td>Increase font 1px</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4205</b></td>
+      <td>Decrease font 1px</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4209</b></td>
+      <td>Word wrap (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4210</b></td>
+      <td>Always on top (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4211</b></td>
+      <td>Show statusbar (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4251</b></td>
+      <td>Execute command</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4252</b></td>
+      <td>Save file time (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4253</b></td>
+      <td>Watch file change (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4254</b></td>
+      <td>Keep space (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4255</b></td>
+      <td>Single open file (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4256</b></td>
+      <td>Single open program (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4257</b></td>
+      <td>SDI mode</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4258</b></td>
+      <td>MDI mode</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4259</b></td>
+      <td>Plugins dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4260</b></td>
+      <td>Options dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4261</b></td>
+      <td>Read only (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4301</b></td>
+      <td>MDI tab window at the top of the main window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4302</b></td>
+      <td>MDI tab window at the bottom of the main window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4303</b></td>
+      <td>Hide MDI tab</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4304</b></td>
+      <td>Standard MDI tab style</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4305</b></td>
+      <td>Buttons MDI tab style</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4306</b></td>
+      <td>Flat buttons MDI tab style</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4307</b></td>
+      <td>MDI windows - horizontal tile</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4308</b></td>
+      <td>MDI windows - vertical tile</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4309</b></td>
+      <td>MDI windows - cascade</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4351</b></td>
+      <td>About dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4401</b></td>
+      <td>Restore/Maximize main window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4402</b></td>
+      <td>Delete current line</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4403</b></td>
+      <td>Paste as ANSI text</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4404</b></td>
+      <td>Activate next MDI window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4405</b></td>
+      <td>Activate previous MDI window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4406</b></td>
+      <td>Close current MDI window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4407</b></td>
+      <td>(internal command)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4408</b></td>
+      <td>Redetect code page of the current file</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4409</b></td>
+      <td>Reopen file as ANSI</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4410</b></td>
+      <td>Reopen file as OEM</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4411</b></td>
+      <td>Reopen file as UTF16LE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4412</b></td>
+      <td>Reopen file as UTF16BE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4413</b></td>
+      <td>Reopen file as UTF8</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4414</b></td>
+      <td>Reopen file as KOI-R</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4415</b></td>
+      <td>Save file as ANSI</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4416</b></td>
+      <td>Save file as OEM</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4417</b></td>
+      <td>Save file as UTF16LE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4418</b></td>
+      <td>Save file as UTF16BE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4419</b></td>
+      <td>Save file as UTF8</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4420</b></td>
+      <td>Save file as KOI-R</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4421</b></td>
+      <td>Insert/Overtype mode</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4422</b></td>
+      <td>Close file</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4423</b></td>
+      <td>Activate next dialog window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4424</b></td>
+      <td>Activate previous dialog window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4425</b></td>
+      <td>Insert new line with keeping left spaces</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4426</b></td>
+      <td>Save file as UTF8 without BOM</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4430</b></td>
+      <td>Paste text after caret</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4431</b></td>
+      <td>(internal command)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>5001</b></td>
+      <td>Delete dead recent files</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>5001 + n</b></td>
+      <td>Open recent file n</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>6001</b></td>
+      <td>Activate internal language</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>6001 + n</b></td>
+      <td>Activate language n</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>7001</b></td>
+      <td>Open as last popup menu item</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>7001 + n</b></td>
+      <td>Open as popup menu item n</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>8001</b></td>
+      <td>Save as last popup menu item</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>8001 + n</b></td>
+      <td>Save as popup menu item n</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>10019</b></td>
+      <td>Select window dialog (MDI)</td>
+    </tr>
+
+  </table>
+  </ul>
+
+<a name=ch6><h3>License</h3></a>
+  This program is distributed under <i>"BSD license"</i> conditions. <i>BSD license</i> is open source license approved by OSI. It can be found on <a href=http://www.opensource.org/licenses/bsd-license.php>their site</a>.
+
+<a name=ch7><h3>Contributors</h3></a>
+  Shengalts Aleksander (e-mail: <a href=mailto:shengalts@mail.ru>shengalts@mail.ru</a>)
+  <br>Kuznetsov Alexey (e-mail: <a href=mailto:developer@akelpad.net.ru>developer@akelpad.net.ru</a>)
+  <br><br><a href=http://akelpad.sf.net>http://akelpad.sf.net</a>
+
+<hr>
+
+</body>
+</html>

@@ -1,0 +1,114 @@
+*****************************************************************
+***              SpecialChar AkelPad plugin v6.6              ***
+*****************************************************************
+
+2007-2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Displaying and highlighting of:
+- special characters (space, tabulation, new line, end of file,
+  wrap, vertical tabulation, form-feed, null character);
+- any specified character;
+- indent line.
+
+Remarks:
+- If in settings tabulation character is equal to \x0000, then tabulation is painted as
+  arrow at full length.
+- If in settings new line character is equal to \x0000, then new line is painted as
+  "rn" or "rrn" - Win, "n" - Unix, "r" - Mac.
+- If in settings end of file character is equal to \x0000, then end of file is painted as
+  "eof".
+- If in settings wrap line character is equal to \x0000, then wrap line is painted as
+  down arrow.
+
+
+*** Functions ***
+
+SpecialChar::Main
+Main function for start and stop plugin.
+
+SpecialChar::Settings
+Settings dialog.
+
+
+*** External call SpecialChar::Settings ***
+
+Call("SpecialChar::Settings", 1, "OLDSYMBOLS", "#RRGGBB", "#RRGGBB", BASICCOLORENABLE, SELCOLORENABLE, "NEWSYMBOLS")
+  Parameters:
+    1
+      Set options for specified symbols (old method).
+    "OLDSYMBOLS"
+      Symbols group separated by commas, for example: "\x20,1,\x09". Symbols are specified in hexadecimal format and can be used special characters:
+        1  Space
+        2  Tabulation
+        3  New line
+        4  Vertical tabulation
+        5  Form-feed
+        6  Null
+        7  Wrap
+        8  Indent line
+        9  End of file
+    "#RRGGBB"
+      Text color. If "0", then not changed. If 0, then default color is used.
+    "#RRGGBB"
+      Color in selection. If "0", then not changed. If 0, then default color is used.
+    BASICCOLORENABLE (one of the following):
+      -3  invert text color enable flag of first symbol in group and set this value to all symbols in group.
+      -2  don't change text color enable flag (default).
+      -1  invert text color enable flag.
+       0  turn off text color.
+       1  turn on text color.
+    SELCOLORENABLE (one of the following):
+      -2  don't change color in selection enable flag (default).
+      -1  invert color in selection enable flag.
+       0  turn off color in selection.
+       1  turn on color in selection.
+    "NEWSYMBOLS"
+      Symbols group, painted instead of OLDSYMBOLS, separated by commas, for example: "\xB7,\x00,\x00". Symbols are specified in hexadecimal format. Default is: "".
+
+Call("SpecialChar::Settings", 3, "OLDSYMBOLS", "NEWSYMBOLS", BASICCOLORENABLE, BASICFONTSTYLE, "#RRGGBB", "#RRGGBB", SELCOLORENABLE, SELFONTSTYLE, "#RRGGBB", "#RRGGBB")
+  Parameters:
+    3
+      Set options for specified symbols (new method).
+    "OLDSYMBOLS"
+      Symbols group separated by commas, for example: "\x20,-3,\x09". Symbols are specified in hexadecimal format and can be used special characters:
+        -2  New line
+        -3  Wrap
+        -4  Indent line
+        -5  End of file
+    "NEWSYMBOLS"
+      Symbols group, painted instead of OLDSYMBOLS, separated by commas, for example: "\xB7,\x00,\x00". Symbols are specified in hexadecimal format. Default is: "".
+    BASICCOLORENABLE (one of the following):
+      -3  invert text color enable flag of first symbol in group and set this value to all symbols in group.
+      -2  don't change text color enable flag (default).
+      -1  invert text color enable flag.
+       0  turn off text color.
+       1  turn on text color.
+    BASICFONTSTYLE (one of the following):
+       0  don't change font style (default).
+       1  normal font style.
+       2  bold font style.
+       3  italic font style.
+       4  bold italic font style.
+    "#RRGGBB"
+      Text color. If "0", then not changed. If 0, then default color is used.
+    "#RRGGBB"
+      Background color. If "0", then not changed. If 0, then default color is used.
+    SELCOLORENABLE (one of the following):
+      -3  invert color in selection enable flag of first symbol in group and set this value to all symbols in group.
+      -2  don't change color in selection enable flag (default).
+      -1  invert color in selection enable flag.
+       0  turn off color in selection.
+       1  turn on color in selection.
+    SELFONTSTYLE (one of the following):
+       0  don't change font style (default).
+       1  normal font style.
+       2  bold font style.
+       3  italic font style.
+       4  bold italic font style.
+    "#RRGGBB"
+      Text color in selection. If "0", then not changed. If 0, then default color is used.
+    "#RRGGBB"
+      Background color in selection. If "0", then not changed. If 0, then default color is used.

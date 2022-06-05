@@ -1,0 +1,29 @@
+HKCR
+{
+	NoRemove CLSID
+	{
+		ForceRemove %CLSID% = s '%CLASSNAME% Class'
+		{
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+		}
+	}
+}
+
+
+HKCR 
+{ 
+	NoRemove * 
+	{ 
+		NoRemove shellex 
+		{ 
+			NoRemove ContextMenuHandlers 
+			{ 
+				ForceRemove %CLASSNAME% = s '%CLSID%' 
+			} 
+		} 
+	} 
+} 
+

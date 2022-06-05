@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AkelPad", "src\AkelPad.vcxproj", "{2FBDB593-C58E-4964-837E-E988ACC97ADD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AkelDLL", "src\AkelFiles\Plugs\AkelDLL\AkelDLL.vcxproj", "{758282C6-B7C5-47A2-94B4-E677A4E61C65}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chinese (Simplified)", "src\AkelFiles\Langs\Chinese (Simplified).vcxproj", "{EA284721-F2E7-47C1-B959-445712D2B60B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "plugs", "plugs", "{26AED846-27DD-4E7C-9451-47635DAF14FB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lang", "lang", "{AB1D8AB6-CC25-41B1-9478-5267587AEAAA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chinese (Traditional)", "src\AkelFiles\Langs\Chinese (Traditional).vcxproj", "{A2E67879-C520-4D78-B1A2-409BC21E1098}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Japanese", "src\AkelFiles\Langs\Japanese.vcxproj", "{9AAE2865-410D-4893-BB89-512EB628746B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Korean", "src\AkelFiles\Langs\Korean.vcxproj", "{F4A6C522-7B17-464F-AE4C-E1BC106FD4B3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2FBDB593-C58E-4964-837E-E988ACC97ADD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2FBDB593-C58E-4964-837E-E988ACC97ADD}.Debug|Win32.Build.0 = Debug|Win32
+		{2FBDB593-C58E-4964-837E-E988ACC97ADD}.Release|Win32.ActiveCfg = Release|Win32
+		{2FBDB593-C58E-4964-837E-E988ACC97ADD}.Release|Win32.Build.0 = Release|Win32
+		{758282C6-B7C5-47A2-94B4-E677A4E61C65}.Debug|Win32.ActiveCfg = Debug|Win32
+		{758282C6-B7C5-47A2-94B4-E677A4E61C65}.Debug|Win32.Build.0 = Debug|Win32
+		{758282C6-B7C5-47A2-94B4-E677A4E61C65}.Release|Win32.ActiveCfg = Release|Win32
+		{758282C6-B7C5-47A2-94B4-E677A4E61C65}.Release|Win32.Build.0 = Release|Win32
+		{EA284721-F2E7-47C1-B959-445712D2B60B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EA284721-F2E7-47C1-B959-445712D2B60B}.Debug|Win32.Build.0 = Debug|Win32
+		{EA284721-F2E7-47C1-B959-445712D2B60B}.Release|Win32.ActiveCfg = Release|Win32
+		{EA284721-F2E7-47C1-B959-445712D2B60B}.Release|Win32.Build.0 = Release|Win32
+		{A2E67879-C520-4D78-B1A2-409BC21E1098}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A2E67879-C520-4D78-B1A2-409BC21E1098}.Debug|Win32.Build.0 = Debug|Win32
+		{A2E67879-C520-4D78-B1A2-409BC21E1098}.Release|Win32.ActiveCfg = Release|Win32
+		{A2E67879-C520-4D78-B1A2-409BC21E1098}.Release|Win32.Build.0 = Release|Win32
+		{9AAE2865-410D-4893-BB89-512EB628746B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9AAE2865-410D-4893-BB89-512EB628746B}.Debug|Win32.Build.0 = Debug|Win32
+		{9AAE2865-410D-4893-BB89-512EB628746B}.Release|Win32.ActiveCfg = Release|Win32
+		{9AAE2865-410D-4893-BB89-512EB628746B}.Release|Win32.Build.0 = Release|Win32
+		{F4A6C522-7B17-464F-AE4C-E1BC106FD4B3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F4A6C522-7B17-464F-AE4C-E1BC106FD4B3}.Debug|Win32.Build.0 = Debug|Win32
+		{F4A6C522-7B17-464F-AE4C-E1BC106FD4B3}.Release|Win32.ActiveCfg = Release|Win32
+		{F4A6C522-7B17-464F-AE4C-E1BC106FD4B3}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{758282C6-B7C5-47A2-94B4-E677A4E61C65} = {26AED846-27DD-4E7C-9451-47635DAF14FB}
+		{EA284721-F2E7-47C1-B959-445712D2B60B} = {AB1D8AB6-CC25-41B1-9478-5267587AEAAA}
+		{A2E67879-C520-4D78-B1A2-409BC21E1098} = {AB1D8AB6-CC25-41B1-9478-5267587AEAAA}
+		{9AAE2865-410D-4893-BB89-512EB628746B} = {AB1D8AB6-CC25-41B1-9478-5267587AEAAA}
+		{F4A6C522-7B17-464F-AE4C-E1BC106FD4B3} = {AB1D8AB6-CC25-41B1-9478-5267587AEAAA}
+	EndGlobalSection
+EndGlobal

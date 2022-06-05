@@ -1,0 +1,120 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "Resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#if (RC_VERSIONBIT == 64)
+  #define RC_VERSIONDESCRIPTION "AkelPad (x64) text editor plugin"
+#else
+  #define RC_VERSIONDESCRIPTION "AkelPad (x86) text editor plugin"
+#endif
+#include "winresrc.h"
+#ifdef RC_VERSIONBIT
+  #include "Version.rc"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_PLUGIN         ICON    DISCARDABLE     "Exit.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SETUP DIALOG DISCARDABLE  70, 70, 165, 206
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "",IDC_PROMPTEXIT_ENABLE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,8,130,10
+    EDITTEXT        IDC_PROMPTEXIT,10,21,145,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_CMDLINE_ENABLE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,41,130,10
+    EDITTEXT        IDC_CMDLINE,10,54,145,14,ES_AUTOHSCROLL
+    GROUPBOX        "",IDC_ESCAPE_GROUP,10,77,145,98
+    CONTROL         "",IDC_ESCEXIT,"Button",BS_AUTORADIOBUTTON,18,90,130,10
+    CONTROL         "",IDC_ESCMINIMIZE,"Button",BS_AUTORADIOBUTTON,18,101,
+                    130,10
+    CONTROL         "",IDC_ESCIGNORE,"Button",BS_AUTORADIOBUTTON,18,112,130,
+                    10
+    CONTROL         "",IDC_ESCCLOSETAB,"Button",BS_AUTORADIOBUTTON,18,123,
+                    130,10
+    RADIOBUTTON     "",IDC_ESCCLOSETAB_ONETABEXIT,30,135,120,10
+    RADIOBUTTON     "",IDC_ESCCLOSETAB_NOTABEXIT,30,146,120,10
+    RADIOBUTTON     "",IDC_ESCCLOSETAB_NOTABDONTEXIT,30,157,120,10
+    PUSHBUTTON      "",IDOK,30,185,50,14,BS_CENTER
+    PUSHBUTTON      "",IDCANCEL,84,185,50,14,BS_CENTER
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "Resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#if (RC_VERSIONBIT == 64)\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x64) text editor plugin""\r\n"
+    "#else\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x86) text editor plugin""\r\n"
+    "#endif\r\n"
+    "#include ""winresrc.h""\r\n"
+    "#ifdef RC_VERSIONBIT\r\n"
+    "  #include ""Version.rc""\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

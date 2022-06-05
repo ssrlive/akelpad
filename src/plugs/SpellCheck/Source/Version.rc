@@ -1,0 +1,467 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Russian (Russia) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SETTINGS DIALOGEX 0, 0, 334, 135
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Проверка орфографии: настройка"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Словарь по умолчанию",IDC_STATIC,7,4,186,8
+    COMBOBOX        IDC_DEFDICT,7,12,187,300,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Оповещать об ошибках без известных коррекций",IDC_SHOWNOTICE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,30,188,10
+    CONTROL         "Подсветить некорректное слово",IDC_HIGHLIGHT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,41,188,10
+    CONTROL         "Использовать белый список",IDC_WHITELIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,52,186,10
+    LTEXT           "Настройки фоновой разметки",IDC_STATIC,7,63,186,8
+    COMBOBOX        IDC_STYLE,7,71,166,53,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_COLOR,"Button",BS_OWNERDRAW | WS_TABSTOP,174,71,19,12
+    LTEXT           "Путь к ядру Aspell",IDC_STATIC,7,89,63,8
+    EDITTEXT        IDC_CORE,7,97,166,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE,174,97,19,12
+    LTEXT           "Непроверять в фоне словарями",IDC_STATIC,197,3,114,8
+    EDITTEXT        IDC_NOBGEDIT,197,12,133,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_NOBG,197,48,133,81,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Добавить",IDC_NOBGADD,197,31,50,14
+    PUSHBUTTON      "Удалить",IDC_NOBGREM,280,31,50,14
+    DEFPUSHBUTTON   "OK",IDOK,7,117,50,14
+    PUSHBUTTON      "Отмена",IDCANCEL,143,117,50,14
+    PUSHBUTTON      "Тест",IDC_PROBE,76,117,50,14
+END
+
+IDD_RAPIDCHECK DIALOGEX 0, 0, 217, 185
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Варианты правописания"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_MISSSPELL,7,7,142,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_SUGLIST,7,29,142,149,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "Принять",IDOK,160,7,50,14
+    PUSHBUTTON      "Пропустить",IDCANCEL,160,29,50,14
+    PUSHBUTTON      "Закрыть",IDC_CANCELALL,160,52,50,14,BS_CENTER
+    PUSHBUTTON      "Запомнить",IDC_MEM,160,75,50,14
+    PUSHBUTTON      "Начальное",IDC_ORIGINAL,160,98,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,20,0,0
+ PRODUCTVERSION 1,20,0,0
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041904b0"
+        BEGIN
+            VALUE "Comments", "Юникод версия"
+            VALUE "FileDescription", "SpellCheck: проверка орфографии в AkelPad на базе ASpell"
+            VALUE "FileVersion", "1.20.0.0"
+            VALUE "InternalName", "SpellCheck.dll"
+            VALUE "LegalCopyright", " (c) Паныч Я.В. 2010-2014"
+            VALUE "OriginalFilename", "SpellCheck.dll"
+            VALUE "ProductName", "SpellCheck: проверка орфографии в AkelPad на базе ASpell"
+            VALUE "ProductVersion", "1.20.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x419, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_SETTINGS, DIALOG
+    BEGIN
+        VERTGUIDE, 7
+        VERTGUIDE, 193
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_NOASPELL            "ASpell не найдено"
+    IDS_NOMISSSPELL         "Ошибок не найдено"
+    IDS_NOVARIANT           "Вариантов не найдено"
+END
+
+#endif    // Russian (Russia) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Ukrainian (Ukraine) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_UKR)
+LANGUAGE LANG_UKRAINIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SETTINGS DIALOGEX 0, 0, 334, 135
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Перевірка правопису"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Словник по замовчуванню",IDC_STATIC,7,4,186,8
+    COMBOBOX        IDC_DEFDICT,7,12,187,300,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Повідомляти про помилки без відомих коригувань",IDC_SHOWNOTICE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,30,188,10
+    CONTROL         "Підсвічувати слово, що виправляеться",IDC_HIGHLIGHT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,41,188,10
+    CONTROL         "Використовувати былий список",IDC_WHITELIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,52,186,10
+    LTEXT           "Налаштування фонової розмітки",IDC_STATIC,7,63,186,8
+    COMBOBOX        IDC_STYLE,7,71,166,53,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_COLOR,"Button",BS_OWNERDRAW | WS_TABSTOP,174,71,19,12
+    LTEXT           "Шлях до ядра Aspell",IDC_STATIC,7,89,70,8
+    EDITTEXT        IDC_CORE,7,97,166,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE,174,97,19,12
+    LTEXT           "Не перевіряти у фоні словниками",IDC_STATIC,197,3,114,8
+    EDITTEXT        IDC_NOBGEDIT,197,12,133,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_NOBG,197,48,133,81,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Додати",IDC_NOBGADD,197,31,50,14
+    PUSHBUTTON      "Видалити",IDC_NOBGREM,280,31,50,14
+    DEFPUSHBUTTON   "OK",IDOK,7,117,50,14
+    PUSHBUTTON      "Відміна",IDCANCEL,143,117,50,14
+    PUSHBUTTON      "Тест",IDC_PROBE,76,117,50,14
+END
+
+IDD_RAPIDCHECK DIALOGEX 0, 0, 217, 185
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Варіанти правопису"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_MISSSPELL,7,7,142,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_SUGLIST,7,29,142,149,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "Прийняти",IDOK,160,7,50,14
+    PUSHBUTTON      "Пропустити",IDCANCEL,160,29,50,14
+    PUSHBUTTON      "Закрити",IDC_CANCELALL,160,52,50,14,BS_CENTER
+    PUSHBUTTON      "Запам'ятати",IDC_MEM,160,75,50,14
+    PUSHBUTTON      "Початкове",IDC_ORIGINAL,160,98,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,20,0,0
+ PRODUCTVERSION 1,20,0,0
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "042204b0"
+        BEGIN
+            VALUE "Comments", "Юнікод версія"
+            VALUE "FileDescription", "SpellCheck: перевірка орфографії у AkelPad на базі ASpell"
+            VALUE "FileVersion", "1.20.0.0"
+            VALUE "InternalName", "SpellCheck.dll"
+            VALUE "LegalCopyright", " (c) Панич Я.В. 2010-2014"
+            VALUE "OriginalFilename", "SpellCheck.dll"
+            VALUE "ProductName", "SpellCheck: перевірка орфографії у AkelPad на базі ASpell"
+            VALUE "ProductVersion", "1.20.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x422, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_SETTINGS, DIALOG
+    BEGIN
+        VERTGUIDE, 7
+        VERTGUIDE, 193
+    END
+
+    IDD_RAPIDCHECK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 210
+        VERTGUIDE, 149
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 178
+        HORZGUIDE, 29
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+100                     ICON                    "spck.ico"
+101                     ICON                    "spck-sett.ico"
+102                     ICON                    "spck-force.ico"
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_NOASPELL            "ASpell не знайдено"
+    IDS_NOMISSSPELL         "Помилок не знайдено"
+    IDS_NOVARIANT           "Варіантів не знайдено"
+END
+
+#endif    // Ukrainian (Ukraine) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SETTINGS DIALOGEX 0, 0, 334, 135
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "SpellCheck: Settings"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Default dictionary",IDC_STATIC,7,4,58,8
+    COMBOBOX        IDC_DEFDICT,7,12,187,300,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Show notice about misspellings w/o suggestions",IDC_SHOWNOTICE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,30,186,10
+    CONTROL         "Highlight misspelled word",IDC_HIGHLIGHT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,41,186,10
+    CONTROL         "Use white list",IDC_WHITELIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,52,186,10
+    LTEXT           "Background markup setting",IDC_STATIC,7,63,186,8
+    COMBOBOX        IDC_STYLE,7,71,166,53,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_COLOR,"Button",BS_OWNERDRAW | WS_TABSTOP,174,71,19,12
+    LTEXT           "Aspell core path",IDC_STATIC,7,89,52,8
+    EDITTEXT        IDC_CORE,7,97,166,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE,174,97,19,12
+    LTEXT           "Dicts. disabled in background check",IDC_STATIC,197,3,114,8
+    EDITTEXT        IDC_NOBGEDIT,197,12,133,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_NOBG,197,48,133,81,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Add",IDC_NOBGADD,197,31,50,14
+    PUSHBUTTON      "Remove",IDC_NOBGREM,280,31,50,14
+    DEFPUSHBUTTON   "OK",IDOK,7,117,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,143,117,50,14
+    PUSHBUTTON      "Test",IDC_PROBE,76,117,50,14
+END
+
+IDD_RAPIDCHECK DIALOGEX 0, 0, 217, 185
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "SpellCheck: suggestion"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_MISSSPELL,7,7,142,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_SUGLIST,7,29,142,149,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "Accept",IDOK,160,7,50,14
+    PUSHBUTTON      "Skip",IDCANCEL,160,29,50,14
+    PUSHBUTTON      "Close",IDC_CANCELALL,160,52,50,14,BS_CENTER
+    PUSHBUTTON      "Remember",IDC_MEM,159,75,50,14
+    PUSHBUTTON      "Original",IDC_ORIGINAL,160,98,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,20,0,0
+ PRODUCTVERSION 1,20,0,0
+ FILEFLAGSMASK 0x37L
+#ifdef _DEBUG
+ FILEFLAGS 0x21L
+#else
+ FILEFLAGS 0x20L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "000004b0"
+        BEGIN
+            VALUE "Comments", "Unicode version"
+            VALUE "FileDescription", "SpellCheck: ASpell based spellchecker for AkelPad"
+            VALUE "FileVersion", "1.20.0.0"
+            VALUE "InternalName", "SpellCheck.dll"
+            VALUE "LegalCopyright", " (c) Panych Y.W. 2010-2014"
+            VALUE "OriginalFilename", "SpellCheck.dll"
+            VALUE "ProductName", "SpellCheck: ASpell based spellchecker for AkelPad"
+            VALUE "ProductVersion", "1.20.0.0"
+        END
+        BLOCK "000904b0"
+        BEGIN
+            VALUE "Comments", "Unicode version"
+            VALUE "FileDescription", "SpellCheck: ASpell based spellchecker for AkelPad"
+            VALUE "FileVersion", "1.20.0.0"
+            VALUE "InternalName", "SpellCheck.dll"
+            VALUE "LegalCopyright", " (c) Panych Y.W. 2010-2014"
+            VALUE "OriginalFilename", "SpellCheck.dll"
+            VALUE "ProductName", "SpellCheck: ASpell based spellchecker for AkelPad"
+            VALUE "ProductVersion", "1.20.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0, 1200, 0x9, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_SETTINGS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 330
+        VERTGUIDE, 7
+        VERTGUIDE, 174
+        VERTGUIDE, 193
+        VERTGUIDE, 197
+        VERTGUIDE, 330
+        HORZGUIDE, 12
+        HORZGUIDE, 24
+        HORZGUIDE, 96
+        HORZGUIDE, 108
+        HORZGUIDE, 122
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_NOASPELL            "ASpell core not found"
+    IDS_NOMISSSPELL         "No missspellings found"
+    IDS_NOVARIANT           "No variants found"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

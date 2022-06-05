@@ -1,0 +1,74 @@
+*****************************************************************
+***                Macros AkelPad plugin v6.3                 ***
+*****************************************************************
+
+2006-2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Records user keyboard actions and then repeats them.
+
+Remarks:
+- Setting repeat count to zero, will be meant infinite actions
+  repeat until last line of the edit window reached.
+- If find/replace dialog found nothing, then repeating stopped.
+- If last frame window closed (MDI/PMDI), then repeating stopped.
+
+
+*** Functions ***
+
+Macros::Main
+Main dialog.
+
+
+*** External call ***
+
+Call("Macros::Main", 1, "NAME", REPEAT, FLAGS)
+  Parameters:
+    1
+      Execute macro.
+    "NAME"
+      Saved macro name. If "", then execute last recorded macro.
+    REPEAT
+      Repeat count (default is 1).
+    FLAGS
+      Execution flags (default is 0).
+        1  //EMF_SCRIPTSNOSYNC  Don't wait script completion.
+
+Call("Macros::Main", 2, "TOOLBAR_HANDLE", "TOOLBAR_ITEMID")
+  Parameters:
+    2
+      Record macro. Called from ToolBar plugin.
+    "TOOLBAR_HANDLE"
+      Tool bar ID (handle).
+    "TOOLBAR_ITEMID"
+      Button item ID.
+
+Call("Macros::Main", 3, "TOOLBAR_HANDLE", "TOOLBAR_ITEMID")
+  Parameters:
+    3
+      Execute recorded macro to the end. Called from ToolBar plugin.
+    "TOOLBAR_HANDLE"
+      Tool bar ID (handle).
+    "TOOLBAR_ITEMID"
+      Button item ID.
+
+Call("Macros::Main", 4, *DWORD)
+  Parameters:
+    4
+      Get last error. Use with Scripts plugin.
+    *DWORD
+      Pointer to a DWORD variable.
+        0x0000  //MS_IDLE
+        0x0001  //MS_PLAYING
+        0x0002  //MS_NOEDIT
+        0x0004  //MS_READONLY
+        0x0008  //MS_WAITTIMEOUT
+        0x0010  //MS_TOOLBARSTOP
+        0x0020  //MS_REPEATLIMIT
+        0x0040  //MS_EOFRICHED
+        0x0080  //MS_SEARCHENDED
+        0x0100  //MS_FRAMENOWINDOWS
+        0x0200  //MS_PROGRAMEXIT
+        0x1000  //MS_INITIALIZING

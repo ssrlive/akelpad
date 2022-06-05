@@ -1,0 +1,22 @@
+*****************************************************************
+***              RecentFiles AkelPad plugin v4.3              ***
+*****************************************************************
+
+2007-2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Work with recent files list.
+
+
+*** Functions ***
+
+RecentFiles::Manage
+Manage list dialog.
+
+RecentFiles::DeleteNonExistent
+Silently delete recent files records of non-existent files.
+
+RecentFiles::Show
+Show recent files menu.

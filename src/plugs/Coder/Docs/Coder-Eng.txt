@@ -1,0 +1,518 @@
+*****************************************************************
+***                 Coder AkelPad plugin v20.0                ***
+*****************************************************************
+
+2007-2017 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Additional features for programming.
+
+
+*** Functions ***
+
+Coder::HighLight
+Syntax highlighting.
+
+Coder::CodeFold
+Code folding support.
+
+Coder::AutoComplete
+Auto-completion is a time-saving feature. Function changes a short
+abbreviation into a text block. For example, if you type "for",
+while editing C++ file and press hotkey (Ctrl+Space by default),
+"for" will expand to the following string:
+for (; ; )
+{
+}
+
+Coder::Settings
+Settings dialog.
+
+
+*** Settings ***
+
+Complete with list:
+One variant - replaces abbreviation with a text block.
+More than one variant - shows the list of abbreviations for replacement.
+
+Complete without list / Go to next position:
+One variant or exact matching - replaces abbreviation with a text block.
+More than one variant - pass hotkey for the further processing by the program.
+After replacement - go to the following position of the text block.
+
+Go to previous position:
+Go to the previous position of the text block.
+
+Save typed symbols case:
+Case saved only for files without syntax theme, to force not change case of typed symbols
+for any document, use Shift+Enter to select from list.
+
+
+*** External call Coder::HighLight ***
+
+Call("Coder::HighLight", 2, "#RRGGBB", "#RRGGBB", FLAGS, FONTSTYLE, ID, "TEXT", TEXTLENGTH)
+  Parameters:
+    2
+      Mark selected text or specified text.
+    "#RRGGBB"
+      Text color, ignored if "0".
+    "#RRGGBB"
+      Background color, ignored if "0".
+    FLAGS (sum of the following):
+      1  case sensitive (default).
+      2  regular expressions in "TEXT" parameter.
+      4  whole word.
+         Default: 1.
+    FONTSTYLE (one of the following):
+      0  ignored (default).
+      1  normal.
+      2  bold.
+      3  italic.
+      4  bold italic.
+    ID
+      Mark ID (default is -1). If -1, assigned automatically.
+    "TEXT"
+      Text for mark. If specified, selection is ignored.
+    TEXTLEN
+      Text length (default is -1). If -1, text string is terminated with NULL symbol.
+  Example:
+    Call("Coder::HighLight", 2, "#000000", "#9BFF9B", 1, 0, 1)
+
+Call("Coder::HighLight", 3, ID, "#RRGGBB", "#RRGGBB")
+  Parameters:
+    3
+      Unmark text.
+    ID
+      Mark ID (default is 0). If zero, remove all marks.
+      If -1, remove automatically assigned IDs by color.
+      If -2, remove selected text marks.
+    "#RRGGBB"
+      Text color, ignored if "0".
+    "#RRGGBB"
+      Background color, ignored if "0".
+  Example:
+    Call("Coder::HighLight", 3, 0)
+
+Call("Coder::HighLight", 4, ID, "#RRGGBB", "#RRGGBB", DIRECTION)
+  Parameters:
+    4
+      Find marks.
+    ID
+      Mark ID (default is 0). If zero, find any marks.
+      If -1, find automatically assigned IDs by color.
+      If -2, find selected text marks.
+    "#RRGGBB"
+      Text color, ignored if "0".
+    "#RRGGBB"
+      Background color, ignored if "0".
+    DIRECTION (one of the following):
+      0 find down (default).
+      1 find up.
+  Example:
+    Call("Coder::HighLight", 4, 0, 0, 0, 1)
+
+
+*** External call Coder::CodeFold ***
+
+Call("Coder::CodeFold", 1, *WINDOW)
+  Parameters:
+    1
+      Show/Hide list.
+    *WINDOW
+      Optional parameter. Pointer to a variable, that receives dockable window handle.
+  Example (get dockable window handle):
+    WScript.Echo(GetCodeFoldWindow());
+
+    function GetCodeFoldWindow()
+    {
+      var lpWnd;
+      var hWnd=0;
+
+      if (lpWnd=AkelPad.MemAlloc(_X64?8:4 /*sizeof(HWND)*/))
+      {
+        AkelPad.CallW("Coder::CodeFold", 1, lpWnd);
+        hWnd=AkelPad.MemRead(lpWnd, 2 /*DT_QWORD*/);
+        AkelPad.MemFree(lpWnd);
+      }
+      return hWnd;
+    }
+
+Call("Coder::CodeFold", 2)
+  Parameters:
+    2
+      Go to rule.
+
+
+*** External call Coder::Settings ***
+
+Call("Coder::Settings", 1, "EXTENSION")
+  Parameters:
+    1
+      Set syntax theme manually using extension.
+    "EXTENSION"
+      Extension, for example: "html". Manual theme setting will be canceled if the extension parameter is ommited.
+      If extension parameter equal to "?", then the document is defined as having no theme.
+
+Call("Coder::Settings", 2, *USECACHE)
+  Parameters:
+    2
+      Update cache.
+    *USECACHE
+      Optional parameter. Pointer to a variable, that receives cache type. One of the following:
+      0  //UC_NONE   Without cache.
+      1  //UC_FAST   Fast cache.
+      2  //UC_SMART  Smart cache.
+
+Call("Coder::Settings", 3, PAGE)
+  Parameters:
+    3
+      Open settings dialog at specified page.
+    PAGE
+      Zero based page index.
+
+Call("Coder::Settings", 4, FLAGS, "FILE")
+  Parameters:
+    4
+      Export text to RTF.
+    FLAGS (sum of the following):
+         1  Export to file.
+        16  Copy to clipboard.
+        32  Fill plain-text format of clipboard with text. Must be combined with 16.
+        64  Fill plain-text format of clipboard with formated data. Must be combined with 16.
+       256  Export text selection color.
+       512  Export active line colors.
+      1024  Export alternating lines colors.
+      2048  Don't export basic text color.
+      4096  Don't export basic background color.
+     65536  Export only selection. By default exported selection or all document if selection is empty.
+    131072  Force export all document. By default exported selection or all document if selection is empty.
+            Default: 16+32=48.
+    "FILE"
+      File for export. Used, if flag 1 set. By default, open select file dialog.
+
+Call("Coder::Settings", 5, "COLORTHEME")
+  Parameters:
+    5
+      Set color theme.
+    "COLORTHEME"
+      Color theme name, for example: "Bespin".
+
+Call("Coder::Settings", 6, "ALIAS")
+  Parameters:
+    6
+      Set syntax theme manually using alias.
+    "ALIAS"
+      Alias, for example: ".html". Manual theme setting will be canceled if the alias parameter is ommited.
+      If alias parameter equal to "?", then the document is defined as having no theme.
+
+Call("Coder::Settings", 12, "ALIAS", *BOOL)
+  Parameters:
+    12
+      Check syntax theme activity by alias. Use with Scripts plugin.
+    "ALIAS"
+      Alias, for example: ".html".
+    *BOOL
+      Pointer to a variable, that receives syntax theme activity.
+  Example:
+    WScript.Echo(CheckAlias(".html"));
+
+    function CheckAlias(pAlias)
+    {
+      var lpActive;
+      var bActive=false;
+
+      if (lpActive=AkelPad.MemAlloc(4 /*sizeof(BOOL)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 12, pAlias, lpActive);
+        bActive=AkelPad.MemRead(lpActive, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpActive);
+      }
+      return bActive;
+    }
+
+Call("Coder::Settings", 14, "COLORTHEME", *BOOL)
+  Parameters:
+    14
+      Check color theme activity by name. Use with Scripts plugin.
+    "COLORTHEME"
+      Color theme name, for example: "Bespin".
+    *BOOL
+      Pointer to a variable, that receives color theme activity.
+    WScript.Echo(CheckVarTheme("Bespin"));
+  Example:
+    function CheckVarTheme(pVarTheme)
+    {
+      var lpActive;
+      var bActive=false;
+
+      if (lpActive=AkelPad.MemAlloc(4 /*sizeof(BOOL)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 14, pVarTheme, lpActive);
+        bActive=AkelPad.MemRead(lpActive, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpActive);
+      }
+      return bActive;
+    }
+
+Call("Coder::Settings", 16, WINDOW, *SYNTAXFILE, SYNTAXFILELENGTH)
+  Parameters:
+    16
+      Get syntax file name by window handle. Use with Scripts plugin.
+    WINDOW
+      Edit window handle. If zero then active edit window handle is used.
+    *SYNTAXFILE
+      Pointer to a buffer, that receives syntax file name.
+    SYNTAXFILELENGTH
+      Maximum number of symbols that SYNTAXFILE can receive.
+  Example:
+    WScript.Echo(GetSyntaxFile(0));
+
+    function GetSyntaxFile(hWndEdit)
+    {
+      var pSyntaxFile="";
+      var lpSyntaxFile;
+
+      if (lpSyntaxFile=AkelPad.MemAlloc(256 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 16, hWndEdit, lpSyntaxFile, 256);
+        pSyntaxFile=AkelPad.MemRead(lpSyntaxFile, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpSyntaxFile);
+      }
+      return pSyntaxFile;
+    }
+
+Call("Coder::Settings", 18, WINDOW, DOCUMENT, *ALIAS, *ALIASLENGTH)
+  Parameters:
+    18
+      Get alias by window handle. Use with Scripts plugin.
+    WINDOW
+      Edit window handle. If zero then active edit window handle is used.
+    DOCUMENT
+      Edit document handle. If zero then detected automatically.
+    *ALIAS
+      Pointer to a buffer, that receives alias. Can be NULL.
+    *ALIASLENGTH
+      Pointer to a variable, that receives number of copied symbols to ALIAS. Can be NULL.
+  Example:
+    WScript.Echo(GetAlias(0, 0));
+
+    function GetAlias(hWndEdit, hDocEdit)
+    {
+      var pAlias="";
+      var lpAlias;
+
+      if (lpAlias=AkelPad.MemAlloc(256 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 18, hWndEdit, hDocEdit, lpAlias, 0);
+        pAlias=AkelPad.MemRead(lpAlias, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpAlias);
+      }
+      return pAlias;
+    }
+
+Call("Coder::Settings", 20, WINDOW, *COLORTHEME, COLORTHEMELENGTH)
+  Parameters:
+    20
+      Get color theme name by window handle. Use with Scripts plugin.
+    WINDOW
+      Edit window handle. If zero then active edit window handle is used.
+    *COLORTHEME
+      Pointer to a buffer, that receives color theme name.
+    COLORTHEMELENGTH
+      Maximum number of symbols that COLORTHEME can receive.
+  Example:
+    WScript.Echo(GetVarTheme(0));
+
+    function GetVarTheme(hWndEdit)
+    {
+      var pVarTheme="";
+      var lpVarTheme;
+
+      if (lpVarTheme=AkelPad.MemAlloc(256 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 20, hWndEdit, lpVarTheme, 256);
+        pVarTheme=AkelPad.MemRead(lpVarTheme, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpVarTheme);
+      }
+      return pVarTheme;
+    }
+
+Call("Coder::Settings", 22, WINDOW, DOCUMENT, "VARNAME", *VARVALUE, *VARVALUELENGTH)
+  Parameters:
+    22
+      Get variable value from color theme by window handle. Use with Scripts plugin.
+    WINDOW
+      Edit window handle. If zero then active edit window handle is used.
+    DOCUMENT
+      Edit document handle. If zero then detected automatically.
+    "VARNAME"
+      Variable name, for example: "AutoComplete_Indent".
+    *VARVALUE
+      Pointer to a buffer, that receives variable value.
+    *VARVALUELENGTH
+      Pointer to a variable, that receives number of copied symbols to VARVALUE. Can be NULL.
+  Example:
+    WScript.Echo(GetVariable(0, 0, "STR"));
+
+    function GetVariable(hWndEdit, hDocEdit, pVarName)
+    {
+      var pVarValue="";
+      var lpVarValue;
+
+      if (lpVarValue=AkelPad.MemAlloc(32 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Coder::Settings", 22, hWndEdit, hDocEdit, pVarName, lpVarValue);
+        pVarValue=AkelPad.MemRead(lpVarValue, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpVarValue);
+      }
+      return pVarValue;
+    }
+
+
+*** Structure of cache file ***
+
+[Cache]
+bat.coder=257CB20001CEE2DA:"*.bat" "*.cmd"
+cpp.coder=DCD8500001CF30A3,1:"*.cpp" "*.c"
+
+cpp.coder
+  Syntax file.
+DCD8500001CF30A3
+  Modification time of cpp.coder.
+1
+  Optional manual parameter. If 1, then do not update file types information from cpp.coder.
+"*.cpp" "*.c"
+  File types.
+
+
+*** Hierarchy description, that used in *.coder files ***
+
+Rule ID, Parent ID
+  In rule, which is the parent, specified identifier (Rule ID). In child rule,
+  which will work only inside parent, specified identifier of the parent (Parent ID).
+
+  For example, separator "/" will be found and highlighted "#FF0000", only if it is between "<" and ">".
+  Quotes:
+  ;===================================================================================
+  ;Flags  Font    Color   Color   Quote   Quote   Escape  Quote   Quote   Parent  Rule
+  ;       style   text    bkgrnd  start   end     char    include exclude ID      ID
+  ;===================================================================================
+  ;5=1+4
+  5       0       0       0       "<"     ">"     ""      ""      ""      0       123
+
+  Delimiters:
+  ;===============================================
+  ;Flags  Font    Color   Color   Char(s)   Parent
+  ;       style   text    bkgrnd            ID
+  ;===============================================
+  1       0       #FF0000 0       "/"       123
+
+  - Can be several rules with the same identifier (Rule ID). In this case, child rules,
+    for which specified this identifier (Parent ID), will work in any parent.
+  - Parent (Parent ID) for the section "Delimiters:" can be "Quotes:", "QuotesRE:", "Folds:".
+  - Parent (Parent ID) for the section "Words:" can be "Quotes:", "QuotesRE:", "Folds:".
+  - Parent (Parent ID) for the section "Quotes:" can be "Quotes:", "QuotesRE:", "Folds:".
+  - Parent (Parent ID) for the section "QuotesRE:" can be "Quotes:", "QuotesRE:", "Folds:".
+  - Parent (Parent ID) for the section "Folds:" can be "Folds:".
+  - If parent (Parent ID) is 0 (default):
+    - Inside non-styled quote ("Quotes:", "QuotesRE:"), rule processed.
+    - Inside styled quote ("Quotes:", "QuotesRE:"), rule ignored.
+    - Inside non-styled fold ("Folds:"), rule processed.
+    - Inside styled fold ("Folds:"), rule from "Folds:" processed, from other sections ignored.
+  - If parent (Parent ID) is -1, then rule must be without parent with identifier (Rule ID) > 0.
+  - If parent (Parent ID) is -2:
+    - Inside parent with identifier (Rule ID) == 0, rule ignored.
+    - Inside parent with identifier (Rule ID) > 0:
+      - Rule identifier (Rule ID) ommited, rule processed.
+      - Rule identifier (Rule ID) <> parent identifier (Rule ID), rule processed.
+      - Rule identifier (Rule ID) == parent identifier (Rule ID), rule ignored.
+  - If parent (Parent ID) is -3:
+    - Inside parent with identifier (Rule ID) == 0, see processing of parent (Parent ID) equal to 0.
+    - Inside parent with identifier (Rule ID) > 0:
+      - Rule identifier (Rule ID) ommited, rule processed.
+      - Rule identifier (Rule ID) <> parent identifier (Rule ID), rule processed.
+      - Rule identifier (Rule ID) == parent identifier (Rule ID), rule ignored.
+
+Rule file
+  Rule file - specifies that, for a given block, syntax rules are applied from the another .coder file.
+
+  - Captured text by the fold start and fold end expressions will be highlighted by the
+    current .coder file and the contents by the rule file.
+  - In string file rule specifies a particular .coder file, for example, "cpp.coder" or
+     alias in the format: "alias: .cpp".
+  - See html.coder for example.
+
+
+*** Several variables description, that used in Coder::Settings themes ***
+
+Automatic selection marking:
+  HighLight_AutoMarkFlags
+    Flags (sum of the following):
+    1  case sensitive (default).
+    2  whole word.
+       Default: 1.
+  HighLight_AutoMarkFontStyle
+    Font style (one of the following):
+    0  ignored (default).
+    1  normal.
+    2  bold.
+    3  italic.
+    4  bold italic.
+  HighLight_AutoMarkTextColor
+    Text color. If 0, default is used.
+  HighLight_AutoMarkBkColor
+    Background color. If 0, default is used.
+
+Variables for LineBoard plugin:
+  LineBoard_TextColor
+    Text color. If 0, not set.
+  LineBoard_BkColor
+    Text background. If 0, not set.
+  LineBoard_BorderColor
+    Border color. If 0, not set.
+  LineBoard_BookmarkTextColor
+    Bookmark text color. If 0, not set.
+  LineBoard_BookmarkBkColor
+    Bookmark background color. If 0, not set.
+  LineBoard_BookmarkBorderColor
+    Bookmark border color. If 0, not set.
+  LineBoard_LineUnsavedColor
+    Unsaved line color. If 0, not set.
+  LineBoard_LineSavedColor
+    Saved line color. If 0, not set.
+  LineBoard_RulerScaleColor
+    Ruler scale color. If 0, not set.
+  LineBoard_RulerCaretColor
+    Ruler caret color. If 0, not set.
+
+Variables for SpecialChar plugin:
+  SpecialChar_BasicFontStyle
+    Basic font style (one of the following):
+    0  ignored (default).
+    1  normal.
+    2  bold.
+    3  italic.
+    4  bold italic.
+  SpecialChar_BasicTextColor
+    Basic text color. If 0, not set.
+  SpecialChar_BasicBkColor
+    Basic background color. If 0, not set.
+  SpecialChar_SelFontStyle
+    Font style in selection (one of the following):
+    0  ignored (default).
+    1  normal.
+    2  bold.
+    3  italic.
+    4  bold italic.
+  SpecialChar_SelTextColor
+    Text color in selection. If 0, not set.
+  SpecialChar_SelBkColor
+    Background color in selection. If 0, not set.
+
+Variables for Sessions plugin:
+  Sessions_ListTextColor
+    List text color. If 0, not set.
+  Sessions_ListBkColor
+    List background color. If 0, not set.

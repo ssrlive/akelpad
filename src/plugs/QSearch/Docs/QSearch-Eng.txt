@@ -1,0 +1,889 @@
+---------------------------------------------------------------
+QSearch plugin for AkelPad text editor
+---------------------------------------------------------------
+
+This plugin is a small panel for "quick" text search.
+The plugin function (QSearch::QSearch) is assumed to be assigned
+with a hot-key (for example, F7).
+
+QSearch panel's keys:
+Enter, F3        - find next (down)
+Shift+Enter      - find previous (up)
+Alt+Enter        - find from file's beginning
+Alt+Shift+Enter  - find all
+Ctrl+Shift+Enter - find all (in all files)
+Ctrl+Enter       - pick up selected text
+Esc              - hide the panel
+Ctrl+Del         - edit control: erase the text after the caret (to the right)
+Ctrl+BS          - edit control: erase the text before the caret (to the left)
+Ctrl+A           - edit control: select all the text
+See also 'use_alt_hotkeys' below.
+Note: the "Find all" button has its own popup menu.
+
+The functions FindNext, FindPrev and FindAll allow to assign the hot-keys
+to be used from the editor, as well as can be called from the Hotkeys plugin
+and from the scripts (via the Scripts plugin).
+Let's look at these functions in detail.
+
+FindNext - find next (down).
+Recommended hot-key - F3.
+This function supports the autoload in order to silently load the QSearch
+plugin when AkelPad starts. (The purpose of that is to have all the plugin's
+capabilities available at the very start of AkelPad rather than only after
+the QSearch'es panel is activated).
+The additional abilities by the example of the Hotkeys plugin:
+ -------------------------------------------------------------
+ Name             |  Command                       |  Hotkey
+ -------------------------------------------------------------
+ Quick Find Next  |  Call("QSearch::FindNext", 1)  |  Ctrl+F3
+ -------------------------------------------------------------
+Assigns Ctrl+F3 to the action "pick up the selected text and find next".
+If no selection, the current word is selected (according to the option
+'select_by_fnd').
+When both "Search: Pick up selected text" and "Window: Catch main F3" are
+checked, FindNext picks up the selected text or selects the current word
+according to the option 'select_by_f3'.
+
+FindPrev - find previous (up).
+Recommended hot-key - Shift+F3.
+The additional abilities by the example of the Hotkeys plugin:
+ -------------------------------------------------------------------
+ Name             |  Command                       |  Hotkey
+ -------------------------------------------------------------------
+ Quick Find Prev  |  Call("QSearch::FindPrev", 1)  |  Ctrl+Shift+F3
+ -------------------------------------------------------------------
+Assigns Ctrl+Shift+F3 to the action "pick up the selected text and find
+previous (up)".
+If no selection, the current word is selected (according to the option
+'select_by_fnd').
+When both "Search: Pick up selected text" and "Window: Catch main F3" are
+checked, FindPrev picks up the selected text or selects the current word
+according to the option 'select_by_f3'.
+
+FindAll - find all.
+It is recommended to use it from the Hotkeys plugin.
+The additional abilities by the example of the Hotkeys plugin:
+ -------------------------------------------------------------------------
+ Name                |  Command                      |  Hotkey
+ -------------------------------------------------------------------------
+ Quick Find All (1)  |  Call("QSearch::FindAll", 1)  |  Ctrl+Alt+F3
+ Quick Find All (2)  |  Call("QSearch::FindAll", 2)  |  Alt+Shift+F3
+ Quick Find All (3)  |  Call("QSearch::FindAll", 3)  |  Ctrl+Alt+Shift+F3
+ -------------------------------------------------------------------------
+(1) Assigns Ctrl+Alt+F3 to the action "pick up the selected text and find all
+in the current document".
+If no selection, the current word is selected (according to the option
+'select_by_fnd').
+(2) Assigns Alt+Shift+F3 to the action "find all in all documents".
+(3) Assigns Ctrl+Alt+Shift+F3 to the action "pick up the selected text and
+find all in all documents".
+If no selection, the current word is selected (according to the option
+'select_by_fnd').
+When both "Search: Pick up selected text" and "Window: Catch main F3" are
+checked, FindAll picks up the selected text or selects the current word
+according to the option 'select_by_f3'.
+
+The plugin also contains two functions: SelFindNext and SelFindPrev -
+for quick searching for selected word/phrase below or above in the text
+right in the editor window.
+If no selection, the current word is selected (according to the option
+'select_by_selfnd').
+The behaviour of these functions depends on general QSearch'es options
+(in its popup menu or in the ini-file, see below).
+Furthermore, the functions QSearch::QSearch and QSearch::SelFindNext/Prev
+may search for different text (QSearch::QSearch - for text entered in the
+search field, and QSearch::SelFindNext/Prev - for text selected in the
+editor window).
+These functions are assumed to be assigned with hot-keys (for example,
+Ctrl+Alt+Right and Ctrl+Alt+Left).
+Example of usage: select a word in the editor window and call the function
+SelFindNext or SelFindPrev. As a result, the selection moves to next or
+previous word matching the initially selected word.
+
+The DialogSwitcher function allows to switch between the "Find", "Replace",
+"Go to line" dialogs and the QSearch panel using corresponding hotkeys.
+For example, Ctrl+H in the "Find" dialog changes this dialog to the
+"Replace" dialog. If you use the DialogSwitcher function, it is recommended
+to enable (check) the function's autoload checkbox in the plugins options
+window.
+
+Hint: silent instant searching by F3.
+The silent instant searching allows to search for selected word(s) by simple
+pressing F3 or Shift+F3 right in the editor window. The searching is "silent"
+because it does not require the QSearch panel to be shown (similar to the
+"silent" functions QSearch::SelFindNext and QSearch::SelFindPrev).
+Follow these three steps to activate it:
+1. Enable "Search: Pick up selected text" in QSearch'es popup menu.
+   This allows QSearch to get the text selected in the editor window.
+2. Enable "Window: Catch main F3" in QSearch'es popup menu.
+   This allows QSearch to process F3/Shift+F3 pressed in the editor window.
+3. Check "QSearch::SelFindNext" in Options -> Plug-ins...
+   This allows QSearch to be silently loaded when AkelPad starts.
+
+
+Additional options (QSearch panel's popup menu or file
+"AkelFiles\Plugs\QSearch.ini"):
+
+1) "Search: On-the-fly mode"
+   srch_onthefly_mode = 1
+     The search is (re)started each time you press a key in the
+     QSearch'es edit control.
+   srch_onthefly_mode = 0
+     The search is started when Enter is pressed.
+
+2) "Search: Always from beginning"
+   srch_from_beginning = 0
+     The search will be continued from current file position when a
+     searched text is changed.
+   srch_from_beginning = 1
+     The search will be continued from the beginning of current file.
+
+3) "Search: Use special characters ( \n, \t, * and ? )"
+   srch_use_specialchars = 1
+     The special characters can be used in the search:
+       \n - line feed
+       \t - tabulation
+       \\ - backslash ( '\' )
+       \* - asterisk  ( '*' )
+       \? - question mark ( '?' )
+       ?  - matches any single character ( e.g. 'b', '0', ' ', etc. )
+       *  - matches any 0 or more characters (i.e. any (sub)string)
+       ** - matches any 0 or more non-space characters ("Whole word" enabled)
+     Note:
+       ? and * does not match line feeds, you must use \n obviously.
+   srch_use_specialchars = 0
+     Ordinary search, "as is".
+
+4) "Search: Use regular expressions"
+   srch_use_regexp = 0
+     Ordinary search, without regular expressions.
+   srch_use_regexp = 1
+     Search with regular expressions. Uses AkelPad's implementation of
+     regular expressions.
+
+5) "Search: . matches \n in reg.expressions"
+   srch_regexp_dot_newline = 0
+     While searching with regular expressions,  .  does not match  \n
+   srch_regexp_dot_newline = 1
+     While searching with regular expressions,  .  matches  \n
+
+6) "Search: Pick up selected text"
+   srch_pickup_selection = 1
+     When QSearch is activated or F3 is pressed in AkelPad's editor
+     window, QSearch'es edit control picks up the text selected in
+     AkelPad's editor window. The same is for the QSearch'es buttons
+     Find Next and Find Prev.
+   srch_pickup_selection = 0
+     When QSearch is activated or F3 is pressed in AkelPad's editor
+     window, the text in QSearch'es edit control is not changed.
+   srch_pickup_selection = 10
+     The same as srch_pickup_selection = 0.
+     When "Search: Pick up selected text" is checked, the value of
+     'srch_pickup_selection' is set to 11.
+   srch_pickup_selection = 11
+     When QSearch is activated or F3 is pressed in AkelPad's editor
+     window, QSearch'es edit control picks up the text selected in
+     AkelPad's editor window. However, when the QSearch'es buttons
+     Find Next and Find Prev are pressed, QSearch uses the existing
+     text from its edit control for the searching - i.e. the text
+     selected in AkelPad's editor window is not picked up in this case.
+     When "Search: Pick up selected text" is unchecked, the value of
+     'srch_pickup_selection' is set to 10.
+
+7) "Search: SelFind picks up selected text"
+   srch_selfind_pickup = 0
+     When SelFindNext or SelFindPrev is called, the text in QSearch'es
+     edit control is not changed.
+   srch_selfind_pickup = 1
+     When SelFindNext or SelFindPrev is called, the QSearch'es edit control
+     picks up the text selected in AkelPad's editor window.
+
+8) "Search: Stop at EOF (end of file)"
+   srch_stop_eof = 0
+     When the end of file is reached, the search is continued from
+     the beginning of the file.
+   srch_stop_eof = 1
+     When the end of file is reached, the corresponding message is
+     shown.
+   srch_stop_eof = 10
+     The same as srch_stop_eof = 0.
+     When "Search: Stop at EOF" is checked, the value of 'srch_stop_eof'
+     is set to 11.
+   srch_stop_eof = 11
+     When the end of file is reached, the search is stopped. Silently.
+     No message is shown.
+     When "Search: Stop at EOF" is unchecked, the value of 'srch_stop_eof'
+     is set to 10.
+
+9) "Window: Docked top"
+   srch_wnd_dockedtop = 1
+     The QSearch'es panel is docked to the top of AkelPad's client area.
+   srch_wnd_dockedtop = 0
+     The QSearch'es panel is docked to the bottom of AkelPad's client area.
+
+10) "Window: Select all when focused"
+   edit_focus_selectall = 1
+     Each time QSearch'es edit control becomes focused, all its text
+     content becomes selected.
+   edit_focus_selectall = 0
+     The text content becomes selected only when QSearch::QSearch is
+     called explicitly.
+
+11) "Window: Catch main F3"
+   catch_main_f3 = 1
+     When F3 (Shift+F3) is pressed in AkelPad's editor window, the QSearch
+     plugin continues searching if there was no previous call to AkelPad's
+     standard Find or Replace Dialog.
+   catch_main_f3 = 0
+     Standard AkelPad behaviour.
+
+12) "Window: Catch main Esc"
+   catch_main_esc = 1
+     When Esc key is pressed in AkelPad's editor window and the QSearch'es
+     panel is visible, it becomes hidden.
+   catch_main_esc = 0
+     The QSearch'es panel does not catch the Esc key; it is processed by
+     AkelPad (default behaviour).
+   Also you can manually set one of the following values:
+   catch_main_esc = 10
+     When Esc key is pressed in QSearch'es panel, it is passed to AkelPad
+     to be processed by the editor itself (by default - exits the program).
+     When "Window: Catch main Esc" is checked, the value of 'catch_main_esc'
+     is set to 11.
+   catch_main_esc = 11
+     Works in the same way as catch_main_esc = 1.
+     When "Window: Catch main Esc" is unchecked, the value of 'catch_main_esc'
+     is set to 10.
+
+13) "Window: Hotkey hides the panel"
+   hotkey_hides_panel = 1
+     When you press the plugin hot-key in QSearch'es panel, the panel
+     is closed (becomes hidden - the same as when Esc is pressed).
+     Repeated call of QSearch::QSearch also closes the panel. (The same
+     as when the plugin hotkey is pressed in AkelPad's editing window).
+   hotkey_hides_panel = 0
+     When you press the plugin hot-key in QSearch'es panel, the AkelPad's
+     editor window becomes focused.
+   hotkey_hides_panel = 11
+     When you press the plugin hot-key in QSearch'es panel, the panel
+     is closed (becomes hidden - the same as when Esc is pressed).
+     When the plugin hotkey is pressed in AkelPad's editing window, the
+     QSearch'es panel becomes active.
+   hotkey_hides_panel = 10
+     Works in the same way as hotkey_hides_panel = 0.
+     When "Window: Hotkey hides the panel" is checked, the value of
+     'hotkey_hides_panel' becomes 11.
+
+14) "Window: Editor auto-focus (on mouse move)"
+   editor_autofocus = 1
+     While qsearch_autofocus = 1:
+       When QSearch has the keyboard focus and mouse pointer leaves
+       QSearch'es edit control and moves to AkelPad's editor window,
+       the editor window becomes focused.
+       When mouse pointer moves to QSearch'es edit control, the edit
+       control becomes focused.
+     While qsearch_autofocus = 0:
+       AkelPad's editor window always becomes focused when mouse pointer
+       is being moved within this window (even if the mouse pointer was
+       not leaving QSearch'es edit control).
+       When mouse pointer moves to QSearch'es edit control, the edit
+       control becomes focused.
+   editor_autofocus = 0
+     Nothing special happens: AkelPad's editor window does not become
+     focused when mouse pointer moves to.
+
+15) "Window: QSearch auto-focus (on mouse move)"
+   qsearch_autofocus = 1
+     When mouse pointer moves to QSearch'es edit control, the edit control
+     becomes focused.
+   qsearch_autofocus = 0
+     While editor_autofocus = 0:
+       Nothing special happens: QSearch'es edit control does not become
+       focused when mouse pointer moves to.
+     While editor_autofocus = 1:
+       When mouse pointer moves to QSearch'es edit control, the edit
+       control becomes focused.
+
+16) "Window: QSearch auto-focus (on file open)"
+    qsearch_autofocus_file = 1
+     When opening a file or switching to another file (document), the QSearch'es
+     edit control becomes focused.
+   qsearch_autofocus_file = 0
+     Nothing special happens: QSearch does not obtain the focus.
+
+17) dock_rect_disabled = 1
+     If this option is manually set to 1, the docked panel's coordinates
+     will not be saved.
+
+18) dock_rect = ...
+     (internal parameter, auto-saved when 'dock_rect_disabled' is 0)
+
+19) color_notfound = FFE0E000
+     Background colour to be set when the searched text is not found.
+     This colour is specified in a form of "RRGGBB00", where RR, GG and BB
+     are hex values of red, green and blue colours (from 00 to FF).
+
+20) color_notregexp=F8E0F800
+     Background colour to be set when regular expression failed.
+     This colour is specified in a form of "RRGGBB00", where RR, GG and BB
+     are hex values of red, green and blue colours (from 00 to FF).
+
+21) color_eof = E4FFE400
+     Background colour to be set when the search passes the end of file
+     (and continues from the beginning of file).
+     This colour is specified in a form of "RRGGBB00", where RR, GG and BB
+     are hex values of red, green and blue colours (from 00 to FF).
+     You can set "color_eof = FFFFFF00" to disable the colour change.
+
+22) color_highlight = C0FFC000
+     Background colour of the text to be highlighted when "Highlight all"
+     is checked.
+     This colour is specified in a form of "RRGGBB00", where RR, GG and BB
+     are hex values of red, green and blue colours (from 00 to FF).
+
+23) highlight_mark_id = 1001
+     'ID' parameter for the HighLight plugin when QSearch calls its function
+     "Coder::HighLight" to highlight (mark) the text.
+
+24) highlight_state = 0
+    (auto-saved when "Highlight all" is checked or unchecked).
+    Also you can manually set one of the following values:
+    highlight_state = 10
+      When AkelPad starts, "Highlight all" is always unchecked.
+    highlight_state = 11
+      When AkelPad starts, "Highlight all" is always checked.
+
+25) use_alt_hotkeys = 1
+     The following additional accelerator keys are available in QSearch panel:
+     Alt+alt_match_case    (Alt+C) - Match case on/off
+     Alt+alt_whole_word    (Alt+W) - Whole word on/off
+     Alt+alt_search_mode   (Alt+R) - Search mode (text/spec.symb/regexp)
+     Alt+alt_highlight_all (Alt+H) - Highlight all on/off
+    use_alt_hotkeys = 0
+     QSearch panel's additional accelerator keys are disabled.
+
+26) alt_match_case = 67
+     When 'use_alt_hotkeys' is enabled (set to 1), this parameter specifies
+     an accelerator key code for QSearch'es "Match case" check-box.
+     The default value of 67 means a 'C' key i.e. the accelerator is Alt+C.
+     The value of this key code can be calculated as (letter - 'A' + 65).
+     I.e. 65 means Alt+A, 66 means Alt+B, 67 means Alt+C and so on.
+     Also, 48 means Alt+0, 49 means Alt+1, 50 means Alt+2 and so on.
+     For more details, refer to Virtual-Key Codes in MSDN.
+
+27) alt_whole_word = 87
+     When 'use_alt_hotkeys' is enabled (set to 1), this parameter specifies
+     an accelerator key code for QSearch'es "Whole word" check-box.
+     The default value of 87 means a 'W' key i.e. the accelerator is Alt+W.
+     See 'alt_match_case' for more details.
+
+28) alt_search_mode = 82
+     When 'use_alt_hotkeys' is enabled (set to 1), this parameter specifies
+     an accelerator key code for switching the search mode:
+     text -> special characters -> regular expressions -> text -> ...
+     The default value of 82 means a 'R' key i.e. the accelerator is Alt+R.
+     See 'alt_match_case' for more details.
+
+29) alt_highlight_all = 72
+     When 'use_alt_hotkeys' is enabled (set to 1), this parameter specifies
+     an accelerator key code for QSearch'es "Highlight all" check-box.
+     The default value of 72 means a 'H' key i.e. the accelerator is Alt+H.
+     See 'alt_match_case' for more details.
+
+30) find_history_items = 15
+     Maximum number of items in the find history (drop-down list).
+     You can set it to 0 to disable the find history.
+
+31) history_save = 3
+     Can be set to 0 or be a sum of the following values:
+     0 - the find history and the state are not saved.
+     1 - the find history is saved to the System Registry.
+     2 - "Match case" and "Whole word" state are saved to the System Registry.
+     4 - save not to the System Registry, but to the standard destination
+         being used by AkelPad to save the settings (e.g. to .ini file).
+         Allows QSearch'es settings to be completely portable.
+
+32) new_ui = 0
+     QSearch shows its old "classic" UI:
+     [text to find]  [ ]Match case [ ]Whole word [ ]Highlight all
+    new_ui = 1
+     QSearch shows updated "classic" UI + two buttons:
+     [text to find]  [ < ] [ > ]  [ ]Match case [ ]Whole word [ ]Highlight all
+    new_ui = 2
+     QSearch shows updated "classic" UI + three buttons:
+     [text to find]  [ < ] [ > ] [ * ]  [ ]Match case [ ]Whole word [ ]Highlight all
+       - the [ * ] button means "Find All" and has its own popup menu
+
+33) select_by_f3 = 0
+     This option is topical when both "Search: Pick up selected text" and
+     "Window: Catch main F3" are checked.
+     When there is no selected text in the editor window, F3 uses the text
+     from the QSearch panel to continue the searching.
+    select_by_f3 = 1
+     This option is topical when both "Search: Pick up selected text" and
+     "Window: Catch main F3" are checked.
+     When there is no selected text in the editor window, F3 selects a word
+     close to the caret to use it for the next searching.
+     (Example: w|ord, word|, |word.)
+    select_by_f3 = 2
+     This option is topical when both "Search: Pick up selected text" and
+     "Window: Catch main F3" are checked.
+     When there is no selected text in the editor window, F3 selects a word
+     to use it for the next searching if the caret is located somewhere within
+     the word - i.e. not before the word's first character or after the word's
+     last character.
+     (Example: w|ord, wo|rd, wor|d - but not word| or |word.)
+
+34) select_by_fnd = 1
+     This option controls how a word is selected by
+      Call("QSearch::FindNext", 1), Call("QSearch::FindPrev", 1),
+      Call("QSearch::FindAll", 1) and Call("QSearch::FindAll", 3)
+     when there is no selection.
+     The value of 1 selects a word close to the caret (example: w|ord, word|,
+     |word).
+     The value of 2 selects a word if the caret is located somewhere within
+     the word - i.e. not before the word's first character or after the word's
+     last character (example: w|ord, wo|rd, wor|d - but not word| or |word).
+     The value of 0 does select a word.
+
+35) select_by_selfnd = 1
+     This option controls how a word is selected by
+      QSearch::SelFindNext and QSearch::SelFindPrev
+     when there is no selection.
+     The value of 1 selects a word close to the caret (example: w|ord, word|,
+     |word).
+     The value of 2 selects a word if the caret is located somewhere within
+     the word - i.e. not before the word's first character or after the word's
+     last character (example: w|ord, wo|rd, wor|d - but not word| or |word).
+     The value of 0 does not select a word.
+
+36) adj_incompl_regexp = 1
+     Adjusts "incomplete" RegExp: the symbols "+", "*", "+?" and "*?" at the
+     end of RegExp are ignored to avoid selection till the end of the file.
+     The purpose of this is highly noticeable in the On-the-fly mode, when
+     "+" or "*" appears in the middle of the RegEx being typed.
+     To force a RegExp with these symbols at the end, just add extra '+' or
+     '*' at the end of the RegExp: for example, use "a++" instead of "a+"
+     and "a*?+" instead of "a*?".
+    adj_incompl_regexp = 2
+     Adjusts "incomplete" RegExp only in the On-the-fly mode.
+    adj_incompl_regexp = 0
+     Does not adjust "incomplete" RegExp.
+
+37) findall_mode = 2
+     Responsible for the "Find All" mode.
+     Its lower byte can be one of:
+      1 - Count Only
+      2 - Log Output
+      3 - File Output (N tabs)
+      4 - File Output (1 tab)
+     The following value can be added:
+      256 - Auto Count All
+     Thus, the value of findall_mode = 258 will mean:
+      * Auto Count All (count all occurrences while searching)
+      * Log Output (output to Log::Output when "Find All" is pressed)
+
+38) findall_result = 272
+     Represents the "Find All Results Format" dialog.
+     The value will be the sum of the following numbers:
+      0 - Include the line with the occurrence
+      1 - Include only the match (occurrence) itself
+      2 - Filter mode: pure text without header/footer/position
+      16 - Include the position: (Ln:Pos)
+      32 - Include the match length: (Len)
+      256 - Include the header: "Searching for %s ..."
+      4096 - Apply the Coder alias (syntax theme)
+
+39) findall_count_delay = 400
+     Delay, in milliseconds, before starting to count all the occurrences
+     when both the "Auto Count All" and On-the-fly mode are on.
+
+40) logoutput_frp_mode = 3
+     Sets the FindResultsPolicy mode for the Log Output.
+     It defines the meaning of the 'frp_before' and 'frp_after' parameters.
+     Its value can be one of:
+      1 (QSFRM_LINE)       - number of lines
+      2 (QSFRM_LINE_CR)    - number of lines + trailing new line
+      3 (QSFRM_CHARINLINE) - number of characters within the current line
+      4 (QSFRM_CHAR)       - number of characters
+
+41) logoutput_frp_before = 100
+     Depending on 'logoutput_frp_mode', specifies the number of lines or
+     characters to be shown _before_ each occurrence in the Log Output.
+      In case of logoutput_frp_mode = 1, it is the number of lines. And
+     logoutput_frp_before = 0 will mean "use the whole line with the
+     occurrence".
+      In case of logoutput_frp_mode = 2, it is the number of lines, plus
+     the trailing new line character will be added to the Log Output after
+     each occurrence shown.
+      In case of logoutput_frp_mode = 3, it is the number of characters
+     before the occurrence, limited by the line with the occurrence (i.e.
+     no characters outside of this line will be grabbed). And
+     logoutput_frp_before = 0 will mean: "use only the occurrence itself".
+      In case of logoutput_frp_mode = 4, it is the number of characters
+     before the occurrence, not limited by the line with the occurrence
+     (i.e. characters from the previous lines can be grabbed). And
+     logoutput_frp_before = 0 will mean: "use only the occurrence itself".
+
+42) logoutput_frp_after = 100
+     Depending on 'logoutput_frp_mode', specifies the number of lines or
+     characters to be shown _after_ each occurrence in the Log Output.
+     See 'logoutput_frp_before' for details.
+
+43) logoutput_frp_highlight = 1
+     Responsible for highlighting the occurrences in the Find Results.
+     Its value can be one of:
+      0 (QSFRH_NONE)      - don't highlight
+      1 (QSFRH_SELECT)    - select the text being searched
+
+44) fileoutput_frp_mode = 1
+     Sets the FindResultsPolicy mode for the File Output.
+     See 'logoutput_frp_mode' for details.
+
+45) fileoutput_frp_before = 0
+     Depending on 'fileoutput_frp_mode', specifies the number of lines or
+     characters to be shown _before_ each occurrence in the File Output.
+     See 'logoutput_frp_before' for details.
+
+46) fileoutput_frp_after = 0
+     Depending on 'fileoutput_frp_mode', specifies the number of lines or
+     characters to be shown _after_ each occurrence in the File Output.
+     See 'logoutput_frp_before' for details.
+
+47) fileoutput_frp_highlight = 2
+     Responsible for highlighting the occurrences in the Find Results.
+     Its value can be one of:
+      0 (QSFRH_NONE)      - don't highlight
+      1 (QSFRH_SELECT)    - select the text being searched
+      2 (QSFRH_IFCHECKED) - highlight if "Highlight All" is checked
+      3 (QSFRH_ALWAYS)    - highlight always
+
+48) edit_minwidth = 0
+     Minimal width of the edit control of the QSearch panel.
+     The value of 0 means: not smaller than the standard width that was used
+     in previous versions of QSearch (when the panel was not resizable).
+
+49) edit_maxwidth = 640
+     Maximal width of the edit control of the QSearch panel.
+     The value of 0 means: not limited (i.e. the edit control width is always
+     proportional to the resized width of the QSearch panel).
+
+
+--------
+History:
+--------
+v.7.7 (May 2021)
+ * improved: find next by F3 (when 'catch_main_f3' is on) right after Ctrl+F3
+   (when 'select_by_f3' is on)
+
+v.7.6 (May 2020)
+ + added: now the QSearch panel is resizable
+ + added: 'edit_minwidth' and 'edit_maxwidth'
+ * changed: max searching text length increased from 120 to 250
+ - fixed: the docked window height was insufficient for enlarged (e.g. 125%)
+   text size
+ - fixed: a few corrections in the documentation (QSearch-*.txt)
+
+v.7.5 (March 2020)
+ * changed: look & feel of the search results (Find All) improved
+ + added: syntax files "qsfndall_*.coder" to be used by the Coder plugin
+ + added: double-click in the File Output goes to the matching line
+ + added: 'select_by_fnd', 'select_by_selfnd'
+ + added: 'logoutput_frp_highlight'
+ * changed: Ctrl+Tab in the QSearch panel is sent to AkelPad's editing window
+ - fixed: Highlight All might not work while searching with special characters
+ - fixed: QSFRM_CHARINLINE and QSFRM_LINE did not support wrapped lines
+
+v.7.4 (January 2020)
+ + added: Find All in All Files
+ + added: functions FindNext, FindPrev, FindAll
+ + added: 'logoutput_frp_*', 'fileoutput_frp_*'
+ + added: hotkey_hides_panel=11
+
+v.7.3 (May 2019)
+ * improved: a few small things in "Find All"
+ + added: "Filter mode" in "Find All"
+
+v.7.2 (April 2019)
+ + "Find All" functionality (set new_ui=2)
+ + "Auto Count All" functionality (set new_ui=2)
+ + now 'use_alt_hotkeys' is enabled by default
+ * the UI has been slightly updated
+
+v.7.1 (December 2018)
+ + fixed: "Whole word" had no effect on "Highlight all" while searching with
+   regular expressions
+ + new option: "QSearch auto-focus (on file open)"
+ * small improvements
+
+v.7.0 (December 2017)
+ + fixed: the "not found" state (from the previous unsuccessful searching) was
+   not cleared when picking up the word(s) selected in the editor
+ * changed: now checking the "Highlight all" checkbox picks up the word(s)
+   selected in the editor when srch_pickup_selection = 1 and the mode is
+   "Search: On-the-fly mode". (The selection is not picked up if either
+   srch_pickup_selection = 11 or the mode is not "on-the-fly".)
+ * 10 years of QSearch! :)
+
+v.6.9 (July 2016)
+ * AkelPad 4.9.8+
+
+v.6.8 (July 2016)
+ + get rid of MSVCR's stuff = smaller binary
+
+v.6.7 (July 2016)
+ + changed: when "editor_autofocus" sets focus to the editor window right after
+   something was selected in QSearch'es find history (the drop-down list), the
+   text selected in the drop-down list will be used for the search even if the
+   "srch_pickup_selection" is enabled. (Previously a text selected in the editor
+   was searched instead of the drop-down list's text in this case.)
+
+v.6.6 (March 2016)
+ + added: 'srch_regexp_dot_newline'
+
+v.6.5 (January 2016)
+ + added: 'adj_incompl_regexp'
+
+v.6.4 (December 2015)
+ * AkelPad 4.9.7+
+ + supports '\0' symbol inside of AEM_GETWORDDELIMITERS string
+ - fixed: "Whole word" while searching with special character '*'
+
+v.6.3 (September 2015)
+ + With DialogSwitcher enabled, Ctrl+F and Ctrl+H from the editor window
+   can pick up the editor window's selected text.
+   (Whereas Ctrl+F and Ctrl+H from the Find/Replace dialog keeps the
+   dialog's previous text.)
+ * AkelPad 4.9.6+
+ * 8th anniversary of QSearch :)
+
+v.6.2 (March 2015)
+ - fixed: AkelPad version was detected incorrectly
+
+v.6.1 (March 2015)
+ - fixed: sometimes "Highlight all" was unnecessary called
+ + license info added (see below)
+
+v.6.0 (December 2014)
+ * AkelPad 4.9.1+
+ + now "Highlight All" takes the "Whole word" state into account
+
+v.5.8 (April 2014)
+ * AkelPad 4.8.8+
+
+v.5.7 (March 2014)
+ - fixed: "Highlight all" always initiated Find Next for RegExps
+ - fixed: SelFindNext/Prev always worked as srch_selfind_pickup=1
+ + added: srch_pickup_selection=10
+ * changed: now Alt+Enter searches from the file's beginning,
+   Ctrl+Enter picks up the selected text
+
+v.5.6 (March 2014)
+ * AkelPad 4.8.7+
+ + now "Highlight all" supports RegExp (requires AkelPad 4.8.8+)
+ + now 'history_save' allows portable mode
+ - fixed: hPopupMenu was not released (thanks to Instructor)
+
+v.5.5 (Jun 2013)
+ * AkelPad 4.8.4+
+
+v.5.4 (May 2013)
+ * AkelPad 4.8.3+
+ * now the search ignores "+", "*", "+?" and "*?" at the end of regexp to
+   avoid selection to the end of the file
+
+v.5.3 (December 2012)
+ * AkelPad 4.8.0+
+ * now buttons [>] and [<] pick up selected text "intellectually"
+ + added: 'select_by_f3'
+ * changed: end-of-file message
+
+v.5.2 (November 2012)
+ * continuing 5.1
+ + search with regular expressions (using AkelPad's implementation of)
+ + added: 'color_notregexp'
+ + added: explicit option "QSearch auto-focus"
+ * 'hotkey_closes_wnd' changed to 'hotkey_hides_panel'
+
+v.5.1 (October 2012)
+ + added: new_ui=1
+
+v.5.0 (October 2012)
+ * 5th anniversary of QSearch :)
+ * AkelPad 4.7.9+
+ - fixed: wrong behaviour of docked window on autoload
+ - fixed: QSearch panel's popup menu on 2nd monitor
+ + silent instant searching by F3 (see the details above)
+
+v.4.9 (July 2012)
+ * AkelPad 4.7.7+
+
+v.4.8 (May 2012)
+ * AkelPad 4.7.5+
+
+v.4.7 (February 2012)
+ * for AkelPad 4.7.3+
+
+v.4.6 (December 2011)
+ * for AkelPad 4.7.1+
+ + supports internal language of AkelPad
+
+v.4.5 (November 2011)
+ * for AkelPad 4.7.0+
+
+v.4.4 (July 2011)
+ + improved implementation of doSelectCurrentWord for SelFindNext/Prev
+   (taken from "WordCaretSelect.js" by FeyFre & VladSh)
+
+v.4.3 (July 2011)
+ + added: srch_stop_eof=10
+
+v.4.2 (May 2011)
+ - fixed: now "EOF" message will not be shown during qsUpdateHighlight()
+ - fixed: when showing QSearch panel, the picked-up text was not selected
+ + added: editor_autofocus=100
+
+v.4.1 (May 2011)
+ * for AkelPad 4.6.0+
+ + AkelPad x64 support
+ - fixed: without Shift pressed, Find Next Up shortkey worked as Down
+ - fixed: Grey Alt was processed incorrectly (e.g. for Polish)
+
+v.4.0 (December 2010)
+ + experimental: "Whole word" while searching with special characters
+   (when enabled, "**" matches any 0 or more non-space characters)
+ + "Match case" and "Whole word" state can be saved (the value of
+   'history_save' must be set to 3 manually!)
+
+v.3.9 (October 2010)
+ * for AkelPad 4.5.0+
+
+v.3.8 (September 2010)
+ * non-active AkelPad window does not intercept the keyboard focus now
+ * icon added
+
+v.3.7 (September 2010)
+ * 3rd anniversary of QSearch :)
+ * 'srch_pickup_selection' behaviour changed
+ + added: 'editor_autofocus'
+
+v.3.6 (September 2010)
+ + small improvements
+
+v.3.5 (August 2010)
+ - fixed: "Highlight all" did not work with 'srch_pickup_selection'
+ + added: find history
+ + new option: find_history_items
+ + new option: history_save
+
+v.3.4 (August 2010)
+ + if no selection, SelFindNext/Prev selects current word
+
+v.3.3 (July 2010)
+ - Coder::HighLight detection improved
+ - PMDI compatibility improved
+ - now Uninitialize() is called at AKDN_MAIN_ONFINISH
+
+v.3.2 (June 2010)
+ * for AkelPad 4.4.4+
+ + 'catch_main_esc' option extended
+
+v.3.1 (May 2010)
+ + now QSearchDlg uses "MS Shell Dlg" font
+
+v.3.0 (March 2010)
+ + now special characters can be used with the on-the-fly mode
+
+v.2.9 (February 2010)
+ - fixed: Ctrl+Z did not work after Ctrl+Del or Ctrl+BS
+
+v.2.8 (February 2010)
+ * for AkelPad 3.7.4+/4.4.0+
+ + QSearchDlg: Ctrl+Del, Ctrl+BS, Ctrl+A own processing
+
+v.2.7 (October 2009)
+ * now DialogSwitcher's SetWindowsHookEx() uses GetCurrentThreadId()
+
+v.2.6 (October 2009)
+ + new options for QSearch panel's additional accelerator keys
+ - fixed: now 'alt_whole_word' does not work when "Whole word" is hidden
+
+v.2.5 (October 2009)
+ + new option: color_eof
+ + new option: use_alt_hotkeys
+
+v.2.4 (September 2009)
+ * DialogSwitcher works with AkelPad 4.3.2+
+ - fixed: input window's repainting problem when searching mode is not "on-the-fly"
+ - fixed: "Whole word" checkbox did not fire QSEARCH_FIRST
+ + added: new values for the 'highlight_state' parameter
+
+v.2.3 (September 2009)
+ * 2nd anniversary of QSearch :)
+ + added: "Highlight all" state is saved
+ - fixed: incorrect behaviour when Shift pressed while searching on-the-fly
+ - fixed: sometimes QSearch proceeded to search when the hot-key was pressed
+
+v.2.2 (August 2009)
+ + added: "Highlight all" function (the Highlight plugin must be active)
+ * for AkelPad 3.7.3+/4.3.0+
+ * works with the Highlight plugin v.4.7 or higher
+
+v.2.1 (March 2009)
+ * for AkelPad 3.7.0+/4.2.0+
+
+v.2.0 (March 2009)
+ - fixed (DialogSwitcher): edit window's horizontal scroll-bar was not
+   repainted when switching from Find/Replace dialog to QSearch panel
+
+v.1.9 (December 2008)
+ + new function: DialogSwitcher
+
+v.1.8 (October 2008)
+ + fixed: when Shift was pressed, SelFindNext worked as SelFindPrev
+
+v.1.7 (October 2008)
+ + fixed: continued searching in MDI mode with hidden QSearch panel
+
+v.1.6 (August 2008)
+ + new option: srch_selfind_pickup
+
+v.1.5 (July 2008)
+ * for AkelPad 3.6.0+
+
+v.1.4 (June 2008)
+ * for AkelPad 3.5.5+
+ + new functions: SelFindNext, SelFindPrev
+
+v.1.3 (May 2008)
+ * for AkelPad 3.5.5+
+ + catches F3 (Find next/previous) from AkelPad's main window
+ + small improvements
+
+v.1.2 (April 2008)
+ * for AkelPad 3.5.5+
+ + built-in Russian and Ukrainian interface languages
+ + additional options and features
+
+v.1.1 (March 2008)
+ * for AkelPad 3.5.3+
+ + now the plugin's panel is docked
+ + small improvements
+ + additional options
+
+v.1.0 (September 2007)
+ * initial version
+ * for AkelPad 3.3.x/3.4.x
+
+
+The author expresses his thanks to Aleksander Shengalts
+aka Instructor for the AkelPad text editor  ;-)
+---------------------------------------------------------------------------
+The original icon by Yusuke Kamiyamane, http://p.yusukekamiyamane.com/
+The icon has been modified by DV.
+---------------------------------------------------------------------------
+(C) Sep 2007 - May 2021, Vitaliy Dovgan aka DV
+          dvv81 <at> ukr <dot> net
+
+This plugin is freeware (free for both personal and commercial usage);
+it is distributed under the same license as AkelPad.

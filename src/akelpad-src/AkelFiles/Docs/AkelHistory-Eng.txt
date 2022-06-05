@@ -1,0 +1,1446 @@
+
+AkelPad 4.9.9 ()
+----------------------------
+Changed: during codepage recognition character "\xF1" now refers to 1251.
+Changed: codepage recognition in "Recode" dialog in case of failure by
+         values of "Ñodepage recognition" settings, tries to recognize by
+         all encodings from the user list.
+
+Added: possibility to save recent files and search history in ini file.
+       Now program can be completely portable.
+Added: possibility to use x86 and x64 version with the same settings. For this:
+       - 64-bit AkelPad.exe rename to AkelPad64.exe. This name is used by AkelUpdater
+         to update 64-bit version.
+       - 32-bit AkelPad.exe and 64-bit AkelPad64.exe are in the same folder.
+       - create a folder "[AkelPad]\AkelFiles\Langs64\" for 64-bit dll files.
+       - create a folder "[AkelPad]\AkelFiles\Plugs64\" for 64-bit dll files.
+         Settings of all plugins will continue to be stored in "[AkelPad]\AkelFiles\Plugs".
+       - 64-bit AkelAdmin.exe rename to AkelAdmin64.exe.
+Added: "Settings..." dialog now resizable.
+Added: possibility to set negative line gap.
+Added: manual flag 268435456 in the parameter "TabOptionsMDI" - close modified tabs first
+       on exit.
+Added: optional parameter for command 4321:
+       1 - close all modified tabs.
+Added: optional parameter for commands 4153,4154:
+       1 - cut/copy word under caret, if no selection;
+       2 - cut/copy line under caret, if no selection;
+       4 - cut/copy unwrapped line under caret, if no selection.
+Added: optional parameter that specifies the new line format for commands 4153,4154,4155.
+
+Fixed: reopening file with BOM, which has been deleted in third-party program.
+Fixed: file symbolic link opening with "Watch file change" option.
+Fixed: command line parameter /MainClass ignored option "Don't open a program twice".
+
+
+AkelPad 4.9.8 (Jul 18, 2016)
+----------------------------
+Added: flag 128 in the manual parameter "PaintOptions" - unit of vertical scrolling is line
+       (default is pixel).
+Added: optional parameter for commands 4103,4106:
+       1 - force to use last directory.
+
+
+AkelPad 4.9.7 (Dec 13, 2015)
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: "Replace all" with up direction.
+
+Added: option to find/replace dialog ". matches \n".
+Added: Catalan language module (Hiro5).
+Added: command line parameter /NewInstance - force create new program instance.
+Added: command line parameter /MainClass("MyAkelPad4") - set class name for a new program
+       instance.
+Added: possibility to set \0 symbol in delimiters.
+Added: error position in regular expression error message.
+
+
+AkelPad 4.9.6 (Sep 14, 2015)
+----------------------------
+Fixed: print text with nested syntax highlighting rules.
+Fixed: text scrolling to caret while dragging a file on edit window.
+
+
+AkelPad 4.9.5 (Sep 11, 2015)
+----------------------------
+Added: possibility to use nested syntax highlighting rules.
+Added: alternative Windows notepad replacement (via registry) in installer.
+Added: Greek language module (Johnakiss).
+Added: Uzbek language module (Shamsiddinov Zafar).
+Added: option "Silently close unsaved empty tab (MDI)" now also work in SDI mode.
+
+Fixed: releasing caret positions for commands 4199, 4200 when word wrap changed.
+Fixed: possible transfer of the Enter pressing to another process when closing dialog
+       created by plugin.
+Fixed: notepad replacement by installer on x64 systems.
+Fixed: parsing command line parameter /Z with MS Notepad compatibility mode on.
+
+
+AkelPad 4.9.4 (Jun 03, 2015)
+----------------------------
+Changed: no tab icon sizing if screen scale other than 96 dpi.
+Changed: switching between modeless dialogs with commands 4332 and 4333.
+Changed: selection restoring after "Replace all" with using regular expressions.
+
+Added: optional parameter for commands 4166,4170:
+       1 - delete space/tabulation in single line selection.
+
+Fixed: active column painting.
+Fixed: cycle search with down or up direction when the caret is inside text for search.
+Fixed: left and top margins have been displaced by 1 pixel.
+
+
+AkelPad 4.9.3 (Mar 25, 2015)
+----------------------------
+Added: metacharacter \K - exclude previous symbols from result.
+Added: now commands 4199, 4200 move caret also on undo positions.
+
+Fixed: AKD_DLLUNLOAD processing of unloading signal for outdated instance.
+Fixed: print multiple copies on Win7.
+Fixed: WordBreak parameter.
+Fixed: active column painting.
+Fixed: system menu opening in modeless dialogs.
+Fixed: middle mouse button click cause new tab creation when menu is opened.
+
+
+AkelPad 4.9.2 (Jan 05, 2014)
+----------------------------
+Changed: massive repainting optimizations to reduce flickering.
+
+Added: possibility to call Scripts plugin method directly from /If(). For example:
+       /If(`AkelPad.Constants._X64 == 1`, `/Quit`, ``)
+Added: possibility to use /*comment*/ in command line method parameters.
+
+Fixed: buttons that control the size of the frame didn't work (MDI).
+Fixed: main window flickering on Win7.
+Fixed: variables usage in "Execute" item.
+Fixed: command "Close all but active" (PMDI).
+Fixed: string selection from list in find/replace dialog, didn't restore the "Beginning" item.
+
+
+AkelPad 4.9.1 (Dec 15, 2014)
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: moved SmartSel::altSmartHome, SmartSel::altSmartEnd, SmartSel::altSmartUpDown,
+         SmartSel::altNoSelEOL to settings dialog SmartSel::Settings. To remove SmartSel
+         messages at program start, go to the plugins dialog (Alt+P) and click OK.
+Changed: inverted action of case changing commands 4175-4180 - now default is
+         case changing for the current word if no selection. Optional parameter
+         with code 1 now changes case for all text, if no selection.
+Changed: flag 64 of manual parameter "MouseOptions" now applies for any types of line
+         mouse selection.
+Changed: when active split window is closed selection and scrolling is retained.
+
+Added: scripts updating in AkelUpdater.
+Added: command line method /If() to use code by condition.
+Added: command line method /Var() to change variables usage for the following command line
+       methods.
+Added: parameter for show window in specified style in command line method /Exec().
+Added: command 4322 and menu item - clone current tab.
+Added: command 4323 and menu item - copy current tab file path.
+Added: setting for saving position of modeless dialogs ("Recode...", "Find...",
+       "Replace...", "Go to...").
+Added: manual parameter "FixedCharWidth" - defines fixed character width. All symbols,
+       including proportional fonts, will be paint in this width.
+
+Fixed: command 4110 didn't work for SDI.
+Fixed: switching on previous tab after closing current one (PMDI).
+Fixed: main window resizing on Win7 with aero cause black flickering.
+
+
+AkelPad 4.9.0 (Sep 08, 2014)
+----------------------------
+Changed: regular expression quantifiers now have classic greediness. To make it
+         possessive (old behaviour) use "+" after quantifier, like, "\d*+".
+
+Added: possibility in file open/save dialog to specify NTFS file stream on Win7.
+Added: flags for manual parameter "MouseOptions":
+       256 - invert mouse horizontal wheel;
+       512 - invert mouse vertical wheel.
+
+Fixed: pressing space as a part of the symbol input on special keyboard layouts.
+Fixed: saving NTFS file stream in protected file (UAC).
+Fixed: command 4198 could not update active column position.
+
+
+AkelPad 4.8.9 (Jun 20, 2014)
+----------------------------
+Added: command 4194 - paste text taking into account selection case.
+Added: optional parameter for change case commands 4175-4180:
+       1 - change case for current word if no selection.
+Added: (?options) possibility to set options for groups individually.
+Added: (?>pattern) atomic grouping.
+Added: possibility to use lookbehind search in conditional pattern, for example,
+       "(?(?<=a)b|c)".
+Added: now "AkelAdmin.exe" provides the ability to modify a file on disk root (UAC).
+Added: to directly open the *.lnk or *.url from file open dialog, need to click
+       on "Open" button while holding Ctrl (WinXP).
+
+Fixed: mixing caret and active column colors with background.
+Fixed: metacharacters \w and \W usage in character set [].
+Fixed: possibility in file open/save dialog to specify NTFS file stream or path containing
+       backslashes.
+Fixed: "Search finished" not displayed when cycle searching from the document beginning.
+Fixed: flag 4 of manual parameter "ShowModify" - modification displaying disappeared
+       when switching between tabs (PMDI).
+
+
+AkelPad 4.8.8 (Apr 12, 2014)
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: in replace dialog, the last used button, becomes locally default button.
+Changed: when opening multiple files, message about create new or open binary file uses
+         "Yes/No/Cancel" buttons instead of "OK/Cancel". Allows answering "No" to
+          continue opening the remaining files.
+Changed: after answer "No" to the question of reopening the modified file, document
+         marked as changed.
+Changed: metacharacter \w - matches any word character (any character excluding delimiter).
+Changed: metacharacter \W - matches any non-word character (any delimiter).
+
+Added: print multiple copies with "Collate" option.
+Added: "Replace all" without message.
+Added: command 4195 and menu item - delete all whitespaces in selection.
+Added: possibility in file open/save dialog to specify NTFS file stream or path containing
+       backslashes.
+Added: manual parameter for "SingleOpenProgram" with a value of 2 - option "Don't
+       open a program twice" works only for the same exe file. Requires run as
+       administrator (UAC).
+Added: manual parameter "EditStyle" - defines some edit window creation flags.
+
+Fixed: option "Don't open a program twice" on Win7.
+Fixed: Left key didn't move caret on previous line with option "Caret after end of line".
+Fixed: saving parameters "CmdLineBegin" and "CmdLineEnd".
+Fixed: dialogs that contain AkelEdit control didn't open on Win9x.
+
+
+AkelPad 4.8.7 (Feb 02, 2014)
+----------------------------
+Added: (?(condition)pattern-true|pattern-false) conditional patterns.
+Added: (?^pattern) negative pattern match.
+Added: (?<=pattern) and (?<!pattern) now works for single replace.
+Added: possibility to use backreferences in character set, for example, "([ab])[\1]".
+
+Fixed: read/write recent files additional information.
+Fixed: "Replace all" with options "Regular expressions" and "Whole word".
+Fixed: colored print of symbols background.
+Fixed: command line parsing without open frames (MDI).
+
+
+AkelPad 4.8.6 (Dec 07, 2013)
+----------------------------
+Changed: regular expression quantifiers now greedy by default (except for single dot, like,
+         ".*" or ".{5,10}"). To make it non-greedy (old behaviour) use "?" after quantifier,
+         like, "\d*?". AkelPad's regular expressions greediness works consequentially.
+         For example, pattern "ab?b" in "abc" has no matches, because "ab?" matches "ab" and
+         next "b" has no match. Correct pattern will be "abb?".
+Changed: when using "Don't open a program twice" option, manual settings "CmdLineBegin" and
+         "CmdLineEnd" passed only to the first instance of the program (MDI/PMDI).
+
+Added: manual parameters "TabNameFind" and "TabNameRep" - defines regular expression
+       search/replace pattern for tab name in MDI/PMDI mode.
+Added: Escape key interrupts column marker movement with mouse.
+Added: optional parameter in command line method /Command() for passing to internal command.
+
+Fixed: notepad replacement mode in installer (WinVista/7/8).
+
+
+AkelPad 4.8.5 (Sep 01, 2013)
+----------------------------
+Changed: Unicode symbols conversion to lowercase/uppercase brought to standard.
+
+Added: manual parameter for "MouseOptions" with a value of 128 - no scrolling after middle
+       mouse click.
+
+Fixed: interrupt split window resizing with Escape button.
+Fixed: options conflict "Cycle search" and "All files".
+
+
+AkelPad 4.8.4 (Jun 11, 2013)
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: increased speed of code folding processing with word wrap on.
+
+Fixed: synchronization of simultaneous access to external plugins calls.
+Fixed: inability to change split windows size with using flag 1024 of manual parameter
+       "PaintOptions".
+Fixed: FRF_ESCAPESEQ flag didn't work.
+
+
+AkelPad 4.8.3 (May 09, 2013)
+----------------------------
+Added: possibility to specify new file codepage.
+Added: manual parameter "UrlCommand" - defines command for hyperlink click.
+
+Fixed: text dragging in some programs didn't work.
+Fixed: new line type recovery from an undo buffer.
+Fixed: grouping elements in regular expressions pattern.
+Fixed: picking up a text when find/replace dialog was open, didn't restore the "Beginning"
+       item.
+
+
+AkelPad 4.8.2 (Mar 24, 2013)
+----------------------------
+Added: (?<=pattern) positive lookbehind search.
+Added: (?<!pattern) negative lookbehind search.
+Added: \A and \a metacharacters - matches the position at the beginning of the document/search
+       range.
+Added: \Z and \z metacharacters - matches the position at the end of the document/search range.
+Added: \x{n} metacharacter for surrogate pairs search/replace.
+Added: variable %cl of manual parameter "StatusUserFormat" now support surrogate pairs.
+Added: manual parameter for "MouseOptions" with a value of 64 - left margin line selection
+       with mouse selects all wrapped line.
+
+Fixed: file saving in MBCS codepage.
+Fixed: single replace with using regular expressions.
+Fixed: \D, \W metacharacters didn't match new line.
+
+
+AkelPad 4.8.1 (Jan 24, 2013)
+----------------------------
+Changed: increased accuracy of the file opening indicator.
+
+Added: hotkey Alt+, for command 4199, hotkey Alt+. for command 4200.
+
+Fixed: file opening in MBCS codepage.
+Fixed: buttons that control the size of the frame didn't work (MDI).
+Fixed: single replace with using regular expressions.
+
+
+AkelPad 4.8.0 (Nov 19, 2012)
+----------------------------
+Changed: command that moves caret to opposite end of selection now has code 4198.
+
+Added: command 4199 - move caret to previous location.
+Added: command 4200 - move caret to next location.
+
+Fixed: file opening in DBCS codepage (WinVista/7).
+Fixed: ^, $, \b, \s metacharacters processing in regular expressions.
+Fixed: variables "%cap[text]", "%num[text]" of manual parameter "StatusUserFormat" didn't
+       updated when switching to AkelPad from a different application.
+Fixed: variables of manual parameter "StatusUserFormat" didn't updated when switching between
+       tabs (MDI/PMDI).
+Fixed: switching focus when IME window active.
+Fixed: error when splitting window.
+Fixed: restore main window from minimized state cause split window resizing (SDI/PMDI).
+Fixed: active line border on alternating line painting.
+Fixed: print preview when using background for printing.
+
+
+AkelPad 4.7.9 (Sep 09, 2012)
+----------------------------
+Changed: single find/replace in selection.
+
+Added: variables for "StatusUserFormat":
+       "%cap[text]" - text to appear when CapsLock key in turned on;
+       "%num[text]" - text to appear when NumLock key in turned on;
+       "%Ch" - current character hex code in file codepage (lowercase);
+       "%CH" - current character hex code in file codepage (uppercase).
+Added: variables %cH, %ch of manual parameter "StatusUserFormat" now support surrogate pairs.
+
+Fixed: error when splitting window.
+Fixed: background image was drawn not from beginning, when LineBoard or Coder plugins used.
+Fixed: incorrect current column displaying in status bar, if line contain surrogate pairs.
+
+
+AkelPad 4.7.8 (Aug 19, 2012)
+----------------------------
+Changed: \n and \r metacharacters processing in regular expressions.
+Changed: hotkey for command 4206 is now Ctrl+*.
+
+Added: ability to use an image as the editor background. Program start can be much faster,
+       if images will be in bmp format.
+Added: ability to use regular expressions in syntax highlighting rules.
+Added: manual parameter for "MouseOptions" with a value of 32 - deny changing font size by
+       scrolling mouse wheel with Ctrl key.
+
+Fixed: search for surrogate pairs with regular expressions.
+Fixed: search with regular expressions and %se[text] variable of manual parameter
+       "StatusUserFormat".
+Fixed: headlines background when using background for printing.
+
+
+AkelPad 4.7.7 (Jul 22, 2012)
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: command 4196 - inserts new line without keeping left spaces, if option
+         "Keep space" is on.
+
+Added: checking hotkey existence in the Hotkeys plugin.
+Added: command 4199 - move caret on the contrary side of selection (Alt+\).
+
+Fixed: in overtype mode space and tabulation inserted without replacement.
+Fixed: size of the first non-maximized MDI frame when status bar is on.
+Fixed: size of the first maximized MDI frame when status bar and tab panel are off.
+Fixed: drawing tab bar, located at the bottom, when the status bar is turned on (PMDI).
+Fixed: current directory in the file open/save dialog.
+Fixed: search backward with regular expressions.
+Fixed: search forward with regular expressions and whole word option.
+Fixed: restore maximized state on startup after closing main window in minimized state.
+Fixed: notepad replacement mode in installer (WinVista/7)
+
+
+AkelPad 4.7.6 (Jun 03, 2012)
+----------------------------
+Added: multiline search/replace with regular expressions.
+
+Fixed: regular expressions support.
+Fixed: cycle search with regular expressions didn't work.
+Fixed: saving settings without open frames (MDI).
+Fixed: applying delimiters settings.
+
+
+AkelPad 4.7.5 (May 04, 2012)
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: "Replace all" with regular expressions works line by line.
+Changed: replace with regular expressions uses \n and \nn instead of $n and $nn for
+         backreferences.
+Changed: processing capture after double mouse click.
+Changed: automatic check "In selection" option works when multiple lines selected.
+
+Added: option for prompting in text cycle search.
+Added: possibility during replace with regular expressions to use escape characters:
+       \r, \n, \t, \u0000, \x00 etc.
+Added: manual parameter "AkelUpdaterOptions" - defines command line options for
+       the AkelUpdater.exe.
+
+Fixed: regular expressions support.
+Fixed: active line on alternating line painting.
+
+
+AkelPad 4.7.4 (Apr 09, 2012)
+----------------------------
+Changed: Unicode files without BOM now displayed as "without BOM" instead of "*BOM".
+
+Added: support for regular expressions in find/replace dialog.
+Added: possibility to add status bar delimiter with "StatusUserFormat".
+Added: variables for "StatusUserFormat":
+       "%lb" - number of the first selected line;
+       "%le" - number of the last selected line;
+       "%ls" - count of lines in selection.
+Added: AkelUpdater in installer.
+Added: menu item to open AkelUpdater.
+
+Fixed: split window in SDI mode.
+
+
+AkelPad 4.7.3 (Feb 05, 2012)
+----------------------------
+Changed: due to LogView plugin functionality expansion, its name changed to Log.
+
+Fixed: manual parameters "CmdLineBegin" and "CmdLineEnd" didn't work.
+Fixed: "AkelAdmin.exe" - set security options for file with different owner.
+
+
+AkelPad 4.7.2 (Dec 15, 2011)
+----------------------------
+Added: now "AkelAdmin.exe" provides the ability to create file by opening in
+       protected folder (UAC).
+Added: manual parameter "AkelAdminResident" - defines residency of the AkelAdmin.exe.
+
+Fixed: saving tabulation settings.
+Fixed: saving alternating lines settings.
+
+
+AkelPad 4.7.1 (Dec 04, 2011)
+----------------------------
+Changed: line deletion command continues to work when end-of-file reached.
+
+Added: now "AkelAdmin.exe" provides the ability to save to a protected folder (UAC).
+
+Fixed: program execution from third-party applications.
+Fixed: slow active column painting on Win7 with Aero.
+Fixed: active line border didn't displayed on alternating lines without border.
+Fixed: option "Mouse dragging" was set to the opposite meaning.
+Fixed: focus loss in open file dialog.
+Fixed: NTFS file stream didn't saved.
+Fixed: command line parameters /reassoc and /deassoc processed only one group of three
+       possible Open/Edit/Print.
+
+
+AkelPad 4.7.0 (Nov 15, 2011)
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: active column flashing minimized.
+Changed: switch between commands 4212, 4213, 4214 without window split off.
+Changed: command line parameter /quit terminates only own process.
+
+Added: ability to display alternating lines in different colors.
+Added: local storage of open links in a document and marking them with selected color.
+Added: border draw of active line.
+Added: ability to turn off active line painting without color change.
+Added: now "AkelAdmin.exe" works until AkelPad process ends (UAC).
+Added: now "AkelAdmin.exe" provides the ability to open protected file (UAC).
+Added: settings for top and bottom edit window margins.
+Added: command line method /Show() to show main window in specified style.
+
+Fixed: text replacement in columnar selection.
+Fixed: turn on word wrap when collapsed folds exist.
+Fixed: highlight link under cursor.
+Fixed: file could be saved in virtual store (UAC).
+Fixed: opening a system file under a limited user using the x86 version of program
+       (Windows x64).
+Fixed: error in the program when exiting, if the last closed document has split windows,
+       which was switched off earlier in this document, and the caret is not in the first
+       window (PMDI).
+Fixed: scrolling after window resplit (PMDI).
+Fixed: on windows split enabled error may appear at program exit, if flag 256 of manual
+       parameter "PaintOptions" is used.
+Fixed: caret updating with using flag 256 of manual parameter "PaintOptions".
+
+
+AkelPad 4.6.5 (Aug 31, 2011)
+----------------------------
+Added: support for "AkelAdmin.exe" tool, which provides the ability to save changes to
+       a protected file (UAC).
+Added: ability to set hyperlink text color under cursor.
+
+Fixed: flag 256 of "WordBreak" manual parameter.
+
+
+AkelPad 4.6.4 (Aug 01, 2011)
+----------------------------
+Added: support of mouse with horizontal scrolling (WinVista/7).
+Added: manual parameter for "MouseOptions" with a value of 16 - triple click and left margin
+       click selects only line contents without new line.
+
+Fixed: letters case are not changed in the recent files list.
+
+
+AkelPad 4.6.3 (Jul 13, 2011)
+----------------------------
+Changed: for unsaved document command 4121 opens "Recode..." dialog.
+
+Fixed: ignore of symbol deletion if caret was located at the end of wrapped line.
+Fixed: printing font setting ignored.
+Fixed: scroll position after restoring from minimized state.
+Fixed: frame settings aren't inherited, in case of closing the last frame and then creating
+       a new one (MDI).
+
+
+AkelPad 4.6.2 (Jun 25, 2011)
+----------------------------
+Changed: file reopening if user saved a file in different new line format.
+Changed: movement to the next line with right arrow key when wrap mode is on.
+
+
+AkelPad 4.6.1 (Jun 11, 2011)
+----------------------------
+Added: in dialog "Recode...":
+       - automatic recognition of incoming and outgoing encodings;
+       - preview;
+       - change dialog sizes and save them.
+Added: command line option /Z to ignore the next command line parameter. Can be used for
+       alternative way to replace MS Notepad.
+
+Fixed: edit window updating when appear message about file changing (MDI).
+Fixed: edit window updating after text deletion with word wrap on.
+Fixed: status bar update if in manual parameter "StatusUserFormat" only "%se[text]" specified.
+
+
+AkelPad 4.6.0 (May 11, 2011)
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: improved compatibility with RichEdit on x64.
+Changed: improved UTF-16LE/UTF-16BE detection without BOM.
+Changed: improved internal work with recent files.
+Changed: closing tab with middle mouse click without activation, if possible (MDI/PMDI).
+Changed: column marker flashing minimized.
+Changed: TextLayout plugin integrated in program. Switching keyboard layout according
+         to text under caret. Requires two or more layouts, one of which must be English.
+Changed: renamed parameter "KeybLayoutMDI" in "KeybLayoutOptions".
+
+Added: possibility to show places bar in open/save dialog.
+Added: applying a common algorithm for recognizing the UTF-8, if for the specified language
+       ("Settings...->Codepage recognition") recognition of UTF-8 unsuccessful.
+Added: column marker movement with mouse and Shift key and also moves wrap limit if their
+       values are equal.
+Added: option for cycle search.
+Added: second find/replace dialog call activates it and picks up the selected text.
+Added: manual parameters "CmdLineBegin" and "CmdLineEnd" - specifies code to be added
+       to the beginning and end of the command line before processing it.
+Added: variables for "StatusUserFormat":
+       "%al" - count of lines in document;
+       "%ar" - count of symbols in document (RichEdit);
+       "%se[text]" - text to appear when end of the document reached during search.
+Added: flag 16 in the manual parameter "PaintOptions" - disable marker painting after
+       last line.
+Added: undo buffer remember the caret position.
+Added: parameter for waiting until the program finishes in command line method /Exec().
+Added: menu item to open help.
+Added: Ctrl+Num/ hotkey to restore font size that was at the program start.
+
+Fixed: edit window updating after text deletion.
+Fixed: ignoring left mouse button click.
+Fixed: WordBreak parameter.
+Fixed: scroll position after restoring minimized window with word wrap on (MDI).
+Fixed: "\|" in /Insert() command line method.
+
+
+AkelPad 4.5.6 (Mar 16, 2011)
+----------------------------
+Changed: recent files information is now stored in the "file*" key instead of "nm*",
+         "cp*", "ps*". Update ContextMenu and RecentFiles plugins.
+Changed: command with code 4501 is now 4140.
+Changed: uses system message box for save file prompt, if possible.
+
+Added: selection remembering in the recent files.
+Added: button "No to all" is also available when using items from "Window" menu -
+       "Close all" and "Close all but active" (MDI/PMDI).
+Added: command 4206 - restore font size that was at the program start.
+
+Fixed: restore the size of the main window, that was out of sight.
+Fixed: caret placement after text deletion.
+
+
+AkelPad 4.5.5 (Feb 25, 2011)
+----------------------------
+Added: flag 1024 in the manual parameter "PaintOptions" - draw no edit window border.
+Added: switching between any modeless dialogs of the program with F6 hotkey.
+
+Fixed: windows zooming when using the scale other than 96 dpi.
+Fixed: using flag 256 in the manual parameter "PaintOptions" and undo after "Replace all"
+       with word wrap on.
+
+
+AkelPad 4.5.4 (Feb 15, 2011)
+----------------------------
+Added: option for moving caret at right mouse click.
+Added: option for silently closing unsaved empty tab (MDI/PMDI).
+Added: at program close, in saving document message added option "None for All".
+Added: ability to move to a problem location, in message about the loss of characters in
+       the specified encoding.
+Added: Eastern European recognition (1250, OEM, UTF-8).
+Added: Western European recognition (1252, OEM, UTF-8).
+Added: command 4321 - close all unmodified tabs (MDI/PMDI).
+Added: "\|" in /Insert() command line method - sets the caret position after text insertion.
+Added: locally remembers last call plugin.
+
+Fixed: UTF-8 recoding.
+Fixed: copy/paste text from the clipboard between AkelEdit windows with different bits
+      (Windows x64).
+Fixed: in italic font styles tabulation could overlap the preceding symbol.
+
+
+AkelPad 4.5.3 (Jan 12, 2011)
+----------------------------
+Added: command line parameters /C, /B, /L for return to the ask mode.
+
+Fixed: out of the text area didn't redraw under some conditions.
+Fixed: saving settings in SDI mode.
+Fixed: AkelPad.ini overwritten when there were no changes in settings.
+
+
+AkelPad 4.5.2 (Jan 03, 2011)
+----------------------------
+Added: 64-bit program version.
+
+Fixed: file didn't open with modal dialog actived.
+Fixed: AkelPad.ini overwritten when there were no changes in settings.
+
+
+AkelPad 4.5.1 (Dec 02, 2010)
+----------------------------
+Changed: speed of work with code folding is increased.
+Changed: improved work with Input Method Editors (IME).
+Changed: default font is now "Courier New" with size 10.
+Changed: tabs drawing with using visual styles on windows and buttons in Windows XP (MDI/PMDI).
+Changed: now by default uses system color for hyperlinks.
+Changed: now uses system cursor for hyperlinks, if possible.
+
+Fixed: replacement with multi-line text.
+Fixed: no message if error appears during opening/saving files.
+Fixed: URL in comment fold didn't highlighted.
+Fixed: selection after split window off (MDI).
+Fixed: double/triple mouse click in split windows.
+Fixed: scrolling to founded text.
+Fixed: variable "%dm" for "StatusUserFormat".
+Fixed: left button click in Windows 95.
+
+
+AkelPad 4.5.0 (Oct 28, 2010)
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: improved many files opening (MDI/PMDI).
+         - Successfully tested working with 100 thousands files in PMDI mode.
+         - Maximum number of documents in MDI mode is 700. When one try to exceed this number,
+           message appeared that indicates PMDI mode requirement.
+Changed: restructured, optimized mechanism of work with code folding.
+Changed: multi-line columnar paste.
+Changed: "Save All" menu item is deactivated if no files are changed.
+Changed: if automatically check "In selection" is enabled and selection is empty, previous
+         direction is restored.
+Changed: return alignment to left in the status bar.
+
+Added: ability to set color and font style for the text inside fold. This means that multi-line
+       comments now highlighted (Coder::CodeFold must be enabled).
+Added: Czech language module (Frantisek Bartos).
+Added: Hungarian language module (ZityiSoft).
+Added: variables for "StatusUserFormat":
+       "%dc" - count of all documents (MDI/PMDI);
+       "%dm" - count of modified documents (MDI/PMDI);
+       "%ds" - count of unmodified documents (MDI/PMDI);
+       "%di" - active document index (MDI/PMDI);
+       "%cl" - current character letter.
+
+Fixed: reopening a file in split windows.
+Fixed: reopening group of files with option "Don't open a file twice".
+Fixed: after opening main menu with mnemonic key next input character was ignored.
+Fixed: when replacing with multi-line text, inserted new lines are not set
+       to the current document value.
+Fixed: activating program with mouse and "Watch file change".
+Fixed: tabulation printed in color with color printing off.
+Fixed: tabulation and wrap by symbols.
+Fixed: position recovery of the first visible line if collapsed folds presented.
+
+
+AkelPad 4.4.9 (Sep 16, 2010)
+----------------------------
+Changed: "Changed" and "Read only" aligns to center in the status bar.
+
+Fixed: program error when there are no changes after "Replace All" (appeared in 4.4.8).
+
+
+AkelPad 4.4.8 (Sep 15, 2010)
+----------------------------
+Changed: syntax highlighting messages. Update Coder plugin.
+Changed: now in find/replace dialog after changing "What:" field, item "Beginning" is restored.
+         And also "Beginning" item darkening does not affect on behavior of the "Replace All".
+Changed: optimized some conditions of "Replace all".
+Changed: during codepage recognition the character "\xCD" now refers not only to 1251,
+         but also to 866.
+
+Added: manual parameter "StatusUserFormat" - defines user status bar format.
+Added: displaying read-only mode in the status bar.
+Added: support for environment strings in "Execute" option - "%WinDir%\notepad.exe".
+Added: menu at the borders of split windows.
+Added: now every drag'n'drop operation, can be stopped by pressing Esc.
+
+Fixed: selection restoring after "Replace all".
+Fixed: usage of "tt" in DateInsertFormat and DateLogFormat manual parameters.
+
+
+AkelPad 4.4.7 (Aug 30, 2010)
+----------------------------
+Added: option in "Select Window" dialog to invert the selection, and also the ability
+       to display only unmodified files (PMDI/MDI).
+Added: opportunity to rewrite color theme.
+Added: close button to print preview.
+
+Fixed: file preview window didn't use edit window font.
+Fixed: in split windows text margings didn't match.
+Fixed: closing selected tabs in "Select Window" dialog (PMDI/MDI).
+Fixed: rudiments after changing side of a dockable window (PMDI).
+
+
+AkelPad 4.4.6 (Jul 27, 2010)
+----------------------------
+Changed: integrated parameter "ReplaceAllAndClose" in "SearchOptions".
+
+Added: search option for automatically check "In selection" if selection not empty.
+Added: on logout the user prompted to save unsaved documents.
+Added: /SaveFile() command line method now can accept -1 as the encoding and BOM, which
+       means using the current values of the document.
+
+Fixed: possible program crash when resizing edit window that use word wrap.
+Fixed: command line processing and "Watch file change".
+Fixed: encoding redetect of the empty document led to the encoding nullification.
+Fixed: method /SaveFile() ignore first parameter.
+Fixed: parameter "ShowModify" in PMDI mode.
+Fixed: tabulation in print.
+Fixed: selection after split window off.
+Fixed: window flashing during first split window (PMDI).
+Fixed: "Word delimiters" uncheck did not set the default delimiters.
+Fixed: command 4196 ignore read-only mode.
+
+
+AkelPad 4.4.5 (Jul 08, 2010)
+----------------------------
+Changed: context menu of tabs uses the items of menu "Window" (PMDI).
+
+Added: support for clipboard containing NULL symbol (between AkelEdit windows).
+
+Fixed: command line processing and working directory.
+Fixed: saving in UTF32-LE and UTF32-BE codepages.
+Fixed: program may hang when switching between tabs that use word wrap (MDI).
+Fixed: access order of tabs (MDI/PMDI).
+Fixed: when printing a range of pages, only first page printed.
+Fixed: hotkey F12 for showing codepages menu didn't work.
+Fixed: insert space, tab into the empty vertical selection.
+
+
+AkelPad 4.4.4 (Jun 19, 2010)
+----------------------------
+Changed: clean program installation recommended.
+         Plugins merged:
+           HighLight + CodeFold + AutoComplete -> Coder
+           CaptureClipboard + PasteSerial + SelAutoCopy -> Clipboard
+           AutoSave + NoBOM -> SaveFile
+           Lines + Crypt + LinkExtract -> Format
+           NoSelEOL + SmartHome -> SmartSel
+         Plugins renamed:
+            AutoScroll -> Scroll
+         Plugins integrated in program:
+           SaveAllAs, LogDate, KeybLayout
+Changed: greatly reduced the number of lines in program code by optimizing Win95/98/Me support.
+Changed: now libc.lib not used, which allow to compile the program on the latest MS VS without
+         errors.
+Changed: program settings saved only if any changes were made. Now it is possible to edit
+         AkelPad.ini from the program.
+Changed: at program exit, settings saved of the active tab, not of the last closed (MDI).
+Changed: sorted non-menu commands.
+Changed: read-only mode is not inherited and not saved now. Item from the menu "Options"
+         moved to "View" menu. Read-only mode command is now 4216.
+Changed: more soft work with text Drag'n'Drop.
+Changed: before file opening controls are updated if the main window was minimized (MDI).
+
+Added: pseudo multi-window (PMDI), which allows you to open an unlimited number of files.
+       In contrast to the MDI mode, opening a new tab does not lead creation of new graphical
+       objects, thus avoid GDI buffer overflow. For SDI/MDI/PMDI modes now used commands
+       4261/4262/4263 respectively.
+Added: possibility to use /OpenFile(), /SaveFile(), /Command(), /Call(), /Exec(), /Font(),
+       /Recode(), /Insert() methods in command line. And also added parameters /L+ and /L- for
+       silent answer on symbols loss warning.
+Added: UTF32-LE and UTF32-BE codepage support.
+Added: dialog "Save all as" that allows you to save all open documents in a particular encoding
+       and new line format (MDI).
+Added: option for remember keyboard layout of each tab (MDI).
+Added: option for insert current date and time to the end of opened file, if it has ".LOG"
+       at the beginning.
+Added: manual parameter "DateInsertFormat" - defines insert date and time format.
+Added: manual parameter "DateLogFormat" - defines date and time format for files containing
+       ".LOG" at the beginning. Works only if enabled "Insert date if file has .LOG at the
+       beginning" in settings (DateLog=1).
+Added: manual parameter "PaintOptions" - defines, some text draw settings. Sets by the sum of
+       members:
+          1  Paint text by group of characters (default is character by character).
+             With this flag some text recognition programs could start to work, printer
+             could print faster, but highlighted symbols and combined unicode symbols can be
+             drawn differently and editing of whose characters may become uncomfortable.
+          2  Disable drawing new line selection as space character.
+          4  Draw new line selection to the right edge.
+          8  Hides the selection when the control loses the input focus.
+        256  Hides scroll bars instead of disabling them.
+        512  Draw thin edit window border.
+       By default: 0.
+Added: possibility in "Go to line..." dialog to go to a specified column in line.
+Added: possibility to set default file save extention.
+Added: "Close",  "Close all", "Close all but active" in "Window" menu.
+Added: option to display only file names in the "Select window" dialog (MDI).
+Added: now storing/restoring last visited directory managed by the program.
+Added: fast saving or reopening of the new, not saved document in different encoding now
+       leads to a current encoding change.
+Added: parameter %d in the page settings for print directory of a file.
+Added: "Columnar paste" in "Edit" menu.
+Added: Ctrl+5 - change case in loop.
+Added: locally remembers the last open tab in the preferences dialog.
+
+Fixed: saving non-active document.
+Fixed: selection didn't updated during switching panes (split window).
+Fixed: folding in split window.
+Fixed: case insensitive search.
+
+
+AkelPad 4.4.3 (Mar 31, 2010)
+----------------------------
+Changed: released Ctrl+E hotkey, which used for "Read only" mode.
+Changed: integrated settings "TabViewMDI", "TabTypeMDI", "TabSwitchMDI" in "TabOptionsMDI",
+         "CaretOutEdge", "CaretVertLine" in "CaretOptions".
+
+Added: option for turn off mouse text dragging.
+
+Fixed: probability of incorrect file reading in DBCS codepage (WinVista/7).
+Fixed: color printing.
+Fixed: check main window visibility on startup.
+Fixed: after changing new line format, selection didn't updated.
+
+
+AkelPad 4.4.2 (Mar 14, 2010)
+----------------------------
+Added: color printing.
+Added: Polish language module (Krzysztof Janicki).
+Added: check main window visibility on startup.
+
+Fixed: possible crash after I/O error.
+Fixed: text folding.
+Fixed: vertical selection.
+Fixed: closing the plugin dockable window through the Esc key, could send a program exit
+       signal.
+
+
+AkelPad 4.4.1 (Feb 14, 2010)
+----------------------------
+Changed: improved file icon detection (MDI).
+
+Added: option for turn off RichEdit mouse selection type.
+
+Fixed: program error when word wrapping in split windows.
+Fixed: out of the text area didn't redraw after computer unlocking.
+
+
+AkelPad 4.4.0 (Feb 10, 2010)
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: mouse selection is now more closer to RichEdit.
+Changed: now "ShowModify" parameter by default is equal to 1+8=9.
+Changed: file reopening if user saved a file in spite of prevention that symbols will be lost.
+
+Added: messages for text folding in AkelEdit.
+Added: ability to assign Tab, Shift+Tab in plugins dialog, on condition that the hotkey
+       input box was activated using the mouse.
+
+
+AkelPad 4.3.6 (Nov 27, 2009)
+----------------------------
+Changed: syntax highlighting improved.
+
+Added: check for language modules and program compatibility. Now the language module version
+       must be equal to version of the program.
+Added: "RichEditClass" parameter - defines edit control class name:
+         0  "AkelEdit" (by default)
+         1  "RichEdit20"
+Added: option to turn off the selection by pressing on left mouse button in left margin.
+
+Fixed: work with Input Method Editors (IME).
+
+
+AkelPad 4.3.5 (Nov 01, 2009)
+----------------------------
+Changed: set a single-thread model for allocating chunks of memory, as a consequence speed of
+         text replace, delete, insert is increased.
+
+Fixed: possible program error on selection change (appeared in 4.3.3).
+
+
+AkelPad 4.3.4 (Oct 31, 2009)
+----------------------------
+Changed: reduced resource consumption when opening large number of files.
+
+Added: in the "Select Window" dialog (MDI):
+       - tab search;
+       - arrange horizontally/vertically selected tabs;
+       - sorting, reordering tabs;
+       - save, closing selected tabs;
+       - opportunity to show only modified files;
+       - dialog size is remembered;
+       - F10 hotkey to open dialog.
+Added: if marker and/or wrap limit equal to -1, then they distance is equal to printer page
+       width (use monospaced fonts).
+Added: local remembering size and zoom of the print preview dialog.
+Added: page that has caret is activated when print preview open.
+
+Fixed: after all text replacing in 4.3.3, scrolling position did not recover.
+Fixed: replacement on "\n".
+Fixed: WordBreak parameter.
+Fixed: opening link that contain another link.
+Fixed: single URL click.
+
+
+AkelPad 4.3.3 (Oct 17, 2009)
+----------------------------
+Changed: redesigned program icon. Added 16x16, 48x48 dimensions.
+Changed: speed of large text block selection is increased.
+Changed: navigation through the Ctrl+Down/Ctrl+Up is now identical to RichEdit.
+
+Added: now possible to assign hotkeys in plugins dialog:
+       (Ctrl|Alt|Shift)+Delete, (Ctrl|Alt|Shift)+Backspace, Ctrl+Tab, Ctrl+Shift+Tab.
+
+
+AkelPad 4.3.2 (Sep 22, 2009)
+----------------------------
+Added: "Whole word" in find/replace dialog.
+Added: possibility to set left and right URL delimiters.
+Added: left mouse button scrolling in print preview dialog.
+Added: possibility to use text selection together with middle mouse button scrolling.
+
+Fixed: codepage recognition in 4.3.1.
+Fixed: text search with flag AEFR_WHOLEWORD.
+Fixed: print of a text containing surrogate pairs.
+
+
+AkelPad 4.3.1 (Sep 15, 2009)
+----------------------------
+Changed: syntax highlighting improved.
+Changed: internal Alt+NumPad processing, now started after two Num 0.
+
+Added: manifest in program resources.
+Added: installation with notepad replacement under WinVista and Win7.
+Added: "Colors..." and "Plugins..." dialogs now resizable.
+
+Fixed: hiding horizontal scrollbar (Win7).
+
+
+AkelPad 4.3.0 (Aug 28, 2009)
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: syntax highlighting improved.
+
+Added: internal Alt+NumPad processing.
+
+Fixed: "Replace all".
+Fixed: selection by pressing on left mouse button in left margin.
+Fixed: out of the text area didn't redraw after computer unlocking.
+Fixed: management didn't come back to the user, after message appearance at text
+       dragging in next tab window (MDI).
+Fixed: if unsaved character appears on the last line, incorrect line number reported.
+
+
+AkelPad 4.2.6 (Aug 10, 2009)
+----------------------------
+Changed: AkelEdit now uses character by character painting.
+Changed: selection by pressing on left mouse button in left margin.
+Changed: if wrap by symbols is used, then document print also will be with wrap by symbols.
+
+Added: support for UTF-16 surrogate pairs.
+Added: 4430 command - paste text after caret.
+Added: support for text Drag'n'Drop containing NULL symbol (between AkelEdit windows).
+
+Fixed: correct open/save UTF-8 text containing surrogate pairs.
+Fixed: hyperlink, located at line start, didn't highlighted in 4.2.5.
+Fixed: word wrap updating after text margings change.
+Fixed: split window updating after word wrap change.
+
+
+AkelPad 4.2.5 (Jul 08, 2009)
+----------------------------
+Changed: syntax highlighting improved.
+
+Added: print preview.
+Added: possibility to set line-to-line spacing.
+Added: possibility to set word wrap delimiters.
+Added: messages for printing in AkelEdit.
+Added: possibility to print only specified page or range of pages.
+Added: 4113 command - silent printing.
+
+Fixed: URL clicking could cause program error.
+
+
+AkelPad 4.2.4 (Jun 15, 2009)
+----------------------------
+Changed: syntax highlighting improved.
+
+Added: Finnish language module (Jani Kinnunen).
+
+Fixed: "Replace all" caused new line format unification in binary files.
+
+
+AkelPad 4.2.3 (May 01, 2009)
+----------------------------
+Changed: syntax highlighting improved.
+Changed: triple mouse click selects all wrapped line.
+
+
+AkelPad 4.2.2 (Apr 26, 2009)
+----------------------------
+Added: messages for syntax highlighting in AkelEdit:
+       - Opportunity to highlight delimiters, words, the text between words
+         (for example: line comments, quoted text, etc.);
+       - Opportunity to specify text color and background color.
+       - Opportunity to specify font style (normal, bold, italic, bold italic).
+Added: AKD_INI* messages for work with ini file in UTF-16LE codepage.
+Added: 4429 command - paste to column selection (Alt+V).
+
+Fixed: coordinates error when moving with PageUp/PageDown.
+Fixed: change font size using Ctrl+WheelMouse wasn't remembered.
+Fixed: search string trimming (Win95/98/Me).
+Fixed: duplicating codepage in list when Ansi and Oem codepages are the same.
+
+
+AkelPad 4.2.1 (Apr 06, 2009)
+----------------------------
+Changed: file now isn't read out entirely in memory before opening (stream opening).
+
+Added: possibility to stop file opening (Esc key).
+
+Fixed: occurrence of a vertical scrollbar at new file creation in word wrap mode (MDI).
+
+
+AkelPad 4.2.0 (Mar 23, 2009)
+----------------------------
+Changed: file reopening if user saved a file in different encoding.
+Changed: double and triple mouse click selection.
+
+Added: check for plugins and program compatibility. Update plugins.
+Added: possibility to set vertical marker.
+Added: "WordBreak" parameter is complemented.
+
+Fixed: serious error in 4.1.9 in word wrap mode. Assignment incorrect pointer led to loss
+       part of a file at saving.
+Fixed: after new line format change a file was saved with a new line symbol insertion in
+       wrap places.
+Fixed: ampersand in tab button name (MDI) and in recent files menu.
+
+
+AkelPad 4.1.9 (Mar 16, 2009)
+----------------------------
+Changed: keeping left spaces in word wrap mode.
+
+Added: from uninstaller now possible to remove installer traces (shortcuts, key in registry,
+       Uninstall.exe file) without program files removal.
+
+Fixed: tabulation wrapping.
+Fixed: resizing of split window and also dockable windows.
+Fixed: displaying asterisk * in titles isn't updated after document reopening (MDI).
+
+
+AkelPad 4.1.8 (Mar 10, 2009)
+----------------------------
+Changed: more accurate split window resizing.
+
+Added: When word wrap is on, now wrapped lines numbers displayed as non-wrapped.
+       "StatusPosType" parameter is complemented.
+
+
+AkelPad 4.1.7 (Mar 05, 2009)
+----------------------------
+Changed: reduced flashing on setting focus.
+
+Added: hotkeys:
+        - F9 activate next pane (split window);
+        - Shift+F9 activate previous pane (split window).
+
+Fixed: split window on Win95/98/Me.
+Fixed: split window and ToolBar plugin.
+Fixed: split window and Drag'n'Drop from other frame (MDI).
+Fixed: selection updating after cancelling split window.
+
+
+AkelPad 4.1.6 (Mar 03, 2009)
+----------------------------
+Added: opportunity to split edit window to work with different areas of one file.
+Added: commands 4212, 4213, 4214, 4427, 4428 to work with panes of split window.
+Added: opportunity to wrap a line on achievement of the certain limit in symbols.
+
+Fixed: font width changing in 4.1.5.
+
+
+AkelPad 4.1.5 (Jan 26, 2009)
+----------------------------
+Changed: work with memory is considerably improved when many files opened (MDI).
+
+Added: parameter "ShowModify" - defines, where it will be possible to see, that the document
+       is changed. Sets by the sum of members:
+         1  Display "Modified" in status bar.
+         2  Display asterisk * in main window title (SDI).
+         4  Display asterisk * in frame window title (MDI).
+         8  Display asterisk * in tab button name (MDI).
+       By default: 1, show all: 1+2+4+8=15.
+Added: description in AkelHelp-Eng.htm of parameters, that sets by user manually, and also
+       description of the internal commands used in ContextMenu, ToolBar, Hotkeys and
+       Scripts plugins.
+
+Fixed: work with Korean Input Method Editors (IME).
+Fixed: active column painting (Win98/Me).
+
+
+AkelPad 4.1.4 (Jan 19, 2009)
+----------------------------
+Added: active column color modification.
+Added: option for going to specified offset in "Go to line..." dialog.
+Added: parameter "StatusPosType":
+       0  status bar show statistics in "Line:Symbol".
+       1  status bar show statistics in "Line:Column".
+Added: Japanese recognition (UTF-8).
+Added: Korean recognition (UTF-8).
+Added: Turkish recognition (OEM, UTF-8).
+
+Fixed: replace text with empty string.
+Fixed: work with Korean Input Method Editors (IME).
+
+
+AkelPad 4.1.3 (Jan 13, 2009)
+----------------------------
+Changed: settings dialog of the program is reorganized.
+Changed: after reopening document, text position is restored.
+
+Added: option for drawing caret vertical line.
+Added: option for setting caret width.
+Added: option for setting default newline format.
+Added: possibility to wrap lines by symbols.
+Added: possibility to specify null character \[0000] in "Esc-sequences".
+Added: Chinese recognition (UTF-8).
+Added: new line Drag'n'Drop.
+Added: command 4426 for file saving in UTF-8 without BOM.
+
+Fixed: replace text with column selection.
+Fixed: when caret out of the edge is on, Drag'n'Drop not allowing drop out of the edge.
+
+
+AkelPad 4.1.2 (Dec 18, 2008)
+----------------------------
+Changed: scrolling with middle mouse button.
+Changed: double mouse click selection.
+Changed: "Go to line" dialog now accepts numbers in more free form, for example, "2 123".
+
+Added: silent install support (/? for help).
+Added: possibility to change default extention of a file save dialog (in program resources).
+Added: parameter "WordBreak". Works only if enabled "Word delimiters" in settings. Sets,
+       how the caret on Ctrl+Left/Ctrl+Right will move, by the sum of members:
+         1  Left movement is stopped, when word start is found.
+         2  Left movement is stopped, when word end is found.
+         4  Right movement is stopped, when word start is found.
+         8  Right movement is stopped, when word end is found.
+        16  Movement is stopped, when spacing start is found.
+            Cannot be combined with 64.
+        32  Movement is stopped, when spacing end is found.
+            Cannot be combined with 128.
+        64  Movement is continued, when spacing start is found.
+            Cannot be combined with 16.
+       128  Movement is continued, when spacing end is found.
+            Cannot be combined with 32.
+       By default: 1+2+4+8+32+64=111 (AkelEdit), 1+8=9 (AkelPad).
+
+Fixed: AEM_CANPASTE message.
+Fixed: insert tabulation as spaces.
+
+
+AkelPad 4.1.1 (Dec 13, 2008)
+----------------------------
+Added: scrolling with middle mouse button.
+Added: hMainAccel parameter in plugin structure.
+
+Fixed: binary file could open as UTF-16.
+
+
+AkelPad 4.1.0 (Nov 20, 2008)
+----------------------------
+Changed: optimized drawing of long lines.
+Changed: now URL max length is 512 characters (as in RichEdit) to speed up work with text.
+Changed: documentation now located in Docs folder.
+
+Added: plugins in installer.
+Added: opportunity to replace notepad without installation of the program in a system
+       directory.
+
+Fixed: combining mouse capture and text insertion.
+Fixed: updating after text insertion in a word wrap mode.
+
+
+AkelPad 4.0.9 (Nov 02, 2008)
+----------------------------
+Changed: right mouse click on non-active AkelEdit window activate it (MDI).
+
+Added: Dutch language module (Henk G. Zikken).
+
+Fixed: work with Input Method Editors (IME).
+Fixed: divide by zero problem in file opening and word wrapping progress indicator.
+
+
+AkelPad 4.0.8 (Oct 27, 2008)
+----------------------------
+Changed: speed of work with text is greatly increased. Now files equally quickly opens/edits,
+         independent from monospaced font or not, and also independent from character set.
+Changed: improved work with Input Method Editors (IME).
+
+Added: support for multiline URL in word wrap mode.
+Added: main window repainting at long file opening.
+
+Fixed: context menu on two monitors.
+
+
+AkelPad 4.0.7 (Oct 07, 2008)
+----------------------------
+Changed: speed of files processing with monospaced font is increased (exception is CJKV
+         character sets).
+
+Fixed: wrapping progress indicator cause program error on wrapping very long line.
+
+
+AkelPad 4.0.6 (Sep 13, 2008)
+----------------------------
+Changed: backward compatibility with RichEdit is improved.
+Changed: tabulation width calculated from space width.
+
+Fixed: saving in UTF-8.
+
+
+AkelPad 4.0.5 (Sep 06, 2008)
+----------------------------
+Changed: improved PageUp/PageDown text navigation.
+
+Added: option for caret moving out of the line edge.
+
+Fixed: extended hotkey didn't working.
+Fixed: insert tabulation as spaces.
+
+
+AkelPad 4.0.4 (Sep 01, 2008)
+----------------------------
+Changed: at font size change, AkelEdit adjusts position of the text according to the first
+         visible line.
+
+Added: position of modeless dialogs is locally remembered.
+Added: command 4180 for cycle text case changing.
+
+Fixed: new line manipulation.
+Fixed: caret color on non-white background.
+
+
+AkelPad 4.0.3 (Aug 24, 2008)
+----------------------------
+Changed: improved file opening and word wrapping progress indicator.
+
+Added: URL prefix "www." in settings by default.
+
+Fixed: text Drag'n'Drop.
+Fixed: URL prefixes and delimiters saving in registry.
+Fixed: selection type modification with mouse.
+
+
+AkelPad 4.0.2 (Aug 18, 2008)
+----------------------------
+Changed: at window resize in a word wrap mode, AkelEdit adjusts position of the text according
+         to the first visible line.
+Changed: improved status bar painting on main window resize.
+Changed: increased accuracy of the wrapping progress indicator.
+Changed: default word breaking now has RichEdit format.
+
+Added: support for "Mac (0Dh)" new line format.
+Added: URL prefixes and delimiters setup.
+Added: text Drag'n'Drop between tab buttons from external applications (MDI).
+
+Fixed: changing the formatting rectangle (AEM_SETRECT) in word wrap mode.
+Fixed: with variable font, mouse didn't select last symbol of a wrapped line.
+Fixed: updating edit window at loading minimally necessary number of lines.
+Fixed: word delimiters saving in INI file.
+
+
+AkelPad 4.0.1 (Aug 10, 2008)
+----------------------------
+Added: file opening and word wrapping progress indicator, if text processed more
+       then 0,5 second.
+Added: Romanian language module (Alexandru Bogdan Munteanu).
+
+Fixed: text drawing with monospaced font.
+Fixed: selection on tab switching in word wrap mode (MDI).
+Fixed: search in word wrap mode.
+Fixed: caret position after text deletion.
+Fixed: program blocked Shift+BackSpace hotkey, if selection was empty.
+Fixed: title case changing in column selection mode.
+
+
+AkelPad 4.0.0 final (Aug 03, 2008)
+----------------------------------
+Changed: backward compatibility with RichEdit is improved.
+Changed: optimized drawing of long lines.
+
+Added: fast access to the text at file opening (updating edit window at loading minimally
+       necessary number of lines).
+Added: URL now clickable.
+Added: text Drag'n'Drop between tab buttons (MDI).
+Added: version information in EXE.
+Added: Ctrl+Enter combination - new line with keeping left spaces.
+Added: Tatar language module (Rustem Gimran).
+Added: Slovak language module (pvagner).
+
+Fixed: column Undo/Redo.
+Fixed: text Drag'n'Drop between several AkelEdit windows.
+Fixed: text Drag'n'Drop ignored AECO_READONLY flag.
+Fixed: combinations didn't working in dialog: Ctrl+Insert, Shift+Insert, Shift+Delete.
+Fixed: incorrect selection length shown in status bar after new line format change.
+
+
+AkelPad 4.0.0 beta 4 (Jul 20, 2008)
+-----------------------------------
+Fixed: "OK" button in plugin dialog, didn't clear non-existent plugin records.
+Fixed: Ctrl+Tab combination didn't working in dialog.
+Fixed: mouse didn't select last symbol of a line with a biggest width.
+Fixed: caret hiding when text margins is changed.
+Fixed: column selection was deformed, if it left from visible limits at window resize
+       in word wrap mode.
+
+
+AkelPad 4.0.0 beta 3 (Jul 11, 2008)
+-----------------------------------
+Fixed: tab key didn't working.
+
+
+AkelPad 4.0.0 beta 2 (Jul 11, 2008)
+-----------------------------------
+Changed: hotkeys (conflicted with AltGr key):
+        - Shift+Alt+W save as ANSI (Windows);
+        - Shift+Alt+D save as OEM (DOS);
+        - Shift+Alt+K save as KOI8-R.
+        - Shift+Alt+L save as UTF-16LE;
+        - Shift+Alt+B save as UTF-16BE;
+        - Shift+Alt+U save as UTF-8.
+
+Added: pressing on left mouse button in left margin selects line.
+
+Fixed: AltGr key didn't working.
+Fixed: speed slowdown of column's Undo/Redo in beta 1.
+Fixed: vertical scroll didn't updated in word wrap mode.
+Fixed: using word wrap, with no AECO_DISABLENOSCROLL flag.
+
+
+AkelPad 4.0.0 beta 1 (Jul 03, 2008)
+-----------------------------------
+Changed: synchronized structures with AkelPad 3.x.x. Update yours plugins.
+Changed: backward compatibility with RichEdit is improved.
+Changed: more accurate scrolling, when the founded text is outside visibility.
+
+Added: URL highlighting.
+Added: processing triple mouse click, and also processing capture after double and triple
+       mouse clicks.
+Added: Ctrl+Delete deletes right word, Ctrl+Backspace deletes left word.
+
+Fixed: text Drag'n'Drop.
+Fixed: search of new line character.
+Fixed: empty column insertion.
+
+
+AkelPad 4.0.0 alpha 5 (Jun 21, 2008)
+------------------------------------
+Changed: speed of column's Undo/Redo is increased.
+Changed: "twitching" at Undo/Redo minimized.
+Changed: if the founded text is outside visibility, then it is putted to middle of
+         editing window.
+Changed: selection functions now work in word wrap mode.
+
+Added: text Drag'n'Drop.
+Added: Latin recognition OEM and UTF-8.
+Added: unicode files without BOM now marked as "*BOM" in status bar.
+Added: now "Word delimiters" check off is working.
+
+Fixed: insert text in word wrap mode.
+Fixed: search in word wrap mode.
+Fixed: problem with search flags.
+
+
+AkelPad 4.0.0 alpha 4 (Jun 14, 2008)
+------------------------------------
+Fixed: update problem after undo/redo.
+
+
+AkelPad 4.0.0 alpha 3 (Jun 14, 2008)
+------------------------------------
+Changed: speed of work with long lines is increased.
+Changed: speed of column's Undo/Redo is increased.
+Changed: flashing at updating minimized.
+
+Added: word wrap.
+
+Fixed: work with tabulation.
+Fixed: selection functions now correctly work with columns.
+Fixed: column insert in the end of the text from the undo buffer.
+Fixed: Delete and Backspace keys registration in undo buffer.
+
+
+AkelPad 4.0.0 alpha 2 (Jun 04, 2008)
+------------------------------------
+Added: backward compatibility with RichEdit.
+
+Fixed: vertical scroll didn't updated after font change.
+Fixed: undo buffer didn't recognize new line option.
+
+
+AkelPad 4.0.0 alpha 1 (May 28, 2008)
+------------------------------------
+Changed: created own control for editing the text - AkelEdit (replacement for RichEdit).
+Changed: speed of work is increased.
+
+Added: support of column text selection.
+Added: support of any length lines.
+Added: editing and correct saving of binary files.
+Added: set up color schemes.
+Added: check a saving correctness of all symbols in the specified encoding (except Windows 95).

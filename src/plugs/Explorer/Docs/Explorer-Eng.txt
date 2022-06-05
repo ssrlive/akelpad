@@ -1,0 +1,61 @@
+*****************************************************************
+***                Explorer AkelPad plugin v6.3               ***
+*****************************************************************
+
+2008-2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Displays explorer panel (based on Selom Ofori's code).
+
+
+*** Functions ***
+
+Explorer::Main
+Main function for start and stop plugin.
+
+
+*** External call ***
+
+Call("Explorer::Main", 1, "PATH")
+  Parameters:
+    1
+      Open dialog and go to specified path.
+    "PATH"
+      Path, for example: "C:\Program Files". If "", then go to current file.
+
+Call("Explorer::Main", 2)
+  Parameters:
+    2
+      Refresh file list.
+
+Call("Explorer::Main", 3, *WINDOW)
+  Parameters:
+    1
+      Get dockable window handle. Use with Scripts plugin.
+    *WINDOW
+      Pointer to a variable, that receives dockable window handle.
+  Example:
+    WScript.Echo(GetExplorerWindow());
+
+    function GetExplorerWindow()
+    {
+      var lpWnd;
+      var hWnd=0;
+
+      if (lpWnd=AkelPad.MemAlloc(_X64?8:4 /*sizeof(HWND)*/))
+      {
+        AkelPad.CallW("Explorer::Main", 3, lpWnd);
+        hWnd=AkelPad.MemRead(lpWnd, 2 /*DT_QWORD*/);
+        AkelPad.MemFree(lpWnd);
+      }
+      return hWnd;
+    }
+
+Call("Explorer::Main", 4, "PATH")
+  Parameters:
+    4
+      Set root directory.
+    "PATH"
+      Path, for example: "C:\Program Files". If "-1", then set "My Computer" as root directory.

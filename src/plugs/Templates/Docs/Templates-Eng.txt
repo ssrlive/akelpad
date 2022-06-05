@@ -1,0 +1,29 @@
+////
+////	Templates AkelPad plugin
+////	This piece of software is distributed under BSD license.
+
+////	Panych Y.W. aka FeyFre (c) 2010-2012 (panych.y@gmail.com)
+
+///		Description
+Plugin allows to create new documents using predefined templates.
+
+
+Templates located in <AkelPadDir>\AkelFiles\Plugs\Templates folder
+
+Templates::Main
+When active, on each new document creation command asks user to select template.
+Function should be set as autoload
+
+Templates::Open
+Manual call for templates list. Also allows locate and edit templates quickly.
+
+Templates::Open can be called with additional parameters using plugins Toolbar, ContextMenu, etc plugins:
+
+Call("Templates::Open",1,"templatefile.ext") Create new file with given template
+Call("Templates::Open",2,"templatefile.ext") Edit template
+Call("Templates::Open",3,"templatefile.ext") Insert content of template into current position
+
+
+Templates can contain caret position markers. Marker is defined by first line of template-file.
+
+NOTE: plugin will not work on W95/W98/ME

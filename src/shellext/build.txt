@@ -1,0 +1,26 @@
+How to build
+
+    1. Download "Windows Driver Kit version 7.1.0". The address is:
+       http://www.microsoft.com/en-us/download/details.aspx?id=11800
+       Then install it. In my PC, the path is "G:\WinDDK\7600.16385.1".
+    2. Open a command window.
+    3. Type command "pushd  d:\WinDDK\7600.16385.1\bin".
+    4. Type command "setenv d:\winddk\7600.16385.1  fre x64 WNET no_oacr", for x64 CPU.
+       or command   "setenv d:\winddk\7600.16385.1  fre     WXP  no_oacr", for x86 CPU.          
+    5. Type command "pushd  d:\dev-proj\AkelPad\src\shellext" to switch to our project work directory.
+    6. Type command "build". This command will build our target binary file.
+
+    
+Good Luck.
+
+
+
+pushd  d:\WinDDK\7600.16385.1\bin
+setenv d:\winddk\7600.16385.1  fre x64 WNET no_oacr
+pushd  d:\dev-proj\AkelPad\src\shellext
+build
+
+pushd  d:\WinDDK\7600.16385.1\bin
+setenv d:\winddk\7600.16385.1  fre     WNET no_oacr
+pushd  d:\dev-proj\AkelPad\src\shellext
+build

@@ -1,0 +1,171 @@
+#include "resource.h"
+#include <windows.h>
+
+IDI_QSEARCH ICON DISCARDABLE "QSearch.ico"
+
+IDD_QSEARCH DIALOGEX 6, 12, 372, 16
+FONT 8, "MS Shell Dlg", 0, 0
+STYLE WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN
+EXSTYLE WS_EX_CONTROLPARENT
+BEGIN
+    CONTROL "", IDC_ED_FINDTEXT, "Edit", WS_CHILD | WS_TABSTOP | ES_WANTRETURN | 
+            ES_AUTOHSCROLL | NOT WS_VISIBLE, 18, 2, 160, 13, WS_EX_CLIENTEDGE
+    CONTROL "", IDC_CB_FINDTEXT, "ComboBox", WS_CHILD | WS_TABSTOP | WS_VSCROLL | 
+            CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_HASSTRINGS | NOT WS_VISIBLE, 18, 2, 160, 100, WS_EX_CLIENTEDGE
+    CONTROL "", IDC_PB_PROGRESS, "msctls_progress32", WS_CHILD | NOT WS_VISIBLE, 
+            182, 5, 108, 8
+    CONTROL "Match case", IDC_CH_MATCHCASE, "Button", WS_VISIBLE | 
+            WS_CHILD | WS_TABSTOP | BS_AUTOCHECKBOX, 182, 4, 62, 10
+    CONTROL "Whole word", IDC_CH_WHOLEWORD, "Button", WS_VISIBLE |
+            WS_CHILD | WS_TABSTOP | BS_AUTOCHECKBOX, 246, 4, 62, 10
+    CONTROL "Highlight all", IDC_CH_HIGHLIGHTALL, "Button", WS_VISIBLE |
+            WS_CHILD | WS_TABSTOP | BS_AUTOCHECKBOX, 310, 4, 56, 10
+    CONTROL "", IDC_BT_CANCEL, "Button", WS_VISIBLE | WS_CHILD | BS_FLAT | 
+            BS_PUSHBUTTON | BS_OWNERDRAW | BS_CENTER | BS_VCENTER, 4, 3, 10, 10
+END
+
+IDD_QSEARCH_NEW_01 DIALOGEX 6, 12, 420, 16
+FONT 8, "MS Shell Dlg", 0, 0
+STYLE WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN
+EXSTYLE WS_EX_CONTROLPARENT
+BEGIN
+    CONTROL "", IDC_ED_FINDTEXT, "Edit", WS_CHILD | WS_TABSTOP | ES_WANTRETURN | 
+            ES_AUTOHSCROLL | NOT WS_VISIBLE, 18, 2, 160, 13, WS_EX_CLIENTEDGE
+    CONTROL "", IDC_CB_FINDTEXT, "ComboBox", WS_CHILD | WS_TABSTOP | WS_VSCROLL | 
+            CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_HASSTRINGS | NOT WS_VISIBLE, 18, 2, 160, 100, WS_EX_CLIENTEDGE
+    CONTROL ">", IDC_BT_FINDNEXT, "Button", WS_VISIBLE | 
+            WS_CHILD | BS_PUSHBUTTON | WS_TABSTOP, 206, 2, 18, 12
+    CONTROL "<", IDC_BT_FINDPREV, "Button", WS_VISIBLE | 
+            WS_CHILD | BS_PUSHBUTTON | WS_TABSTOP, 184, 2, 18, 12
+    CONTROL "", IDC_PB_PROGRESS, "msctls_progress32", WS_CHILD | NOT WS_VISIBLE, 
+            232, 5, 108, 8
+    CONTROL "Match case", IDC_CH_MATCHCASE, "Button", WS_VISIBLE | 
+            WS_CHILD | WS_TABSTOP | BS_AUTOCHECKBOX, 230, 4, 62, 10
+    CONTROL "Whole word", IDC_CH_WHOLEWORD, "Button", WS_VISIBLE |
+            WS_CHILD | WS_TABSTOP | BS_AUTOCHECKBOX, 294, 4, 62, 10
+    CONTROL "Highlight all", IDC_CH_HIGHLIGHTALL, "Button", WS_VISIBLE |
+            WS_CHILD | WS_TABSTOP | BS_AUTOCHECKBOX, 358, 4, 56, 10
+    CONTROL "", IDC_BT_CANCEL, "Button", WS_VISIBLE | WS_CHILD | BS_FLAT | 
+            BS_PUSHBUTTON | BS_OWNERDRAW | BS_CENTER | BS_VCENTER, 4, 3, 10, 10
+END
+
+IDD_QSEARCH_NEW_02 DIALOGEX 6, 12, 542, 16
+FONT 8, "MS Shell Dlg", 0, 0
+STYLE WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN
+EXSTYLE WS_EX_CONTROLPARENT
+BEGIN
+    CONTROL "", IDC_ED_FINDTEXT, "Edit", WS_CHILD | WS_TABSTOP | ES_WANTRETURN | 
+            ES_AUTOHSCROLL | NOT WS_VISIBLE, 18, 2, 160, 13, WS_EX_CLIENTEDGE
+    CONTROL "", IDC_CB_FINDTEXT, "ComboBox", WS_CHILD | WS_TABSTOP | WS_VSCROLL | 
+            CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_HASSTRINGS | NOT WS_VISIBLE, 18, 2, 160, 100, WS_EX_CLIENTEDGE
+    CONTROL ">", IDC_BT_FINDNEXT, "Button", WS_VISIBLE | 
+            WS_CHILD | BS_PUSHBUTTON | WS_TABSTOP, 206, 2, 18, 12
+    CONTROL "<", IDC_BT_FINDPREV, "Button", WS_VISIBLE | 
+            WS_CHILD | BS_PUSHBUTTON | WS_TABSTOP, 184, 2, 18, 12
+    CONTROL "*", IDC_BT_FINDALL, "Button", WS_VISIBLE | 
+            WS_CHILD | BS_PUSHBUTTON | WS_TABSTOP, 228, 2, 18, 12
+    CONTROL "", IDC_PB_PROGRESS, "msctls_progress32", WS_CHILD | NOT WS_VISIBLE, 
+            254, 5, 108, 8
+    CONTROL "Match case", IDC_CH_MATCHCASE, "Button", WS_VISIBLE | 
+            WS_CHILD | WS_TABSTOP | BS_AUTOCHECKBOX, 252, 4, 62, 10
+    CONTROL "Whole word", IDC_CH_WHOLEWORD, "Button", WS_VISIBLE |
+            WS_CHILD | WS_TABSTOP | BS_AUTOCHECKBOX, 316, 4, 62, 10
+    CONTROL "Highlight all", IDC_CH_HIGHLIGHTALL, "Button", WS_VISIBLE |
+            WS_CHILD | WS_TABSTOP | BS_AUTOCHECKBOX, 380, 4, 56, 10
+    CONTROL "", IDC_ST_INFO, "Static", WS_CHILD | WS_VISIBLE, 438, 5, 100, 8
+    CONTROL "", IDC_BT_CANCEL, "Button", WS_VISIBLE | WS_CHILD | BS_FLAT | 
+            BS_PUSHBUTTON | BS_OWNERDRAW | BS_CENTER | BS_VCENTER, 4, 3, 10, 10
+END
+
+IDD_FINDALL_SETTINGS DIALOGEX 0,0,194,174
+CAPTION "QSearch - Find All - Output"
+FONT 8,"MS Shell Dlg",0,0,0
+STYLE WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|DS_MODALFRAME
+BEGIN
+  CONTROL "OK",IDC_BT_OK,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_DEFPUSHBUTTON,42,156,50,13
+  CONTROL "Cancel",IDC_BT_CANCEL,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP,98,156,50,13
+  CONTROL "Header: Searching for ""%s"" ...",IDC_CH_FA_HEADER,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,6,6,162,9
+  CONTROL "Position: (Ln:Pos)",IDC_CH_FA_POSITION,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,6,18,162,9
+  CONTROL "Length: (Len)",IDC_CH_FA_LENGTH,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,6,30,162,9
+  CONTROL "Whole line",IDC_RB_FA_WHOLELINE,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTORADIOBUTTON,6,42,162,9
+  CONTROL "Match only",IDC_RB_FA_MATCHONLY,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTORADIOBUTTON,6,52,162,11
+  // CONTROL "Footer: %d found.",IDC_CH_FA_FOOTER,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,6,66,162,8
+  CONTROL "Filter mode",IDC_CH_FA_FILTERMODE,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,6,66,162,8
+  CONTROL "Apply the syntax theme",IDC_CH_FA_SYNTAXTHEME,"Button",WS_CHILDWINDOW|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,6,82,162,9
+  CONTROL "Example:",IDC_ST_FA_EXAMPLE,"Static",WS_CHILDWINDOW|WS_VISIBLE,6,99,84,9
+  CONTROL "",IDC_ST_FA_EXAMPLE_DATA,"Static",WS_CHILDWINDOW|WS_VISIBLE,6,110,182,36,WS_EX_STATICEDGE
+END
+
+IDR_MENU_OPTIONS MENU
+BEGIN
+    POPUP "Options"
+    BEGIN
+        MENUITEM "Search: On-the-fly mode",                      IDM_SRCHONTHEFLYMODE
+        MENUITEM "Search: Always from beginning",                IDM_SRCHFROMBEGINNING
+        MENUITEM "Search: Use special characters ( \\n, \\t, * and ? )", IDM_SRCHUSESPECIALCHARS
+        MENUITEM "Search: Use regular expressions",              IDM_SRCHUSEREGEXP
+        MENUITEM "Search:  .  matches  \\n  in reg.expressions", IDM_SRCHREGEXPDOTNEWLINE
+        MENUITEM "Search: Pick up selected text",                IDM_SRCHPICKUPSELECTION
+        MENUITEM "Search: SelFind picks up selected text",       IDM_SRCHSELFINDPICKUP
+        MENUITEM "Search: Stop at EOF (end of file)",            IDM_SRCHSTOPEOF
+        MENUITEM ""                                              -1
+        MENUITEM "Window: Docked top",                           IDM_SRCHWNDDOCKEDTOP
+        MENUITEM "Window: Select all when focused",              IDM_EDITFOCUSSELECTALL
+        MENUITEM "Window: Catch main F3",                        IDM_CATCHMAINF3
+        MENUITEM "Window: Catch main Esc",                       IDM_CATCHMAINESC
+        MENUITEM "Window: Hotkey hides the panel",               IDM_HOTKEYHIDESPANEL
+        MENUITEM "Window: Editor auto-focus (on mouse move)",    IDM_EDITORAUTOFOCUSMOUSE
+        MENUITEM "Window: QSearch auto-focus (on mouse move)",   IDM_QSEARCHAUTOFOCUSMOUSE
+        MENUITEM "Window: QSearch auto-focus (on file open)",    IDM_QSEARCHAUTOFOCUSFILE
+    END
+
+    POPUP "Find All Options"
+    BEGIN
+        MENUITEM "Auto Count All",                               IDM_FINDALL_AUTO_COUNT
+        MENUITEM "",                                             -1
+        MENUITEM "Find All: Count Only",                         IDM_FINDALL_COUNTONLY
+        MENUITEM "Find All: Log Output",                         IDM_FINDALL_LOGOUTPUT
+        MENUITEM "Find All: File Output (N tabs)",               IDM_FINDALL_FILEOUTPUT_MULT
+        MENUITEM "Find All: File Output (1 tab)",                IDM_FINDALL_FILEOUTPUT_SNGL
+        MENUITEM "",                                             -1
+        MENUITEM "Output: Whole line",                           IDM_FINDALL_SHOWLINE
+        MENUITEM "Output: Match only",                           IDM_FINDALL_SHOWMATCHONLY
+        MENUITEM "Output: Filter mode",                          IDM_FINDALL_FILTERMODE
+        MENUITEM "",                                             -1
+        MENUITEM "Output options...",                            IDM_FINDALL_SETTINGSDLG
+    END
+END
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 7, 7, 0, 0
+ PRODUCTVERSION 7, 7, 0, 0
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "042204b0"
+        BEGIN
+            VALUE "Comments", "Pig is really neat! :-)"
+            VALUE "CompanyName", "Full of Madness Co."
+            VALUE "FileDescription", "QSearch plugin for AkelPad text editor"
+            VALUE "FileVersion", "7, 7, 0, 0"
+            VALUE "InternalName", "QSearch"
+            VALUE "LegalCopyright", "(C) Sep 2007 - May 2021, Vitaliy Dovgan aka DV"
+            VALUE "OriginalFilename", "QSearch.dll"
+            VALUE "ProductName", "QSearch plugin for AkelPad text editor"
+            VALUE "ProductVersion", "7, 7, 0, 0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x422, 1200
+    END
+END

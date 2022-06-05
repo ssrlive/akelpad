@@ -1,0 +1,8 @@
+﻿{CARET}
+PROGRAM {CARET};
+
+USES ;
+
+BEGIN
+	
+END.

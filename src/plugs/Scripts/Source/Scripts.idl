@@ -1,0 +1,402 @@
+[uuid(DB4185E2-3423-409f-B875-4ED126BF32C2), version(1.0), helpstring("AkelPad COM server")]
+library Scripts
+{
+  importlib("STDOLE2.TLB");
+
+  //- JScript and VBScript doesn't understand __int64 in return value
+  //- VBScript doesn't support UINT in return value
+  //- Solution: VARIANT is used for methods and all numbers more then 0xFFFFFFFF converted to VT_BSTR with first NULL symbol.
+
+  //WScript object
+  [uuid(DBE648AA-4858-4A34-B384-D1D5B78EE59A), dual, hidden, nonextensible]
+  interface IWScript : IDispatch
+  {
+    //Create arguments object.
+    [id(1), propget] HRESULT Arguments([out, retval] IDispatch **objWArguments);
+
+    //Returns the full path of the currently running script.
+    [id(2), propget] HRESULT ScriptFullName([out, retval] BSTR *);
+
+    //Returns the file name of the currently running script.
+    [id(3), propget] HRESULT ScriptName([out, retval] BSTR *);
+
+    //Returns the file base name of the currently running script.
+    [id(4), propget] HRESULT ScriptBaseName([out, retval] BSTR *);
+
+    //Returns the fully qualified path of the host library.
+    [id(5), propget] HRESULT FullName([out, retval] BSTR *);
+
+    //Returns the name of the directory containing the host library.
+    [id(6), propget] HRESULT Path([out, retval] BSTR *);
+
+    //Returns the file name of the host library.
+    [id(7), propget] HRESULT Name([out, retval] BSTR *);
+
+    //Displays message box text.
+    HRESULT Echo([in] BSTR wpText);
+
+    //Suspends script execution for a specified length of time, then continues execution.
+    HRESULT Sleep([in] int nTime);
+
+    //Forces script execution to stop at any time.
+    HRESULT Quit([in, defaultvalue(0)] int nErrorCode);
+
+    //Connect to object.
+    HRESULT ConnectObject([in] IDispatch *objConnectTo, [in] BSTR wpPrefix, [in, optional] VARIANT vtIID, [out, retval] int *nCount);
+
+    //Disconnect from object.
+    HRESULT DisconnectObject([in] IDispatch *objConnectTo);
+  };
+
+  //WScript.Arguments object
+  [uuid(DBE547D2-2917-4945-A73E-5E583C3F2EB8), helpstring("IWArguments object"), object]
+  interface IWArguments : IDispatch
+  {
+    //Retrive argument by index.
+    [id(DISPID_VALUE), propget] HRESULT Item(int nIndex, [out, retval] BSTR *wpItem);
+
+    //Get number of arguments.
+    [id(1), propget] HRESULT Length([out, retval] int *nItems);
+
+    //Get number of arguments.
+    HRESULT Count([out, retval] int *nItems);
+  };
+
+  //AkelPad object
+  [uuid(DBE0F625-75CE-44f7-B1EC-BCC83D5177BE), dual, hidden, nonextensible]
+  interface IDocument : IDispatch
+  {
+    //Create Constants object (make sense if Scripts.dll used as ActiveXObject).
+    [id(2), propget] HRESULT Constants([out, retval] IDispatch **objConstants);
+
+    //Create Global object (make sense if Scripts.dll used as ActiveXObject).
+    [id(3), propget] HRESULT Global([out, retval] IDispatch **objGlobal);
+
+    //Get main window handle.
+    HRESULT GetMainWnd([out, retval] VARIANT *vtWnd);
+
+    //Get AkelPad directory.
+    HRESULT GetAkelDir([in, defaultvalue(0)] int nSubDir, [out, retval] BSTR *wpDir);
+
+    //Get EXE instance handle.
+    HRESULT GetInstanceExe([out, retval] VARIANT *vtInstance);
+
+    //Get DLL instance handle.
+    HRESULT GetInstanceDll([out, retval] VARIANT *vtInstance);
+
+    //Get AkelPad language ID.
+    HRESULT GetLangId([in, defaultvalue(0)] int nType, [out, retval] int *nLangModule);
+
+    //Is non-Unicode Windows.
+    HRESULT IsOldWindows([out, retval] BOOL *bIsOld);
+
+    //Is AkelEdit control used.
+    HRESULT IsAkelEdit([in, defaultvalue(0)] VARIANT vtWnd, [out, retval] int *nIsAkelEdit);
+
+    //Is AkelPad in MDI mode.
+    HRESULT IsMDI([out, retval] int *nIsMDI);
+
+    //Get edit window handle.
+    HRESULT GetEditWnd([out, retval] VARIANT *vtWnd);
+
+    //Set edit window handle.
+    HRESULT SetEditWnd([in] VARIANT vtWnd, [out, retval] VARIANT *vtWndResult);
+
+    //Get edit document handle.
+    HRESULT GetEditDoc([out, retval] VARIANT *vtWnd);
+
+    //Get file name.
+    HRESULT GetEditFile([in] VARIANT vtWnd, [out, retval] BSTR *wpFile);
+
+    //Get file path.
+    HRESULT GetFilePath([in] BSTR wpFile, [in] int nPart, [out, retval] BSTR *wpPath);
+
+    //Get file code page.
+    HRESULT GetEditCodePage([in] VARIANT vtWnd, [out, retval] int *nCodePage);
+
+    //Get file BOM.
+    HRESULT GetEditBOM([in] VARIANT vtWnd, [out, retval] BOOL *bBOM);
+
+    //Get file new line format.
+    HRESULT GetEditNewLine([in] VARIANT vtWnd, [out, retval] int *nNewLine);
+
+    //Get file modified flag.
+    HRESULT GetEditModified([in] VARIANT vtWnd, [out, retval] BOOL *bModified);
+
+    //Get edit control's read only mode.
+    HRESULT GetEditReadOnly([in] VARIANT vtWnd, [out, retval] BOOL *bReadOnly);
+
+    //Set frame info.
+    HRESULT SetFrameInfo([in] VARIANT vtFrame, [in] int nType, [in] VARIANT vtData, [out, retval] BOOL *bResult);
+
+    //Send message.
+    HRESULT SendMessage([in] VARIANT vtWnd, [in] UINT uMsg, [in] VARIANT vtWParam, [in] VARIANT vtLParam, [out, retval] VARIANT *vtResult);
+
+    //Show message.
+    [vararg] HRESULT MessageBox([in] VARIANT vtWnd, [in] BSTR pText, [in] BSTR pCaption, [in] UINT uType, [in] SAFEARRAY(VARIANT) *psa, [out, retval] int *nResult);
+
+    //Input dialog box.
+    HRESULT InputBox([in] VARIANT vtWnd, [in] BSTR wpCaption, [in] BSTR wpLabel, [in] BSTR wpEdit, [out, retval] VARIANT *vtResult);
+
+    //Get selection first char index.
+    HRESULT GetSelStart([out, retval] VARIANT *vtSelStart);
+
+    //Get selection last char index.
+    HRESULT GetSelEnd([out, retval] VARIANT *vtSelEnd);
+
+    //Set selection.
+    HRESULT SetSel([in] VARIANT vtSelStart, [in] VARIANT vtSelEnd, [in, defaultvalue(0)] DWORD dwFlags, [in, defaultvalue(0)] DWORD dwType);
+
+    //Get selected text.
+    HRESULT GetSelText([in, defaultvalue(1)] int nNewLine, [out, retval] BSTR *wpText);
+
+    //Get text range.
+    HRESULT GetTextRange([in] VARIANT vtRangeStart, [in] VARIANT vtRangeEnd, [in, defaultvalue(1)] int nNewLine, [out, retval] BSTR *wpText);
+
+    //Replace selection.
+    HRESULT ReplaceSel([in] BSTR wpText, [in, defaultvalue(0)] int nSelect);
+
+    //Find text.
+    HRESULT TextFind([in] VARIANT vtWnd, [in] BSTR wpFindIt, [in] DWORD dwFlags, [out, retval] VARIANT *vtResult);
+
+    //Find and replace text.
+    HRESULT TextReplace([in] VARIANT vtWnd, [in] BSTR wpFindIt, [in] BSTR wpReplaceWith, [in] DWORD dwFindFlags, [in] DWORD dwReplaceFlags, [out, retval] VARIANT *vtResult);
+
+    //Get clipboard text.
+    HRESULT GetClipboardText([in, defaultvalue(FALSE)] BOOL bAnsi, [out, retval] BSTR *wpText);
+
+    //Set clipboard text.
+    HRESULT SetClipboardText([in] BSTR wpText);
+
+    //Is AkelPad plugin running.
+    HRESULT IsPluginRunning([in] BSTR wpFunction, [out, retval] BOOL *bRunning);
+
+    //Call AkelPad plugin.
+    [vararg] HRESULT Call([in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
+
+    //Call AkelPad plugin with Ansi strings.
+    [vararg] HRESULT CallA([in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
+
+    //Call AkelPad plugin with Unicode strings.
+    [vararg] HRESULT CallW([in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
+
+    //Call AkelPad plugin with flags.
+    [vararg] HRESULT CallEx([in] DWORD dwFlags, [in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
+
+    //Call AkelPad plugin with flags and Ansi strings.
+    [vararg] HRESULT CallExA([in] DWORD dwFlags, [in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
+
+    //Call AkelPad plugin with flags and Unicode strings.
+    [vararg] HRESULT CallExW([in] DWORD dwFlags, [in] BSTR wpFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
+
+    //Execute program.
+    HRESULT Exec([in] BSTR wpCmdLine, [in, defaultvalue(L"")] BSTR wpWorkDir, [in, defaultvalue(0)] int nWait, [in, defaultvalue(-1)] int nShowWindow, [out, retval] DWORD *dwExit);
+
+    //Send internal command.
+    HRESULT Command([in] int nCommand, [in, defaultvalue(0)] VARIANT vtLParam, [out, retval] VARIANT *vtResult);
+
+    //Set font.
+    HRESULT Font([in] BSTR wpFaceName, [in] DWORD dwFontStyle, [in] int nPointSize);
+
+    //Recode selection.
+    HRESULT Recode([in] int nCodePageFrom, [in] int nCodePageTo);
+
+    //Include file.
+    //0xD == ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM
+    HRESULT Include([in] BSTR wpFileName, [in, defaultvalue(0xD)] DWORD dwFlags, [in, defaultvalue(0)] int nCodePage, [in, defaultvalue(0)] BOOL bBOM, [out, retval] BOOL *bResult);
+
+    //Detect is script executed with AkelPad.Include() method.
+    HRESULT IsInclude([out, retval] BSTR *wpFileName);
+
+    //Open file.
+    //0xD == OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM
+    HRESULT OpenFile([in] BSTR wpFile, [in, defaultvalue(0xD)] DWORD dwFlags, [in, defaultvalue(0)] int nCodePage, [in, defaultvalue(0)] BOOL bBOM, [out, retval] int *nResult);
+
+    //Read contents of a file.
+    //0xD == ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM
+    HRESULT ReadFile([in] BSTR wpFile, [in, defaultvalue(0xD)] DWORD dwFlags, [in, defaultvalue(0)] int nCodePage, [in, defaultvalue(0)] BOOL bBOM, [in, defaultvalue(-1)] VARIANT vtBytesMax, [out, retval] BSTR *wpText);
+
+    //Write file contents.
+    HRESULT WriteFile([in] VARIANT vtFile, [in] BSTR wpContent, [in] VARIANT vtContentLen, [in] int nCodePage, [in] BOOL bBOM, [in, defaultvalue(0)] DWORD dwFlags, [out, retval] int *nResult);
+
+    //Save file.
+    HRESULT SaveFile([in] VARIANT vtWnd, [in] BSTR wpFile, [in, defaultvalue(-1)] int nCodePage, [in, defaultvalue(-1)] BOOL bBOM, [in, defaultvalue(0x1)] DWORD dwFlags, [in, defaultvalue(0)] VARIANT vtDoc, [out, retval] int *nResult);
+
+    //Create script settings object.
+    HRESULT ScriptSettings([out, retval] IDispatch **objSet);
+
+    //Create system function object.
+    HRESULT SystemFunction([out, retval] IDispatch **objSys);
+
+    //Allocate memory.
+    HRESULT MemAlloc([in] VARIANT vtSize, [out, retval] VARIANT *vtPointer);
+
+    //Copy memory.
+    HRESULT MemCopy([in] VARIANT vtPointer, [in] VARIANT vtData, [in] DWORD dwType, [in, defaultvalue(-1)] int nDataLen, [out, retval] int *nBytes);
+
+    //Read memory.
+    HRESULT MemRead([in] VARIANT vtPointer, [in] DWORD dwType, [in, defaultvalue(-1)] int nDataLen, [out, retval] VARIANT *vtData);
+
+    //Get pointer to a script string.
+    HRESULT MemStrPtr([in] BSTR wpString, [in, defaultvalue(0)] BOOL bConvert, [out, retval] VARIANT *vtPointer);
+
+    //Get string representation of a pointer.
+    HRESULT MemPtrStr([in] VARIANT vtPointer, [out, retval] BSTR *wpString);
+
+    //Free memory.
+    HRESULT MemFree([in] VARIANT vtPointer);
+
+    //IDE debugging.
+    HRESULT DebugJIT();
+
+    //AkelPad debugging.
+    HRESULT Debug([in, defaultvalue(0x1f)] DWORD dwDebug, [out, retval] DWORD *dwResult);
+
+    //Get variable type.
+    HRESULT VarType([in] VARIANT vtData, [out, retval] int *nType);
+
+    //Get IDispatch object of a pointer.
+    HRESULT VarDispatch([in] VARIANT vtPointer, [out, retval] IDispatch **objDispatch);
+
+    //Get argument line.
+    HRESULT GetArgLine([in, defaultvalue(1)] BOOL bNoEncloseQuotes, [out, retval] BSTR *wpArgLine);
+
+    //Get argument value. Arguments example: `-ArgName1=Value1 -ArgName2="Value2" /ArgName3=Value3`.
+    HRESULT GetArgValue([in] BSTR wpArgName, [in] VARIANT vtDefault, [out, retval] VARIANT *vtResult);
+
+    //Create dialog.
+    [vararg] HRESULT CreateDialog([in] DWORD dwExStyle, [in] VARIANT vtClassName, [in] VARIANT vtTitle, [in] DWORD dwStyle, [in] int x, [in] int y, [in] int nWidth, [in] int nHeight, [in] VARIANT vtWndParent, [in] VARIANT vtParam, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtWnd);
+
+    //Register window class.
+    [vararg] HRESULT WindowRegisterClass([in] BSTR wpClassName, [in] SAFEARRAY(VARIANT) *psa, [out, retval] WORD *wAtom);
+
+    //Unregister window class.
+    HRESULT WindowUnregisterClass([in] BSTR wpClassName, [out, retval] BOOL *bResult);
+
+    //Register dialog.
+    HRESULT WindowRegisterDialog([in] VARIANT vtDlg, [out, retval] BOOL *bResult);
+
+    //Unregister dialog.
+    HRESULT WindowUnregisterDialog([in] VARIANT vtDlg, [out, retval] BOOL *bResult);
+
+    //Process thread messages (message loop).
+    HRESULT WindowGetMessage([in, defaultvalue(0x0)] DWORD dwFlags);
+
+    //Subclass window.
+    [vararg] HRESULT WindowSubClass([in] VARIANT vtWnd, [in] IDispatch *objFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtCallbackItem);
+
+    //Send message to the next procedure in chain.
+    HRESULT WindowNextProc([in] VARIANT vtCallbackItem, [in] VARIANT vtWnd, [in] UINT uMsg, [in] VARIANT vtWParam, [in] VARIANT vtLParam, [out, retval] VARIANT *vtResult);
+
+    //Don't send current message to the next procedure in chain.
+    HRESULT WindowNoNextProc([in] VARIANT vtCallbackItem);
+
+    //Unsubclass window.
+    HRESULT WindowUnsubClass([in] VARIANT vtWnd);
+
+    //Installs an application-defined hook procedure into a hook chain.
+    [vararg] HRESULT ThreadHook([in] int idHook, [in] IDispatch *objCallback, [in] DWORD dwThreadId, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtHook);
+
+    //Removes a hook procedure installed in a hook chain.
+    HRESULT ThreadUnhook([in] VARIANT vtHook, [out, retval] BOOL *bResult);
+
+    //Remove synchronization object.
+    HRESULT ScriptNoMutex([in, defaultvalue(0x1)] DWORD dwUnlockType, [out, retval] DWORD *dwResult);
+
+    //Set script exit code.
+    HRESULT ScriptExitCode([in] VARIANT vtExitCode, [out, retval] BOOL *bResult);
+
+    //Different operations with script.
+    HRESULT ScriptHandle([in] VARIANT vtData, [in] int nOperation, [out, retval] VARIANT *vtResult);
+
+    //Connect to object.
+    HRESULT ConnectObject([in] IDispatch *objConnectTo, [in] BSTR wpPrefix, [in, optional] VARIANT vtIID, [out, retval] int *nCount);
+
+    //Disconnect from object.
+    HRESULT DisconnectObject([in] IDispatch *objConnectTo);
+
+    //Get ActiveX "this" object.
+    HRESULT ActiveXThis([in] IDispatch *objThis);
+  };
+
+  //AkelPad.ScriptSettings object
+  [uuid(DBB05F25-85CB-49F6-AB04-FF91253D644F), helpstring("IScriptSettings object"), object]
+  interface IScriptSettings : IDispatch
+  {
+    //Begin settings operations.
+    HRESULT Begin([in] BSTR wpScriptName, [in] DWORD dwFlags, [out, retval] VARIANT *vtOptions);
+
+    //Read option.
+    HRESULT Read([in] VARIANT vtOptionName, [in] DWORD dwType, [in, optional] VARIANT vtDefault, [out, retval] VARIANT *vtData);
+
+    //Write option.
+    HRESULT Write([in] BSTR wpOptionName, [in] DWORD dwType, [in] VARIANT vtData, [in, defaultvalue(-1)] int nDataSize, [out, retval] int *nResult);
+
+    //Delete option.
+    HRESULT Delete([in] BSTR wpOptionName, [out, retval] BOOL *bResult);
+
+    //End settings operations.
+    HRESULT End([out, retval] BOOL *bResult);
+  };
+
+  //AkelPad.SystemFunction object
+  [uuid(DBB12030-4BEF-4bbe-AAD1-0A01B27084F9), helpstring("ISystemFunction object"), object]
+  interface ISystemFunction : IDispatch
+  {
+    //Add function parameter.
+    HRESULT AddParameter([in] VARIANT vtParameter);
+
+    //Call system function.
+    [vararg] HRESULT Call([in] VARIANT vtDllFunction, [in] SAFEARRAY(VARIANT) *psa, [out, retval] VARIANT *vtResult);
+
+    //Get call function last error.
+    HRESULT GetLastError([out, retval] DWORD *dwLastError);
+
+    //Register callback procedure.
+    HRESULT RegisterCallback([in] IDispatch *objCallback, [in, defaultvalue(-1)] int nArgCount, [out, retval] VARIANT *vtFunction);
+
+    //Unregister callback procedure.
+    HRESULT UnregisterCallback([in] IDispatch *objFunction);
+  };
+
+  //Constants global object
+  [uuid(DBE70A70-CA74-498B-90B7-BA51018162BC), dual, hidden, nonextensible]
+  interface IConstants : IDispatch
+  {
+    //A - for Win9x or W for WinNT.
+    [id(1), propget] HRESULT _TCHAR([out, retval] BSTR *wpChar);
+    [id(101), propget] HRESULT vbTCHAR([out, retval] BSTR *wpChar);
+
+    //0 - for Win9x or 1 for WinNT.
+    [id(2), propget] HRESULT _TSTR([out, retval] int *nStr);
+    [id(102), propget] HRESULT vbTSTR([out, retval] int *nStr);
+
+    //1 - for Win9x or 2 for WinNT.
+    [id(3), propget] HRESULT _TSIZE([out, retval] int *nSize);
+    [id(103), propget] HRESULT vbTSIZE([out, retval] int *nSize);
+
+    //0 - for x86 or 1 for x64.
+    [id(4), propget] HRESULT _X64([out, retval] BOOL *b64);
+    [id(104), propget] HRESULT vbX64([out, retval] BOOL *b64);
+  };
+
+  //Global object
+  [uuid(DBE5362E-84AA-46C4-820D-7462E7F6E365), dual, hidden, nonextensible]
+  interface IGlobal : IDispatch
+  {
+    //Add value to a pointer.
+    [id(201), propget] HRESULT _PtrAdd([in] VARIANT vtPointer1, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
+    [id(301), propget] HRESULT vbPtrAdd([in] VARIANT vtPointer1, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
+
+    //Do mathematical operation with pointers.
+    [id(202), propget] HRESULT _PtrMath([in] VARIANT vtPointer1, [in] BSTR wpSign, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
+    [id(302), propget] HRESULT vbPtrMath([in] VARIANT vtPointer1, [in] BSTR wpSign, [in] VARIANT vtPointer2, [out, retval] VARIANT *vtPointerResult);
+  };
+
+  //AkelPad object.
+  [uuid(DB045777-BAFF-416b-AA8E-A154E6A64A88), appobject]
+  coclass Document
+  {
+    [default] interface IDocument;
+  }
+}

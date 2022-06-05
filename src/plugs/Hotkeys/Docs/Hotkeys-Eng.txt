@@ -1,0 +1,168 @@
+*****************************************************************
+***                Hotkeys AkelPad plugin v6.5                ***
+*****************************************************************
+
+2008-2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Assign user hotkeys.
+
+
+*** Functions ***
+
+Hotkeys::Main
+Main function plugin.
+
+
+*** Syntax ***
+
+Variables:
+  %f active file
+  %d directory of active file
+  %a AkelPad's directory
+  %% symbol %
+  %system variable%
+
+Methods:
+  [Command() | Call() | +Call() | Exec() | OpenFile() | SaveFile() | Font() | Recode() | Insert()]
+    Command(number)
+      Command(4162)
+        method calls the internal command at number 4162. In this case this code
+        is responsible for opening a dialog box "Go to line...".
+        For the full list of commands: see AkelHelp-Eng.htm or AkelDLL.h in source code of a plugin.
+      Command(0)
+        method blocks hotkey.
+      Command(-1)
+        method calls the standard hotkey processing, ignoring the accelerators table.
+    Call("Plugin::Function"[, additional parameters])
+      Call("Scripts::Main")
+        method calls Scripts plugin and Main function.
+    +Call("Plugin::Function"[, additional parameters])
+      +Call("LineBoard::Main")
+        method calls LineBoard plugin and Main function. Plug-in will work also after
+        program restart.
+    Exec("command line"[, "working directory"][, Wait][, WindowStyle])
+      "command line"
+        Command line string.
+      "working directory"
+        Working directory string. Default is "".
+      Wait
+        Wait until the program finishes. 1 - wait, 0 - return immediately (default).
+      WindowStyle (one of the following):
+        0 hidden window.
+        1 window as is (by default).
+        2 minimized window.
+        3 maximized window.
+        6 minimized, inactive window.
+        9 non-maximized window.
+        Note: programs could ignore this parameter.
+      Exec("notepad.exe")
+        method calls notepad.
+      Exec(`notepad.exe`)
+        method calls notepad.
+      Exec('notepad.exe')
+        method calls notepad.
+      Exec('%windir%\notepad.exe')
+        method calls notepad.
+      Exec(`rundll32.exe shell32,ShellExec_RunDLL "%f"`, "%d")
+        method pass an active file for opening on Windows association.
+    OpenFile("file"[, OpenCodepage][, OpenBOM])
+      "file"
+        File to open.
+      OpenCodepage
+        Open codepage. If -1 or not specified, it will be autodetected.
+      OpenBOM
+        File byte order mark. If -1 or not specified, it will be autodetected.
+      OpenFile("C:\File.txt", 65001, -1)
+        method opens file in UTF-8 codepage.
+    SaveFile("file"[, SaveCodepage][, SaveBOM])
+      "file"
+        Save current document to a specified file name.
+      SaveCodepage
+        Save codepage. If -1 or not specified, current codepage will be used.
+      SaveBOM
+        File byte order mark. 1 - exist, 0 - doesn't exist, -1 or not specified - current BOM will be used.
+      SaveFile("C:\File.txt", 65001, 0)
+        method saves file in UTF-8 codepage without BOM.
+    Font("FaceName", Style, Size)
+      "FaceName"
+        Font face, for example, "Courier". Unchanged, if "".
+      Style (one of the following):
+        0  ignored.
+        1  normal.
+        2  bold.
+        3  italic.
+        4  bold italic.
+      Size
+        Font size. Unchanged, if 0.
+      Font("Courier", 4, 10)
+        method sets Courier bold italic font with 10 pt.
+    Recode(RecodeFrom, RecodeTo)
+      RecodeFrom
+        Codepage source. If -1, it will be autodetected.
+      RecodeTo
+        Codepage target. If -1, it will be autodetected.
+      Recode(1252, 437)
+        method recodes the text from 1252 codepage to 437.
+    Insert("text"[, Esc-sequences])
+      "text"
+        Inserted text.
+      Esc-sequences:
+        0  "text" isn't contain Esc-sequences (default).
+        1  "text" contain Esc-sequences. A set of sequences similar to the
+           find/replace dialog in the program, and also:
+           "\s" - replaced by the selected text of the editing window;
+           "\|" - set the caret position after text insertion.
+      Insert("Some string")
+        method replaces selection with the specified text.
+      Insert("<B>\s</B>", 1)
+        method enclose selection.
+      Insert("\[0031 0032 0033]", 1)
+        method replaces selection with "123".
+
+Examples:
+  "Recode selection" Command(4182)
+  "" Command(4182)
+  "Sort lines" Call("Format::LineSortStrAsc")
+  -"Spell check" Call("Scripts::Main", 1, "SpellCheck.js", "")
+  "Syntax highlighting" +Call("Coder::Highlight")
+  "Registry editor" Exec("regedit.exe")
+
+
+*** External call ***
+
+Call("Hotkeys::Main", 1, HOTKEY, *BOOL, *NAME, NAMELENGTH)
+  Parameters:
+    1
+      Check hotkey existence in the plugin. Use with Scripts plugin.
+    HOTKEY
+      Hotkey code.
+    *BOOL
+      Pointer to a BOOL variable. Can be NULL.
+    *NAME
+      Pointer to a buffer, that receives hotkey name. Can be NULL.
+    NAMELENGTH
+      Maximum number of symbols that NAME can receive.
+  Example:
+    WScript.Echo(GetHotkeyName(118));
+
+    function GetHotkeyName(nHotkey)
+    {
+      var pHotkeyName="";
+      var lpHotkeyName;
+
+      if (lpHotkeyName=AkelPad.MemAlloc(256 * 2 /*sizeof(wchar_t)*/))
+      {
+        AkelPad.CallW("Hotkeys::Main", 1, nHotkey, 0, lpHotkeyName, 256);
+        pHotkeyName=AkelPad.MemRead(lpHotkeyName, 1 /*DT_UNICODE*/);
+        AkelPad.MemFree(lpHotkeyName);
+      }
+      return pHotkeyName;
+    }
+
+Call("Hotkeys::Main", 10)
+  Parameters:
+    10
+      Start/stop plugin without dialog.

@@ -1,0 +1,144 @@
+﻿/**
+ *		SpellChecker for AkelPad
+ *		Panych Y.W. aka FeyFre (c) 2010-2012 (panych.y@gmail.com)
+ *
+ *		This piece of software is distributed under BSD license.
+ *		AkelPad is property of its copyright holders.
+ *		The New Aspell Copyright (C) 2001-2002 by Kevin Atkinson under the GNU LGPL
+ *		license version 2.0 or 2.1.
+ */ 
+
+Description
+
+Plugin allows to check of current word, selection or the entire document using ASpell system, as well as inline highlighting misspelled words. Also possible to create whitelist of words not included into any dictionary.
+
+Installation:
+To use the plugin requires Aspell core and its dictionaries (developed and tested on version 0.50.3.3 http://aspell.net/win32/)
+By default installed kernel is searched in the folder <AkelPadDir>\AkelFiles\Plugs\SpellCheck
+
+HOWTO install ASpell:
+1. Download Aspell core http://ftp.gnu.org/gnu/aspell/w32/Aspell-0-50-3-3-Setup.exe
+2. Install it into handfull path.
+3. There are a listing of available dictionaries on WEB-site http://aspell.net/win32/ . Download you need.
+4. Install dictionaries(install in most case can automatically detect Aspell core installation path)
+NOTE: there are some bug in installer so be ready:
+1) Installer creates temporary folder TmpInstall near by installer itself so there is possibility it will not work on read-only devices.
+2) After finishing installer does not deletes temporary folder TmpInstall, so there are might be conflicts during installation a couple of dictionaries in a row. You should manually delete this folder after each installation.
+3) During starting process withing windows console(Command Line, Far Manager, etc) installer destroys it not finishing process owned it. In order to prevent this behavior it is recommended to start installer using command start <dict-installer-name.exe>
+
+Plugin implements following functions:
+
+CheckSelection	- checks the current word or selection, suggesting erroneous words
+CheckDocument	- checks the current text being edited
+Settings		- configure the plugin
+Background		- turn on/off background highlighting errors (you can set it to autorun)
+Suggest			- displays list of suggested substitution of current misspelled word(under the caret). It is recommended to assign a hot key.
+
+
+Customizable plugin options :
+ - Checking language(Jargon - language extension)
+ - Option to process unknown words as erroneous
+ - Optional highlighting of the current word being corrected
+ - Underscore style of inline checks
+ - Underscore color
+ - Whitelists usage
+ - List of dictionaries prohibited to be used in background check
+
+Options CheckSelection, CheckDocument can be called by two additional parameters (using ToolBar plugin, etc):
+Syntax
+Call("SpellCheck::CheckSelection",<lang>,<jargon>)
+<lang>      - string, language.
+<jargon>    - string, language jargon? can be an empty string. The list of available language pairs, jargon watch settings (up to the brackets - the language in brackets - jargon)
+If they are given, then the appropriate plug-in settings are ignored.
+For example:
+Call("SpellCheck::CheckSelection","en","")					-- English
+Call("SpellCheck::CheckSelection","en_GB","")				-- English(GB)
+Call("SpellCheck::CheckSelection","en_GB","w-accents")		-- English(GB) jargon w-accents
+Call("SpellCheck::CheckSelection","uk","")					-- Ukrainian
+Call("SpellCheck::CheckSelection","ru","")					-- Russian
+
+
+To quickly change the settings Settings function also can be invoked with parameters
+Call ( "SpellCheck:: Settings", <code>, <arg1>, <arg2>)
+
+<code> 				- the number of code settings that you want to change
+<arg1>, <arg2> 		- the setting values. Type is determined by the code
+
+<code> = 0	language and jargon.
+	<arg1> - string, language
+	<arg2> - string, jargon
+
+<code> = 2	processing of unknown words as erroneous
+	<arg1> - number, 0 - off
+
+<code> = 3	lights fix words
+	<arg1> - number, 0 - off
+
+<code> = 4	underscores style
+	<arg1> - number, color, underline, RGB in decimal representation (R * 1 + G * 256 + B * 256 * 256), for example
+			red   = RGB (255,0,0) = 255 * 1 +   0 * 256 +   0 * 256 * 256 = 255
+			green = RGB (255,0,0) = 255 * 0 + 255 * 256 +   0 * 256 * 256 = 65280
+			blue  = RGB (255,0,0) = 255 * 0 +   0 * 255 + 256 * 256 * 256 = 16711680
+	<arg2> - number. Valid values:
+		0 - solid line				"---------"
+		1 - dash 					"-- -- -- "
+		2 - dotted line				". . . . ."
+		3 - dash-dot				"-. -. -. "
+		4 - dash-dot-dot			"- .. - .."
+		5 - dotted line(compact)	"........."
+		6 - waved line				"~~~~~~~~~"
+
+<code> = 5	Set the path to ASpell core(the change will be applied after full plugin reload)
+	<arg1> - string, path to the core.
+
+<code> = 6	enable processing of white list
+	<arg1> - number, 0- off
+
+The rules to specify the path to ASpell core:
+
+1. If this parameter is empty, the search is executed in the default path(<AkelPadDir>\AkelFiles\Plugs\SpellCheck)
+2. If the parameter begins with HKLM or HKCU - it is the full path in the Registry to a key of string type(REG_SZ) that specifies the path to the module ASpell aspell-15.dll
+3. In other cases, it is considered as full path to ASpell core DLL on the file system (including the DLL name itself)
+   To specify a relative path (to editor directory) path must begin with ".\" without quotes, for example if the module located in the folder above the level relatively AkelPad folder called my_aspell.dll the setting should look like this: ".\..\my_aspell.dll"
+
+Background function uses whitelists associated with file type(determined by extension) by default. It is possible to force non-default whitelist. To do that you can call Background function with extra argument - extension string, for instance using ToolBar plugin:
+Call("SpellCheck::Background",0,"cpp")
+
+To revert to default white list you can use next call.
+Call("SpellCheck::Background",0,0)
+
+Whitelist creation.
+
+Whitelists are searched in folder <AkelPadDir>\AkelFiles\Plugs\SpellCheck. Will be processed all files which have SPCK extension. Syntax:
+
+Leading whitespaces in each line are ignored
+Lines with first(only first) non-whitespace symbol ";" are ignored(comments)
+In order to add extension associated with given words use next construction:
+
++extension
+
+(new line, begins with "+", followed by extension without leading and tailing whitespaces)
+
+Each word located in own line.
+In order to do case-insensitive spellchecks add vertical slash(|) immediately before word
+Words will be associated with all declared above extensions. In order to exclude extension use next construction:
+
+-extension
+
+(new line, begins with "-", followed by extension without leading and tailing whitespaces)
+
+File can be saved in any encoding and end-line style among those can be autodetected by AkelPad itself.
+It is also possible dynamically extend whiltelists, using next plugin call syntax:
+
+Call("SpellCheck::Background", 1, whitelist_definition_data)
+where whitelist_definition_data has the same format as whitelist files(So because of non-compact format it is recommended to call this function from Scripts plugin). Such dynamically extended whitelists will be lost during plugin unload.
+
+
+
+The mechanism of delayed background check was added for users of the old/slow/high loaded hardware.
+Now, during rapid text editing(or rapid navigation) background checks(and underscroring) can be delayed until when it safe to do w/o performance impact.
+The mechanism is off by default, can be activated using manual option(configuration files/registry):
+dealyback - activates function, accepts values of 0(not active) and 1.
+delaytime - time in ms, period of user activity checks. Default is 500ms, however set of values less than 100ms is not recommended. 
+
+NOTE: plugin requires WindowsXP SP2/Windows 2003 or newer environment

@@ -1,0 +1,29 @@
+#include <winresrc.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION 2,4,0,0
+PRODUCTVERSION 0,0,0,0
+FILEOS 0x00000004
+FILETYPE 0x00000002
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "042204B0"
+    BEGIN
+      VALUE "Comments", "\0"
+      VALUE "CompanyName", "\0"
+      VALUE "FileDescription", "SmartSel plugin for AkelPad text editor\0"
+      VALUE "FileVersion", "0, 0, 0, 0\0"
+      VALUE "InternalName", "SmartSel\0"
+      VALUE "LegalCopyright", "\0"
+      VALUE "OriginalFilename", "SmartSel.dll\0"
+      VALUE "ProductName", " SmartSel plugin for AkelPad text editor\0"
+      VALUE "ProductVersion", "0, 0, 0, 0\0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0422, 0x04B0
+  END
+END
+

@@ -1,0 +1,105 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define PRODUCTNAME ""AkelPad""\r\n"
+    "#define ORIGINALFILENAME ""shellext.dll""\r\n"
+    "#if RC_VERSIONBIT==64\r\n"
+    "  #define RC_VERSIONDESCRIPTION PRODUCTNAME "" (x64) text editor shell extension""\r\n"
+    "#else\r\n"
+    "  #define RC_VERSIONDESCRIPTION PRODUCTNAME "" (x86) text editor shell extension""\r\n"
+    "#endif\r\n"
+    "#include ""Version.rc""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// REGISTRY
+//
+
+IDR_APPSHELLEXT         REGISTRY                "appshellext.rgs"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_PROGRAM             ICON                    "appshellext.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_OPEN_WITH           "Open with %s"
+    IDS_ERROR               "Error"
+    IDS_NO_PROG             "Can't find application %s"
+    IDS_OPEN_WITH_2         "Open the selected file(s) with %s"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define PRODUCTNAME "AkelPad"
+#define ORIGINALFILENAME "shellext.dll"
+#if RC_VERSIONBIT==64
+  #define RC_VERSIONDESCRIPTION PRODUCTNAME " (x64) text editor shell extension"
+#else
+  #define RC_VERSIONDESCRIPTION PRODUCTNAME " (x86) text editor shell extension"
+#endif
+#include "Version.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

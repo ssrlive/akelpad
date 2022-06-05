@@ -1,0 +1,2220 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+<title>&nbsp;AkelPad 4 - Help </title>
+</head>
+
+<body bgcolor="#dadae0">
+
+<font color=green><h2>AkelPad 4 - User's Manual</h2></font>
+
+<h3>Contents:</h3>
+<ol>
+  <li><a href=#ch0>Compatibility</a>
+  <li><a href=#ch1>General remarks</a>
+  <li><a href=#ch2>Features</a>
+  <li><a href=#ch3>Command line parameters</a>
+  <li><a href=#ch4>Manual settings</a>
+  <li><a href=#ch5>Keyboard commands</a>
+  <li><a href=#ch6>Internal commands</a>
+  <li><a href=#ch7>Regular expression syntax</a>
+  <li><a href=#ch8>License</a>
+  <li><a href=#ch9>Contributors</a>
+</ol>
+
+<a name=ch0><h3>Compatibility</h3></a>
+  Program is intended to work under Windows 95/98/Me and Windows NT 4.0/2000/XP/2003/Vista/Seven/8.
+
+<a name=ch1><h3>General remarks</h3></a>
+  Notepad is a wonderful editor, being used to edit files in plain text format, thus it is irreplaceable for programming, designing of Web documents, and so on. However, the one comprised in Windows, is very inconvenient due to several limitations. This program claims to be able to fill up these drawbacks.
+  <br><i>Note:</i> this program takes a lot of advantages from Unicode representation. It is strongly recommended that you set up TrueType font (as Courier New) to gain more advantages from this feature.
+
+<a name=ch2><h3>Features</h3></a>
+  Brief description of general features:
+  <ul>
+    <li>Single window (SDI), multi-window (MDI) and pseudo multi-window modes (PMDI);
+    <li>Full support of Unicode strings on Unicode systems (NT/2000/XP/2003/Vista/Seven);
+    <li>Support of Unicode codepages (UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE);
+    <li>Support of any codepage installed in the system;
+    <li>Support of DOS/Windows, Unix and Mac newline formats;
+    <li>Preview file before opening;
+    <li>Correct pseudographics displaying;
+    <li>Column text selection;
+    <li>Multi-level undo;
+    <li>Fast search/replace text strings;
+    <li>Remember file codepage and caret position;
+    <li>Printing of a document and print preview;
+    <li>Support of language modules;
+    <li>Plugins support (syntax highlighting, folding, auto-completion, scripts execution, keyboard macros and much more).
+  </ul>
+
+<a name=ch3><h3>Command line parameters</h3></a>
+  AkelPad.exe [parameters] "file1.ext" [parameters] "file2.ext" [parameters] ...
+  <ul>
+    <table cellspacing=0 cellpadding=0 border=0>
+      <tr>
+        <td width="80"><li><b>/x</b></td>
+        <td>- don't use MS Notepad compatibility mode when parsing command line parameters.</td>
+      </tr>
+      <tr>
+        <td><li><b>/p</b></td>
+        <td>- print next file and close it.</td>
+      </tr>
+      <tr>
+        <td><li><b>/C+</b></td>
+        <td>- silently create new file, if it doesn't exist.</td>
+      </tr>
+      <tr>
+        <td><li><b>/C-</b></td>
+        <td>- don't create new file, if it doesn't exist.</td>
+      </tr>
+      <tr>
+        <td><li><b>/C</b></td>
+        <td>- ask for new file creation, if it doesn't exist (by default).</td>
+      </tr>
+      <tr>
+        <td><li><b>/B+</b></td>
+        <td>- silently open file, if binary.</td>
+      </tr>
+      <tr>
+        <td><li><b>/B-</b></td>
+        <td>- don't open file, if binary.</td>
+      </tr>
+      <tr>
+        <td><li><b>/B</b></td>
+        <td>- ask for file open, if binary (by default).</td>
+      </tr>
+      <tr>
+        <td><li><b>/L+</b></td>
+        <td>- silently save file, even if symbols will be lost in specified encoding.</td>
+      </tr>
+      <tr>
+        <td><li><b>/L-</b></td>
+        <td>- don't save file, if symbols will be lost in specified encoding.</td>
+      </tr>
+      <tr>
+        <td><li><b>/L</b></td>
+        <td>- ask for file save, if symbols will be lost in specified encoding (by default).</td>
+      </tr>
+      <tr>
+        <td><li><b>/Z</b></td>
+        <td>- ignore next command line parameter.</td>
+      </tr>
+      <tr>
+        <td><li><b>/NewInstance</b></td>
+        <td>- force create new program instance.</td>
+      </tr>
+      <tr>
+        <td><li><b>/MainClass("MyAkelPad4")</b></td>
+        <td>- set class name for a new program instance. Name could contain variable %d, which is replaced with process id.</td>
+      </tr>
+      <tr>
+        <td><li><b>/Reassoc</b></td>
+        <td>- reinstall assigned earlier associations of file types.</td>
+      </tr>
+      <tr>
+        <td><li><b>/Deassoc</b></td>
+        <td>- uninstall assigned earlier associations of file types.</td>
+      </tr>
+      <tr>
+        <td><li><b>/Quit</b></td>
+        <td>- stop parsing command line parameters and close program.</td>
+      </tr>
+      <tr>
+        <td><li><b>/End</b></td>
+        <td>- stop parsing command line parameters.</td>
+      </tr>
+    </table>
+
+    <table>
+      <tr>
+        <td>
+          <br>
+          <a name=methods><div style="margin-top:10px">Methods:</div></a>
+
+          <div style="margin-top:10px"><li><b>/Show(MainWindowStyle)</b></div>
+          <div style="margin-left:30px">MainWindowStyle</div>
+            <div style="margin-left:60px">0 hidden window.</div>
+            <div style="margin-left:60px">1 window as is (by default).</div>
+            <div style="margin-left:60px">2 minimized window.</div>
+            <div style="margin-left:60px">3 maximized window.</div>
+            <div style="margin-left:60px">6 minimized, inactive window.</div>
+            <div style="margin-left:60px">9 non-maximized window.</div>
+          <div style="margin-left:30px">/Show(2)</div>
+            <div style="margin-left:60px">method shows main window in minimized style.</div>
+
+          <div style="margin-top:10px"><li><b>/OpenFile("file"[, OpenCodepage][, OpenBOM])</b></div>
+          <div style="margin-left:30px">"file"</div>
+            <div style="margin-left:60px">File to open.</div>
+          <div style="margin-left:30px">OpenCodepage</div>
+            <div style="margin-left:60px">Open codepage. If -1 or not specified, it will be autodetected.</div>
+          <div style="margin-left:30px">OpenBOM</div>
+            <div style="margin-left:60px">File byte order mark. If -1 or not specified, it will be autodetected.</div>
+          <div style="margin-left:30px">/OpenFile("C:\File.txt", 65001, -1)</div>
+            <div style="margin-left:60px">method opens file in UTF-8 codepage.</div>
+
+          <div style="margin-top:10px"><li><b>/SaveFile("file"[, SaveCodepage][, SaveBOM])</b></div>
+          <div style="margin-left:30px">"file"</div>
+            <div style="margin-left:60px">Save current document to a specified file name. If "", current file will be used.</div>
+          <div style="margin-left:30px">SaveCodepage</div>
+            <div style="margin-left:60px">Save codepage. If -1 or not specified, current codepage will be used.</div>
+          <div style="margin-left:30px">SaveBOM</div>
+            <div style="margin-left:60px">File byte order mark. 1 - exist, 0 - doesn't exist, -1 or not specified - current BOM will be used.</div>
+          <div style="margin-left:30px">/SaveFile("C:\File.txt", 65001, 0)</div>
+            <div style="margin-left:60px">method saves file in UTF-8 codepage without BOM.</div>
+
+          <div style="margin-top:10px"><li><b>/Command(InternalCommand[, Parameter])</b></div>
+          <div style="margin-left:30px">/Command(4162)</div>
+            <div style="margin-left:60px">method calls the <a href=#ch6>internal command</a> at number 4162.</div>
+
+          <div style="margin-top:10px"><li><b>/Call("Plugin::Function"[, additional parameters])</b></div>
+          <div style="margin-left:30px">/Call("Scripts::Main")</div>
+            <div style="margin-left:60px">method calls Scripts plugin and Main function.</div>
+
+          <div style="margin-top:10px"><li><b>/Exec("command line"[, "working directory"][, Wait][, WindowStyle])</b></div>
+          <div style="margin-left:30px">"command line"</div>
+            <div style="margin-left:60px">Command line string.</div>
+          <div style="margin-left:30px">"working directory"</div>
+            <div style="margin-left:60px">Working directory string. Default is "".</div>
+          <div style="margin-left:30px">Wait</div>
+            <div style="margin-left:60px">Wait until the program finishes. 1 - wait, 0 - return immediately (default).</div>
+          <div style="margin-left:30px">WindowStyle</div>
+            <div style="margin-left:60px">See MainWindowStyle description of /Show() method. Note: programs could ignore this parameter.</div>
+          <div style="margin-left:30px">/Exec("notepad.exe")</div>
+            <div style="margin-left:60px">method calls notepad.</div>
+          <div style="margin-left:30px">/Exec(`notepad.exe`)</div>
+            <div style="margin-left:60px">method calls notepad.</div>
+          <div style="margin-left:30px">/Exec('notepad.exe')</div>
+            <div style="margin-left:60px">method calls notepad.</div>
+          <div style="margin-left:30px">/Exec('%windir%\notepad.exe')</div>
+            <div style="margin-left:60px">method calls notepad.</div>
+          <div style="margin-left:30px">/Exec(`rundll32.exe shell32,ShellExec_RunDLL "%f"`, "%d")</div>
+            <div style="margin-left:60px">method pass an active file for opening on Windows association.</div>
+
+          <div style="margin-top:10px"><li><b>/Font("FaceName", Style, Size)</b></div>
+          <div style="margin-left:30px">"FaceName"</div>
+            <div style="margin-left:60px">Font face, for example, "Courier". Unchanged, if "".</div>
+          <div style="margin-left:30px">Style (one of the following):</div>
+            <div style="margin-left:60px">0  ignored.</div>
+            <div style="margin-left:60px">1  normal.</div>
+            <div style="margin-left:60px">2  bold.</div>
+            <div style="margin-left:60px">3  italic.</div>
+            <div style="margin-left:60px">4  bold italic.</div>
+          <div style="margin-left:30px">Size</div>
+            <div style="margin-left:60px">Font size. Unchanged, if 0.</div>
+          <div style="margin-left:30px">/Font("Courier", 4, 10)</div>
+            <div style="margin-left:60px">method sets Courier bold italic font with 10 pt.</div>
+
+          <div style="margin-top:10px"><li><b>/Recode(RecodeFrom, RecodeTo)</b></div>
+          <div style="margin-left:30px">RecodeFrom</div>
+            <div style="margin-left:60px">Codepage source. If -1, it will be auto-detected.</div>
+          <div style="margin-left:30px">RecodeTo</div>
+            <div style="margin-left:60px">Codepage target. If -1, it will be auto-detected.</div>
+          <div style="margin-left:30px">/Recode(1252, 437)</div>
+            <div style="margin-left:60px">method recodes the text from 1252 codepage to 437.</div>
+
+          <div style="margin-top:10px"><li><b>/Insert("text"[, Esc-sequences])</b></div>
+          <div style="margin-left:30px">"text"</div>
+            <div style="margin-left:60px">Text to insert.</div>
+          <div style="margin-left:30px">Esc-sequences:</div>
+            <div style="margin-left:60px">0 - "text" doesn't contain Esc-sequences (default).</div>
+            <div style="margin-left:60px">1 - "text" contains Esc-sequences. A set of sequences similar to the find/replace dialog in the program, and also:</div>
+              <div style="margin-left:90px">"\s" - replaced by the selected text of the editing window;</div>
+              <div style="margin-left:90px">"\|" - set the caret position after text insertion.</div>
+          <div style="margin-left:30px">/Insert("Some string")</div>
+            <div style="margin-left:60px">method replaces selection with the specified text.</div>
+          <div style="margin-left:30px">/Insert("&lt;B&gt;\s&lt;/B&gt;", 1)</div>
+            <div style="margin-left:60px">method enclose selection.</div>
+          <div style="margin-left:30px">/Insert("\[0031 0032 0033]", 1)</div>
+            <div style="margin-left:60px">method replaces selection with "123".</div>
+
+          <div style="margin-top:10px"><li><b>/If("expression", "IfTrue", "IfFalse")</b></div>
+          <div style="margin-left:30px">"expression"</div>
+            <div style="margin-left:60px">Expression could consist of:</div>
+            <div style="margin-left:60px">- mathematical operations:</div>
+              <div style="margin-left:90px">+, -, *, /, %, &amp;, |, ^.</div>
+            <div style="margin-left:60px">- logical operations:</div>
+              <div style="margin-left:90px">&gt;, &lt;, ==, !=, &gt;=, &lt;=, &amp;&amp;, ||, x?y:z.</div>
+            <div style="margin-left:60px">- comments:</div>
+              <div style="margin-left:90px">/*comment*/</div>
+            <div style="margin-left:60px">- methods:</div>
+              <div style="margin-left:90px"><b>SendMain(nMessage, wParam, lParam)</b></div>
+                <div style="margin-left:120px">nMessage</div>
+                  <div style="margin-left:150px">Specifies the message to be sent to the main window.</div>
+                <div style="margin-left:120px">wParam</div>
+                  <div style="margin-left:150px">Specifies additional message-specific information.</div>
+                <div style="margin-left:120px">lParam</div>
+                  <div style="margin-left:150px">Specifies additional message-specific information.</div>
+              <div style="margin-left:90px"><b>SendEdit(nMessage, wParam, lParam)</b></div>
+                <div style="margin-left:120px">nMessage</div>
+                  <div style="margin-left:150px">Specifies the message to be sent to the current edit window.</div>
+                <div style="margin-left:120px">wParam</div>
+                  <div style="margin-left:150px">Specifies additional message-specific information.</div>
+                <div style="margin-left:120px">lParam</div>
+                  <div style="margin-left:150px">Specifies additional message-specific information.</div>
+              <div style="margin-left:90px"><b>Call("Plugin::Function"[, additional parameters])</b></div>
+                <div style="margin-left:120px">- If a plugin is called, then exit code transfered via special parameter &nResult. &nResult must be located in a place where external call syntax requires a pointer to an integer.</div>
+                <div style="margin-left:120px">/If(`Call("Coder::CodeFold", 1, &nResult)`, `/Call("Coder::CodeFold", 1)`, ``)</div>
+                  <div style="margin-left:150px">Close CodeFold window, if opened.</div>
+                <div style="margin-left:120px">- If a script is called, then it is necessary to use external calls 2 or 4 and also transfer exit code from script via AkelPad.ScriptExitCode.</div>
+                <div style="margin-left:120px">/If(`Call("Scripts::Main", 4, "EvalCmd.js", 'if (AkelPad.GetEditFile(0)) AkelPad.ScriptExitCode(1);')`, ``, `/Quit`)</div>
+                  <div style="margin-left:150px">Quit, if current document has no name.</div>
+                <div style="margin-left:120px">- It is possible to call Scripts plugin method directly.</div>
+                <div style="margin-left:120px">/If(`AkelPad.Constants._X64 == 1`, `/Quit`, ``)</div>
+                  <div style="margin-left:150px">Quit, if program is x64.</div>
+          <div style="margin-left:30px">"IfTrue"</div>
+            <div style="margin-left:60px">Command line, if expression result is true (not equal to zero).</div>
+          <div style="margin-left:30px">"IfFalse"</div>
+            <div style="margin-left:60px">Command line, if expression result is false (equal to zero).</div>
+          <div style="margin-left:30px">/If(`SendMain(1222 /*AKD_GETMAININFO*/, 5 /*MI_SAVESETTINGS*/, 0) == 2 /*SS_INI*/`, `/OpenFile("%a\AkelPad.ini")`, ``)</div>
+            <div style="margin-left:60px">method opens AkelPad.ini, if settings saved to ini file.</div>
+
+          <div style="margin-top:10px"><li><b>/Var(Flags)</b></div>
+          <div style="margin-left:30px">Flags to use variables for the following command line methods. Set by the sum of members:</div>
+            <div style="margin-left:60px">0 don't expand variables.</div>
+            <div style="margin-left:60px">1 expand system variables (for example, %windir%).</div>
+            <div style="margin-left:60px">2 expand program variables %f,%d,%a. If flag set, then symbol % specified as %%.</div>
+            <div style="margin-left:60px">By default: 1+2=3.</div>
+          <div style="margin-left:30px">/Var(0) /OpenFile("1%a%2.txt")</div>
+            <div style="margin-left:60px">open file "1%a%2.txt".</div>
+
+          <div style="margin-top:10px">Variables available for use in methods:</div>
+
+          <table cellspacing=0 cellpadding=5 border=1>
+            <tr>
+              <td>Normal usage</td>
+              <td>Batch files (bat,cmd)</td>
+            </tr>
+            <tr>
+              <td>
+                <div style="margin-left:30px">%f - active file</div>
+                <div style="margin-left:30px">%d - directory of active file</div>
+                <div style="margin-left:30px">%a - AkelPad's directory (i.e. contains AkelPad.exe)</div>
+                <div style="margin-left:30px">%% - % symbol</div>
+                <div style="margin-left:30px">%system variable% (i.e. <i>environment</i> variable)</div>
+              </td>
+              <td>
+                <div style="margin-left:30px">%%f - active file</div>
+                <div style="margin-left:30px">%%d - directory of active file</div>
+                <div style="margin-left:30px">%%a - AkelPad's directory (i.e. contains AkelPad.exe)</div>
+                <div style="margin-left:30px">%%%% - % symbol</div>
+                <div style="margin-left:30px">%system variable% (i.e. <i>environment</i> variable)</div>
+                <div style="margin-left:30px">^& - & symbol</div>
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </ul>
+
+<a name=ch4><h3>Manual settings</h3></a>
+  Settings are saved in AkelPad.ini or in registry (<i>HKEY_CURRENT_USER\Software\Akelsoft\AkelPad</i>), depending on options.
+  <ul>
+    <table cellspacing=0 cellpadding=5 border=1>
+      <tr>
+        <td><b>CmdLineBegin</b></td>
+        <td>Specifies code to be added to the beginning of the command line before processing it.
+          <br>
+          <br>Example:
+          <br>/C+
+          <br>
+          <br>By default: "".
+        </td>
+      </tr>
+      <tr>
+        <td><b>CmdLineEnd</b></td>
+        <td>Specifies code to be added to the end of the command line before processing it.
+          <br>
+          <br>Example:
+          <br>/Call("Scripts::Main", 1, "InsertDate.js", "") /C /B /L
+          <br>
+          <br>By default: "".
+        </td>
+      </tr>
+      <tr>
+        <td><b>ShowModify</b></td>
+        <td>Determines where <i>document changed</i> status will be displayed. Set by the sum of members:
+          <br><li>1 - Display "Modified" in status bar.
+          <br><li>2 - Display asterisk * in main window title (SDI).
+          <br><li>4 - Display asterisk * in main window title and in frame window title (MDI/PMDI).
+          <br><li>8 - Display asterisk * in tab button name (MDI/PMDI).
+          <br>
+          <br>By default: 1+8=9, show all: 1+2+4+8=15.
+        </td>
+      </tr>
+      <tr>
+        <td><b>StatusPosType</b></td>
+        <td>Defines how status bar statistics will be displayed. Set by the sum of members:
+          <br><li>1 - "Line:Column". By default: "Line:Symbol".
+          <br><li>2 - Wrap line numbers. By default: Non-wrap line numbers.
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>WordBreak</b></td>
+        <td>Defines how the caret on Ctrl+Left/Ctrl+Right will move. Works only if enabled "Word delimiters" in settings (WordDelimitersEnable=1). Set by the sum of members:
+          <br><li>1 - Left movement is stopped, when word start is found.
+          <br><li>2 - Left movement is stopped, when word end is found.
+          <br><li>4 - Right movement is stopped, when word start is found.
+          <br><li>8 - Right movement is stopped, when word end is found.
+          <br><li>16 - Movement is stopped, when spacing start is found. Cannot be combined with 64.
+          <br><li>32 - Movement is stopped, when spacing end is found. Cannot be combined with 128.
+          <br><li>64 - Movement is continued, when spacing start is found. Cannot be combined with 16.
+          <br><li>128 - Movement is continued, when spacing end is found. Cannot be combined with 32.
+          <br><li>256 - Movement is stopped, when new line is found.
+          <br>
+          <br>By default: 1+2+4+8+32+64=111 (AkelEdit), 1+8=9 (AkelPad).
+        </td>
+      </tr>
+      <tr>
+        <td><b>MouseOptions</b></td>
+        <td>Defines mouse settings. Set by the sum of members:
+          <br><li>1 - GUI (left click on margin selects line).
+          <br><li>2 - GUI (use RichEdit mouse selection).
+          <br><li>4 - GUI (enable mouse dragging).
+          <br><li>8 - GUI (right click moves caret).
+          <br><li>16 - Triple click and left margin click selects line without newline character(s).
+          <br><li>32 - Disable font size change using Ctrl+<i>mouse scroll wheel</i>.
+          <br><li>64 - Line selection with mouse selects all wrapped line.
+          <br><li>128 - No scrolling after middle mouse click.
+          <br><li>256 - Invert mouse horizontal wheel.
+          <br><li>512 - Invert mouse vertical wheel.
+          <br>
+          <br>By default: 1+2+4=7.
+        </td>
+      </tr>
+      <tr>
+        <td><b>SingleOpenProgram</b></td>
+        <td>Option "Don't open a program twice" in MDI/PMDI mode. Set by the sum of members:
+          <br><li>1 - GUI (option is on).
+          <br><li>2 - option works only for the same exe file. Requires run as administrator (UAC).
+          <br>
+          <br>By default: 1.
+        </td>
+      </tr>
+      <tr>
+        <td><b>TabOptionsMDI</b></td>
+        <td>Defines tabs settings in MDI/PMDI mode. Set by the sum of members:
+          <br><li>1 - GUI (tabs are hidden).
+          <br><li>2 - GUI (tabs shown at top of edit window).
+          <br><li>4 - GUI (tabs shown at bottom of edit window).
+          <br><li>256 - GUI (standard tab style).
+          <br><li>512 - GUI (button tab style).
+          <br><li>1024 - GUI (flat button tab style).
+          <br><li>65536 - GUI (hotkeys transfer focus as <i>next-prev</i>).
+          <br><li>131072 - GUI (hotkeys transfer focus as <i>right-left</i>).
+          <br><li>524288 - create tabs after the current one.
+          <br><li>1048576 - disable new tab creation using left button double click on the tab bar.
+          <br><li>2097152 - disable new tab creation using middle button click on the tab bar.
+          <br><li>4194304 - disable close tab using left button double click on the tab.
+          <br><li>8388608 - disable close tab using middle button click on the tab.
+          <br><li>268435456 - close modified tabs first on exit.
+          <br>
+          <br>By default: 2+256+131072=131330.
+        </td>
+      </tr>
+      <tr>
+        <td><b>TabNameFind</b></td>
+        <td>Defines <a href=#ch7>regular expression</a> search pattern for tab name in MDI/PMDI mode. If pattern not found, file name displayed without changes. Used with TabNameRep.
+          <br>
+          <br>By default: "".
+        </td>
+      </tr>
+      <tr>
+        <td><b>TabNameRep</b></td>
+        <td>Defines <a href=#ch7>regular expression</a> replace pattern for tab name in MDI/PMDI mode. Used with TabNameFind.
+          <br>
+          <br>Example:
+          <br>TabNameFind=(.{20}).{3,}(?:\.([^.]*))?
+          <br>TabNameRep=\1...\2
+          <br>
+          <br>By default: "".
+        </td>
+      </tr>
+      <tr>
+        <td><b>PaintOptions</b></td>
+        <td>Defines some text draw settings. Sets by the sum of members:
+          <br><li>1 - Paint text by groups of characters (default is character by character). With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
+          <br><li>2 - Disable drawing new line selection as space character.
+          <br><li>4 - Draw newline selection to right edge of text area.
+          <br><li>8 - Hides the selection when the control loses the input focus.
+          <br><li>16 - Disable marker painting after last line.
+          <br><li>128 - Unit of vertical scrolling is line (default is pixel).
+          <br><li>256 - Show scroll bars only when needed.
+          <br><li>512 - Draw thin edit window border.
+          <br><li>1024 - Draw no edit window border.
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>FixedCharWidth</b></td>
+        <td>Defines fixed character width. All symbols, including proportional fonts, will be paint in this width. Special values:
+          <br><li>-1 - font latin character average width.
+          <br><li>-4 - font space width.
+          <br><li>-6 - font latin character maximum width.
+          <br><li>0 - disable fixed width.
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>EditStyle</b></td>
+        <td>Defines some edit window creation flags. Sets by the sum of members:
+          <br><li>1 - Use process heap for Undo buffer instead of window heap. This flag required for work of AEM_DETACHUNDO and AEM_ATTACHUNDO messages, but when closing edit window the memory releasing will be slower.
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>RichEditClass</b></td>
+        <td>Defines edit control class name:
+          <br><li>0 - "AkelEdit".
+          <br><li>1 - "RichEdit20".
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>AkelAdminResident</b></td>
+        <td>Defines residency of "AkelAdmin.exe":
+          <br><li>0 - AkelAdmin.exe unloaded from memory. Password will be prompted each time to change protected file.
+          <br><li>1 - AkelAdmin.exe remains in memory. Password will be prompted only for the first time to change protected file.
+          <br>
+          <br>By default: 1.
+        </td>
+      </tr>
+      <tr>
+        <td><b>StatusUserFormat</b></td>
+        <td>Defines user status bar format:
+
+          <br><br>
+          <table cellspacing=0 cellpadding=1 border=0>
+            <tr>
+              <td width=80><li>%[width]</td>
+              <td>Add status bar delimiter.</td>
+            </tr>
+            <tr>
+              <td><li>%Ch</td>
+              <td>Current character hex code in file codepage (lowercase).</td>
+            </tr>
+            <tr>
+              <td><li>%CH</td>
+              <td>Current character hex code in file codepage (uppercase).</td>
+            </tr>
+            <tr>
+              <td><li>%ch</td>
+              <td>Current character hex code (lowercase).</td>
+            </tr>
+            <tr>
+              <td><li>%cH</td>
+              <td>Current character hex code (uppercase).</td>
+            </tr>
+            <tr>
+              <td><li>%cd</td>
+              <td>Current character decimal code.</td>
+            </tr>
+            <tr>
+              <td><li>%cl</td>
+              <td>Current character letter.</td>
+            </tr>
+            <tr>
+              <td><li>%or</td>
+              <td>Offset in symbols. Any newline breaks counted as one symbol (RichEdit).</td>
+            </tr>
+            <tr>
+              <td><li>%ob</td>
+              <td>Offset in symbols. Newline breaks: \r\r\n - three symbols, \r\n - two symbols, \r - one symbol, \n - one symbol. Use only if necessary because on large files can cause slowdown.</td>
+            </tr>
+            <tr>
+              <td><li>%al</td>
+              <td>Count of lines in document.</td>
+            </tr>
+            <tr>
+              <td><li>%ar</td>
+              <td>Count of symbols in document (RichEdit).</td>
+            </tr>
+            <tr>
+              <td><li>%lb</td>
+              <td>Number of first selected line.</td>
+            </tr>
+            <tr>
+              <td><li>%le</td>
+              <td>Number of last selected line.</td>
+            </tr>
+            <tr>
+              <td><li>%ls</td>
+              <td>Count of lines in selection.</td>
+            </tr>
+            <tr>
+              <td><li>%f</td>
+              <td>Font size.</td>
+            </tr>
+            <tr>
+              <td><li>%t</td>
+              <td>Tabulation size.</td>
+            </tr>
+            <tr>
+              <td><li>%m</td>
+              <td>Column marker position.</td>
+            </tr>
+            <tr>
+              <td><li>%cap[<i>text</i>]</td>
+              <td><i>Text</i> displayed when "Caps Lock" is on.</td>
+            </tr>
+            <tr>
+              <td><li>%num[<i>text</i>]</td>
+              <td><i>Text</i> displayed when "Num Lock" is on.</td>
+            </tr>
+            <tr>
+              <td><li>%se[<i>text</i>]</td>
+              <td><i>Text</i> displayed when end of the document reached during search.</td>
+            </tr>
+            <tr>
+              <td><li>%r</td>
+              <td>Replace count after "Replace all".</td>
+            </tr>
+            <tr>
+              <td><li>%dc</td>
+              <td>Count of all documents (MDI/PMDI).</td>
+            </tr>
+            <tr>
+              <td><li>%dm</td>
+              <td>Count of modified documents (MDI/PMDI).</td>
+            </tr>
+            <tr>
+              <td><li>%ds</td>
+              <td>Count of unmodified documents (MDI/PMDI).</td>
+            </tr>
+            <tr>
+              <td><li>%di</td>
+              <td>Active document index (MDI/PMDI).</td>
+            </tr>
+            <tr>
+              <td><li>%%</td>
+              <td>% symbol.</td>
+            </tr>
+            <tr>
+              <td><li>Tabulation</td>
+              <td>One tabulation aligns text to center, second tabulation to right edge.</td>
+            </tr>
+          </table>
+
+          <br>Example:
+          <br>"Symbol:0x%ch%[85]Font:%f%[48]Tab:%t%[38]Marker:%m%[60]Docs:%dm*/%dc"
+          <br>
+          <br>By default: "" - format is not defined, additional status bar section is not displayed.
+        </td>
+      </tr>
+      <tr>
+        <td><b>DateInsertFormat</b></td>
+        <td>Defines insert date and time format.
+
+          <br><br>Time:
+          <table cellspacing=0 cellpadding=1 border=0>
+            <tr>
+              <td width=50><li>h</td>
+              <td>Hours with no leading zero for single-digit hours; 12-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>hh</td>
+              <td>Hours with leading zero for single-digit hours; 12-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>H</td>
+              <td>Hours with no leading zero for single-digit hours; 24-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>HH</td>
+              <td>Hours with leading zero for single-digit hours; 24-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>m</td>
+              <td>Minutes with no leading zero for single-digit minutes.</td>
+            </tr>
+            <tr>
+              <td><li>mm</td>
+              <td>Minutes with leading zero for single-digit minutes.</td>
+            </tr>
+            <tr>
+              <td><li>s</td>
+              <td>Seconds with no leading zero for single-digit seconds.</td>
+            </tr>
+            <tr>
+              <td><li>ss</td>
+              <td>Seconds with leading zero for single-digit seconds.</td>
+            </tr>
+            <tr>
+              <td><li>t</td>
+              <td>One character time-marker string, such as A or P.</td>
+            </tr>
+            <tr>
+              <td><li>tt</td>
+              <td>Multicharacter time-marker string, such as AM or PM.</td>
+            </tr>
+          </table>
+
+          <br>Date:
+          <table cellspacing=0 cellpadding=1 border=0>
+            <tr>
+              <td width=80><li>d</td>
+              <td>Day of month as digits with no leading zero for single-digit days.</td>
+            </tr>
+            <tr>
+              <td><li>dd</td>
+              <td>Day of month as digits with leading zero for single-digit days.</td>
+            </tr>
+            <tr>
+              <td><li>ddd</td>
+              <td>Day of week as a three-letter abbreviation.</td>
+            </tr>
+            <tr>
+              <td><li>dddd</td>
+              <td>Day of week as its full name.</td>
+            </tr>
+            <tr>
+              <td><li>M</td>
+              <td>Month as digits with no leading zero for single-digit months.</td>
+            </tr>
+            <tr>
+              <td><li>MM</td>
+              <td>Month as digits with leading zero for single-digit months.</td>
+            </tr>
+            <tr>
+              <td><li>MMM</td>
+              <td>Month as a three-letter abbreviation.</td>
+            </tr>
+            <tr>
+              <td><li>MMMM</td>
+              <td>Month as its full name.</td>
+            </tr>
+            <tr>
+              <td><li>y</td>
+              <td>Year as last two digits, but with no leading zero for years less than 10.</td>
+            </tr>
+            <tr>
+              <td><li>yy</td>
+              <td>Year as last two digits, but with leading zero for years less than 10.</td>
+            </tr>
+            <tr>
+              <td><li>yyyy</td>
+              <td>Year represented by full four digits.</td>
+            </tr>
+            <tr>
+              <td><li>gg</td>
+              <td>Period/era string (e.g. B.C., A.D.).</td>
+            </tr>
+          </table>
+
+          <br>Example:
+          <br>"H:mm:ss dd MMMM yyyy" -> "12:50:24 01 September 2010"
+          <br>
+          <br>By default: "" - program defined date and time format.
+        </td>
+      </tr>
+      <tr>
+        <td><b>DateLogFormat</b></td>
+        <td>Defines date and time format for files containing ".LOG" at the beginning. Works only if enabled "Insert date if file has .LOG at the beginning" in settings (DateLog=1). See DateInsertFormat for syntax description.
+          <br>
+          <br>By default: "" - program defined date and time format.
+        </td>
+      </tr>
+      <tr>
+        <td><b>AkelUpdaterOptions</b></td>
+        <td>Defines command line options for the AkelUpdater.exe, when launched from "Help/Update..." menu item.
+          <br>
+          <br>By default: "".
+        </td>
+      </tr>
+      <tr>
+        <td><b>UrlCommand</b></td>
+        <td>Defines <a href=#methods>command</a> for hyperlink click. Herewith variable %u denotes hyperlink text.
+          <br>
+          <br>Example:
+          <br>Exec(`"%ProgramFiles%\Mozilla Firefox\firefox.exe" "%u"`)
+          <br>
+          <br>By default: "" - hyperlink opens by operating system.
+        </td>
+      </tr>
+    </table>
+  </ul>
+
+<a name=ch5><h3>Keyboard commands</h3></a>
+  <ul>
+  <table cellspacing=0 cellpadding=1 border=1>
+    <tr>
+      <td><b>Ctrl+X</b><br><b>Shift+Del</b></td>
+      <td>Cut</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+C</b><br><b>Ctrl+Ins</b><br><b>Ctrl+Shift+C</b></td>
+      <td>Copy</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+V</b><br><b>Shift+Ins</b></td>
+      <td>Paste</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+V</b><br><b>Ctrl+Shift+Ins</b></td>
+      <td>Paste text as ANSI</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+V</b></td>
+      <td>Paste to column selection</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+A</b></td>
+      <td>Select all</td>
+    </tr>
+
+    <tr>
+      <td><b>Backspace</b></td>
+      <td>Delete from left</td>
+    </tr>
+
+    <tr>
+      <td><b>Del</b></td>
+      <td>Delete from right</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Z</b></td>
+      <td>Undo</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+Z</b></td>
+      <td>Redo</td>
+    </tr>
+
+    <tr>
+      <td><b>Insert</b></td>
+      <td>Insert/Overtype mode</td>
+    </tr>
+
+    <tr>
+      <td><b>Home</b></td>
+      <td>Go to start of line</td>
+    </tr>
+
+    <tr>
+      <td><b>End</b></td>
+      <td>Go to end of line</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Home</b></td>
+      <td>Go to start of text</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+End</b></td>
+      <td>Go to end of text</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Left</b></td>
+      <td>Go to start of word</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Right</b></td>
+      <td>Go to end of word</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Up</b></td>
+      <td>Go to start of previous line</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Down</b></td>
+      <td>Go to start of next line</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+PageUp</b></td>
+      <td>Go to first visible character</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+PageDown</b></td>
+      <td>Go to last visible character</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Backspace</b></td>
+      <td>Delete left word</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Del</b></td>
+      <td>Delete right word</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+N</b></td>
+      <td>Create new file</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+N</b></td>
+      <td>Create new window</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+O</b></td>
+      <td>Open file</td>
+    </tr>
+
+    <tr>
+      <td><b>F5</b><br><b>Ctrl+Shift+O</b></td>
+      <td>Reopen file</td>
+    </tr>
+
+    <tr>
+      <td><b>F2</b><br><b>Ctrl+S</b></td>
+      <td>Save</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+F2</b><br><b>Ctrl+Shift+S</b></td>
+      <td>Save as</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Alt+F2</b></td>
+      <td>Save all</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Alt+F4</b></td>
+      <td>Close all</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+P</b></td>
+      <td>Print</td>
+    </tr>
+
+    <tr>
+      <td><b>Esc</b><br><b>Alt+F4</b></td>
+      <td>Exit</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+F</b></td>
+      <td>Find</td>
+    </tr>
+
+    <tr>
+      <td><b>F3</b></td>
+      <td>Find next down. Search/replace dialog: close dialog and find next down.</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+F3</b></td>
+      <td>Find next up. Search/replace dialog: close dialog and find next up.</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+R</b><br><b>Ctrl+H</b></td>
+      <td>Find and replace</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+G</b></td>
+      <td>Go to line (by number)</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+I</b></td>
+      <td>Run "Character map" (i.e. "Edit/Insert character" menu item)</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+D</b></td>
+      <td>Insert date</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+T</b></td>
+      <td>On/off "Always on top"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+U</b></td>
+      <td>On/off "Word wrap"</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+W</b></td>
+      <td>Reopen file as ANSI (Windows)</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+D</b></td>
+      <td>Reopen file as OEM (DOS)</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+K</b></td>
+      <td>Reopen file as KOI8-R</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+L</b></td>
+      <td>Reopen file as UTF-16LE</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+B</b></td>
+      <td>Reopen file as UTF-16BE</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+U</b></td>
+      <td>Reopen file as UTF-8</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+W</b></td>
+      <td>Save file as ANSI (Windows)</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+D</b></td>
+      <td>Save file as OEM (DOS)</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+K</b></td>
+      <td>Save file as KOI8-R</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+L</b></td>
+      <td>Save file as UTF-16LE</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+B</b></td>
+      <td>Save file as UTF-16BE</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+U</b></td>
+      <td>Save file as UTF-8</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+F5</b></td>
+      <td>Reopen file with code page detect</td>
+    </tr>
+
+    <tr>
+      <td><b>F12</b></td>
+      <td>Show context menu for fast reopening/saving in desired code page</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+R</b></td>
+      <td>Recode text (i.e. "Edit/Selection/Recode..." menu item)</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Space</b></td>
+      <td>Delete space if several lines selected, otherwise insert space.</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Backspace</b></td>
+      <td>Delete first char</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+Backspace</b></td>
+      <td>Trim trailing whitespace</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+P</b></td>
+      <td>Plugins dialog</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+F5</b></td>
+      <td>Execute command</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+L</b></td>
+      <td>On/off "Keep left spaces"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Enter</b></td>
+      <td>Insert new line with keeping left spaces, if option "Keep space" is off.
+          <br>Insert new line without keeping left spaces, if option "Keep space" is on.</td>
+    </tr>
+
+    <tr>
+      <td><b>F4</b><br><b>Alt+Enter</b></td>
+      <td>Maximize/restore window</td>
+    </tr>
+
+    <tr>
+      <td><b>F8</b><br><b>Ctrl+Y</b></td>
+      <td>Delete current line</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+\</b></td>
+      <td>Move caret to opposite end of selection</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+,</b></td>
+      <td>Move caret to previous location</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+.</b></td>
+      <td>Move caret to next location</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Num +</b></td>
+      <td>Increase font by 1 pt</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Num -</b></td>
+      <td>Decrease font by 1 pt</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Num *</b></td>
+      <td>Restore font to size at startup</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+5</b></td>
+      <td>Cycle selection through case change</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+6</b></td>
+      <td>Selected text, as "UPPERCASE"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+7</b></td>
+      <td>Selected text, as "lowercase"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+8</b></td>
+      <td>Selected text, as "Sentence case."</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+9</b></td>
+      <td>Selected text, as "Title Case"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+0</b></td>
+      <td>Selected text, as "iNVERT cASE"</td>
+    </tr>
+
+    <tr>
+      <td><b>F6</b></td>
+      <td>Go to next dialog</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+F6</b></td>
+      <td>Go to previous dialog</td>
+    </tr>
+
+    <tr>
+      <td><b>F9</b></td>
+      <td>Activate next pane (split window)</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+F9</b></td>
+      <td>Activate previous pane (split window)</td>
+    </tr>
+
+    <tr>
+      <td><b>F10</b></td>
+      <td>Select window dialog (MDI/PMDI)</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Tab</b><br><b>Ctrl+F6</b></td>
+      <td>Next window (MDI/PMDI)</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+Tab</b><br><b>Ctrl+Shift+F6</b></td>
+      <td>Previous window (MDI/PMDI)</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+F4</b><br><b>Ctrl+W</b></td>
+      <td>Close window (MDI/PMDI)</td>
+    </tr>
+
+  </table>
+  </ul>
+
+<a name=ch6><h3>Internal commands</h3></a>
+  Can be used in command line method /Command() and also in ContextMenu, ToolBar, Hotkeys, Scripts plugins.
+  <ul>
+  <table cellspacing=0 cellpadding=1 border=1>
+    <tr>
+      <td align=center><b>4101</b></td>
+      <td>Create new edit window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4102</b></td>
+      <td>Create new instance of program</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4103</b></td>
+      <td>Open file dialog
+          <br>Optional parameter: 1 - force to use last directory.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4104</b></td>
+      <td>Reopen file</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4105</b></td>
+      <td>Save file</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4106</b></td>
+      <td>Save file dialog
+          <br>Optional parameter: 1 - force to use last directory.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4107</b></td>
+      <td>Print setup dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4108</b></td>
+      <td>Print dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4109</b></td>
+      <td>Exit program</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4110</b></td>
+      <td>Save all documents</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4111</b></td>
+      <td>Save all as dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4113</b></td>
+      <td>Print without dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4114</b></td>
+      <td>Print preview dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4121</b></td>
+      <td>Redetect code page of the current file</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4122</b></td>
+      <td>Reopen file as ANSI</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4123</b></td>
+      <td>Reopen file as OEM</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4124</b></td>
+      <td>Reopen file as KOI-R</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4125</b></td>
+      <td>Reopen file as UTF16LE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4126</b></td>
+      <td>Reopen file as UTF16BE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4127</b></td>
+      <td>Reopen file as UTF8</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4131</b></td>
+      <td>Save file as ANSI</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4132</b></td>
+      <td>Save file as OEM</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4133</b></td>
+      <td>Save file as KOI-R</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4134</b></td>
+      <td>Save file as UTF16LE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4135</b></td>
+      <td>Save file as UTF16BE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4136</b></td>
+      <td>Save file as UTF8</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4137</b></td>
+      <td>Save file as UTF8 without BOM</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4140</b></td>
+      <td>Show codepages context menu</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4151</b></td>
+      <td>Undo last operation</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4152</b></td>
+      <td>Redo last operation</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4153</b></td>
+      <td>Cut
+          <br>Optional first parameter:
+          <br>1 - cut word under caret, if no selection;
+          <br>2 - cut line under caret, if no selection;
+          <br>4 - cut unwrapped line under caret, if no selection.
+          <br>8 - cut also new line. Uses with flag 2 (2+8=10) or 4 (4+8=12).
+          <br>Optional second parameter:
+          <br>1 - input new line.
+          <br>2 - output new line (default).
+          <br>3 - new line of the source (as is).
+          <br>5 - "\r" new line.
+          <br>6 - "\n" new line.
+          <br>7 - "\r\n" new line.
+          <br>8 - "\r\r\n" new line.
+          <br>Parameters value calculation: (first parameter value) + 100000 * (second parameter value)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4154</b></td>
+      <td>Copy
+          <br>Optional first parameter:
+          <br>1 - copy word under caret, if no selection;
+          <br>2 - copy line under caret, if no selection;
+          <br>4 - copy unwrapped line under caret, if no selection.
+          <br>8 - copy also new line. Uses with flag 2 (2+8=10) or 4 (4+8=12).
+          <br>Optional second parameter:
+          <br>1 - input new line.
+          <br>2 - output new line (default).
+          <br>3 - new line of the source (as is).
+          <br>5 - "\r" new line.
+          <br>6 - "\n" new line.
+          <br>7 - "\r\n" new line.
+          <br>8 - "\r\r\n" new line.
+          <br>Parameters value calculation: (first parameter value) + 100000 * (second parameter value)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4155</b></td>
+      <td>Paste
+          <br>Optional first parameter:
+          <br>1 - paste text as ANSI. Same as 4191 command.
+          <br>2 - paste to column selection. Same as 4192 command.
+          <br>4 - select pasted text.
+          <br>Optional second parameter:
+          <br>1 - input new line (default).
+          <br>2 - output new line.
+          <br>3 - new line of the source (as is).
+          <br>5 - "\r" new line.
+          <br>6 - "\n" new line.
+          <br>7 - "\r\n" new line.
+          <br>8 - "\r\r\n" new line.
+          <br>Parameters value calculation: (first parameter value) + 100000 * (second parameter value)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4156</b></td>
+      <td>Delete</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4157</b></td>
+      <td>Select all</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4158</b></td>
+      <td>Find dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4159</b></td>
+      <td>Find last string down</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4160</b></td>
+      <td>Find last string up</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4161</b></td>
+      <td>Replace dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4162</b></td>
+      <td>Go to line dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4163</b></td>
+      <td>Run charmap.exe</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4164</b></td>
+      <td>Insert tabulation</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4165</b></td>
+      <td>Insert tabulation only if several lines selected</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4166</b></td>
+      <td>Delete tabulation if several lines selected, otherwise insert tabulation.
+          <br>Optional parameter: 1 - delete tabulation in single line selection.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4167</b></td>
+      <td>Delete tabulation only if several lines selected</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4168</b></td>
+      <td>Insert space</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4169</b></td>
+      <td>Insert space only if several lines selected</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4170</b></td>
+      <td>Delete space if several lines selected, otherwise insert space.
+          <br>Optional parameter: 1 - delete space in single line selection.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4171</b></td>
+      <td>Delete space only if several lines selected</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4172</b></td>
+      <td>Delete first char</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4173</b></td>
+      <td>Delete first char only if selection not empty</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4174</b></td>
+      <td>Delete trailing whitespaces</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4175</b></td>
+      <td>Convert text to "UPPERCASE".
+          <br>Optional parameter: 1 - change case for all text if no selection.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4176</b></td>
+      <td>Convert text to "lowercase".
+          <br>Optional parameter: 1 - change case for all text if no selection.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4177</b></td>
+      <td>Convert text to "Sentence case.".
+          <br>Optional parameter: 1 - change case for all text if no selection.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4178</b></td>
+      <td>Convert text to "Title Case".
+          <br>Optional parameter: 1 - change case for all text if no selection.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4179</b></td>
+      <td>Convert text to "iNVERT cASE".
+          <br>Optional parameter: 1 - change case for all text if no selection.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4180</b></td>
+      <td>Cycle case.
+          <br>Optional parameter: 1 - change case for all text if no selection.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4182</b></td>
+      <td>Recode dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4183</b></td>
+      <td>Insert date</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4184</b></td>
+      <td>Windows newline format</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4185</b></td>
+      <td>Unix newline format</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4186</b></td>
+      <td>Mac newline format</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4190</b></td>
+      <td>Insert/Overtype mode</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4191</b></td>
+      <td>Paste as ANSI text</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4192</b></td>
+      <td>Paste to column selection</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4193</b></td>
+      <td>Paste text after caret</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4194</b></td>
+      <td>Paste text taking into account selection case</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4195</b></td>
+      <td>Delete all whitespaces in selection</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4196</b></td>
+      <td>Insert new line with keeping left spaces, if option "Keep space" is off.
+          <br>Insert new line without keeping left spaces, if option "Keep space" is on.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4197</b></td>
+      <td>Delete current line.
+          <br>Optional parameter: 1 - delete all wrapped line.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4198</b></td>
+      <td>Move caret to opposite end of selection</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4199</b></td>
+      <td>Move caret to previous location</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4200</b></td>
+      <td>Move caret to next location</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4201</b></td>
+      <td>Font dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4202</b></td>
+      <td>Color theme dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4204</b></td>
+      <td>Increase font 1pt</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4205</b></td>
+      <td>Decrease font 1pt</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4206</b></td>
+      <td>Restore font to size at startup</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4209</b></td>
+      <td>Word wrap (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4210</b></td>
+      <td>Always on top (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4211</b></td>
+      <td>Show status bar (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4212</b></td>
+      <td>Split window into four panes</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4213</b></td>
+      <td>Split window into two vertical panes</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4214</b></td>
+      <td>Split window into two horizontal panes</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4215</b></td>
+      <td>Split window (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4216</b></td>
+      <td>Read only (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4251</b></td>
+      <td>Execute command</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4252</b></td>
+      <td>Save file time (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4253</b></td>
+      <td>Watch file change (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4254</b></td>
+      <td>Keep left spaces (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4255</b></td>
+      <td>Single open file (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4256</b></td>
+      <td>Single open program (on\off)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4259</b></td>
+      <td>Plugins dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4260</b></td>
+      <td>Options dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4261</b></td>
+      <td>SDI mode</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4262</b></td>
+      <td>MDI mode</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4263</b></td>
+      <td>Pseudo MDI mode</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4301</b></td>
+      <td>Tab list window at the top of the main window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4302</b></td>
+      <td>Tab list window at the bottom of the main window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4303</b></td>
+      <td>Hide tab list</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4304</b></td>
+      <td>Standard tab list style</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4305</b></td>
+      <td>Buttons tab list style</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4306</b></td>
+      <td>Flat buttons tab list style</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4307</b></td>
+      <td>MDI windows - horizontal tile</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4308</b></td>
+      <td>MDI windows - vertical tile</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4309</b></td>
+      <td>MDI windows - cascade</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4310</b></td>
+      <td>Switch tabs: next-previous.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4311</b></td>
+      <td>Switch tabs: right-left.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4316</b></td>
+      <td>Activate next tab</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4317</b></td>
+      <td>Activate previous tab</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4318</b></td>
+      <td>Close current tab</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4319</b></td>
+      <td>Close all tabs</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4320</b></td>
+      <td>Close all tabs but active</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4321</b></td>
+      <td>Close all unmodified tabs
+          <br>Optional parameter: 1 - close all modified tabs.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4322</b></td>
+      <td>Clone current tab</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4323</b></td>
+      <td>Copy current tab file path
+          <br>Optional parameter:
+          <br>0 - copy full path (default);
+          <br>1 - copy directory;
+          <br>2 - copy file name;
+          <br>3 - copy file base name;
+          <br>4 - copy file extension.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4324</b></td>
+      <td>Close file</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4325</b></td>
+      <td>Close file and exit program (SDI) or close tab of a file (MDI/PMDI).</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4327</b></td>
+      <td>Select window dialog (MDI/PMDI). Same as 10019.</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4331</b></td>
+      <td>Restore/Maximize main window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4332</b></td>
+      <td>Activate next dialog window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4333</b></td>
+      <td>Activate previous dialog window</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4341</b></td>
+      <td>Activate next pane (split window)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4342</b></td>
+      <td>Activate previous pane (split window)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4351</b></td>
+      <td>About dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4352</b></td>
+      <td>Open user's manual (this file)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4353</b></td>
+      <td>Check updates (AkelUpdater), uses AkelUpdaterOptions string</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>5001</b></td>
+      <td>Delete dead recent files from "Recent files" list</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>5001 + n</b></td>
+      <td>Open recent file n</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>6001</b></td>
+      <td>Activate internal language</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>6001 + n</b></td>
+      <td>Activate language n</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>7001</b></td>
+      <td>Reopen file in first codepage of codepage list</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>7001 + n</b></td>
+      <td>Reopen file in codepage n of codepage list</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>8001</b></td>
+      <td>Save file in first codepage of codepage list</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>8001 + n</b></td>
+      <td>Save file in codepage n of codepage list</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>10019</b></td>
+      <td>Select window dialog (MDI/PMDI). Same as 4327.</td>
+    </tr>
+
+  </table>
+  </ul>
+
+<a name=ch7><h3>Regular expression syntax</h3></a>
+  A regular expression is a pattern of text that consists of ordinary characters (for example, letters a through z) and special characters, known as <i>metacharacters</i>. The pattern describes one or more strings to match when searching text.
+  <br>
+  <br>
+  <table cellspacing=0 cellpadding=1 border=1>
+    <tr>
+      <th>Expression example</th>
+      <th>Matches</th>
+    </tr>
+    <tr>
+      <td>^\s*?$</td>
+      <td>Match a blank line.</td>
+    </tr>
+    <tr>
+      <td>\d{2}-\d{5}</td>
+      <td>Validate an ID number consisting of 2 digits, a hyphen, and an additional 5 digits.</td>
+    </tr>
+    <tr>
+      <td>&lt;(\w+)[^&gt;]*&gt;.*?&lt;/\1&gt;</td>
+      <td>Match an HTML tag.</td>
+    </tr>
+  </table>
+
+  <br>
+  <br>The following table contains the complete list of metacharacters and their behavior in the context of regular expressions:
+  <br>
+  <br>
+  <table cellspacing=0 cellpadding=1 border=1>
+    <tr>
+      <th>Character</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>\</td>
+      <td>Marks the next character as a literal (one of "()[]{}^$.?+*\|"), a special character or a backreference. For example, 'n' matches the character "n". '\n' matches a newline character. The sequence '\\' matches "\" and '\(' matches "(".</td>
+    </tr>
+    <tr>
+      <td>^</td>
+      <td>Matches the position at the beginning of the line.</td>
+    </tr>
+    <tr>
+      <td>$</td>
+      <td>Matches the position at the end of the line.</td>
+    </tr>
+    <tr>
+      <td>*</td>
+      <td>Matches the preceding character or subexpression zero or more times. For example, 'zo*' matches "z" and "zoo". '*' is equivalent to '{0,}'.</td>
+    </tr>
+    <tr>
+      <td>+</td>
+      <td>Matches the preceding character or subexpression one or more times. For example, 'zo+' matches "zo" and "zoo", but not "z". '+' is equivalent to '{1,}'.</td>
+    </tr>
+    <tr>
+      <td>?</td>
+      <td>Matches the preceding character or subexpression zero or one time. For example, 'do(es)?' matches the "do" in "document" or "does" in "does". '?' is equivalent to '{0,1}'.</td>
+    </tr>
+    <tr>
+      <td>{<i>n</i>}</td>
+      <td><i>n</i> is a nonnegative integer. Matches exactly <i>n</i> times. For example, 'o{2}' does not match the "o" in "Bob", but matches the two o's in "food".</td>
+    </tr>
+    <tr>
+      <td>{<i>n</i>,}</td>
+      <td><i>n</i> is a nonnegative integer. Matches at least <i>n</i> times. For example, 'o{2,}' does not match the "o" in "Bob" and matches all the o's in "foooood". 'o{1,}' is equivalent to 'o+'. 'o{0,}' is equivalent to 'o*'.</td>
+    </tr>
+    <tr>
+      <td>{<i>n</i>,<i>m</i>}</td>
+      <td><i>M</i> and <i>n</i> are nonnegative integers, where <i>n</i> &lt;= <i>m</i>. Matches at least <i>n</i> and at most <i>m</i> times. For example, "o{1,3}" matches the first three o's in "fooooood". 'o{0,1}' is equivalent to 'o?'. Note that you cannot put a space between the comma and the numbers.</td>
+    </tr>
+    <tr>
+      <td>.</td>
+      <td>(dot or period) Matches any single character.</td>
+    </tr>
+    <tr>
+      <td>(<i>pattern</i>)</td>
+      <td>A subexpression that matches <i>pattern</i> and captures the match. The captured match can be retrieved from the resulting collection using the <b>\0</b>...<b>\9</b> backreferences. To match parentheses characters "(" or ")", use '\(' or '\)'.</td>
+    </tr>
+    <tr>
+      <td>(?^<i>pattern</i>)</td>
+      <td>A subexpression that matches negative <i>pattern</i> and captures the match. Pattern must be of fixed length, but could contain backreferences.</td>
+    </tr>
+    <tr>
+      <td>(?:<i>pattern</i>)</td>
+      <td>A subexpression that matches <i>pattern</i> but does not capture the match, that is, it is a non-capturing match that is not stored for possible later use. This is useful for combining parts of a pattern with the "or" character (|). For example, 'industr(?:y|ies)' is a more economical expression than 'industry|industries'.</td>
+    </tr>
+    <tr>
+      <td>(?=<i>pattern</i>)</td>
+      <td>A subexpression that performs a positive lookahead search, which matches the search string at any point where a string matching <i>pattern</i> begins. This is a non-capturing match, that is, the match is not captured for possible later use. For example, 'Windows (?=95|98|NT|2000)' matches "Windows" in "Windows 2000" but not "Windows" in "Windows 3.1". Lookaheads do not consume characters, that is, after a match occurs, the search for the next match begins immediately following the last match, not after the characters that comprised the lookahead.</td>
+    </tr>
+    <tr>
+      <td>(?!<i>pattern</i>)</td>
+      <td>A subexpression that performs a negative lookahead search, which matches the search string at any point where a string not matching <i>pattern</i> begins. This is a non-capturing match, that is, the match is not captured for possible later use. For example, 'Windows (?!95|98|NT|2000)' matches "Windows" in "Windows 3.1" but does not match "Windows" in "Windows 2000". Lookaheads do not consume characters, that is, after a match occurs, the search for the next match begins immediately following the last match, not after the characters that comprised the lookahead.</td>
+    </tr>
+    <tr>
+      <td>(?&lt;=<i>pattern</i>)</td>
+      <td>A subexpression that performs a positive lookbehind search, which matches the search string at any point where a string matching <i>pattern</i> ends. For example, '(?&lt;=abc)z' matches an "z" only if it is preceded by the expression "abc". This is a non-capturing match, that is, the match is not captured for possible later use. Pattern must be of fixed length.</td>
+    </tr>
+    <tr>
+      <td>(?&lt;!<i>pattern</i>)</td>
+      <td>A subexpression that performs a negative lookbehind search, which matches the search string at any point where a string not matching <i>pattern</i> ends. For example, '(?&lt;!abc)z' matches an "z" only if it is not preceded by the expression "abc". This is a non-capturing match, that is, the match is not captured for possible later use. Pattern must be of fixed length.</td>
+    </tr>
+    <tr>
+      <td>(?&gt;<i>pattern</i>)</td>
+      <td>Atomic subexpression. Backtracking in this <i>pattern</i> is denied, if part of the <i>pattern</i> already found. For example, 'a(?&gt;bc|b)c' matches an "abcc", but not "abc". This is a non-capturing match, that is, the match is not captured for possible later use.</td>
+    </tr>
+    <tr>
+      <td>(?(<i>condition</i>)<i>pattern-true</i>|<i>pattern-false</i>)
+      <br><br>(?(<i>condition</i>)<i>pattern-true</i>)
+      </td>
+      <td>If the condition is satisfied, the pattern-true is used; otherwise the pattern-false (if present) is used. Condition can be pattern with positive/negative lookahead/lookbehind search or a number of backreference, which will be checked for match success. For example, '(a)?b(?(1)c|d)' matches the "abc" in "abc" and "bd" in "zbd". Because, if "a" found, then trying to find "c" after "b", if "a" not found, then trying to find "d" after "b".</td>
+    </tr>
+    <tr>
+      <td>(?<i>options</i>)</td>
+      <td>
+        Options applies only to current group, if specified at the beginning of a special pattern, for example, 'a(?i:b)c' applies to "b" or also to the next groups, if specified separately, for example, 'a(?i)bc' applies to "bc".
+        <br>Possible to use several options at once, for example, 'a(?im-Us)bc'.
+        <br>
+        <br>
+        <table>
+          <tr>
+            <td>(?i)</td>
+            <td>case insensitive.</td>
+          </tr>
+          <tr>
+            <td>(?m)</td>
+            <td>multiline search (default).</td>
+          </tr>
+          <tr>
+            <td>(?s)</td>
+            <td>dot '.' matches any single character (default).</td>
+          </tr>
+          <tr>
+            <td>(?U)</td>
+            <td>invert greediness.</td>
+          </tr>
+          <tr>
+            <td>(?-i)</td>
+            <td>match case.</td>
+          </tr>
+          <tr>
+            <td>(?-m)</td>
+            <td>turn off multiline search. '^' matches document beginning and '$' matches document end.</td>
+          </tr>
+          <tr>
+            <td>(?-s)</td>
+            <td>dot '.' matches any single character, except newline character.</td>
+          </tr>
+          <tr>
+            <td>(?-U)</td>
+            <td>turn off greediness inversion.</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td><i>x</i>|<i>y</i></td>
+      <td>Matches either <i>x</i> or <i>y</i>. For example, 'z|food' matches "z" or "food". '(z|f)ood' matches "zood" or "food".</td>
+    </tr>
+    <tr>
+      <td>[<i>xyz</i>]</td>
+      <td>A character set. Matches any one of the enclosed characters. For example, '[abc]' matches the "a" in "plain".</td>
+    </tr>
+    <tr>
+      <td>[^<i>xyz</i>]</td>
+      <td>A negative character set. Matches any character not enclosed. For example, '[^abc]' matches the "p" in "plain".</td>
+    </tr>
+    <tr>
+      <td>[<i>a-z</i>]</td>
+      <td>A range of characters. Matches any character in the specified range. For example, '[a-z]' matches any lowercase alphabetic character in the range "a" through "z".</td>
+    </tr>
+    <tr>
+      <td>[^<i>a-z</i>]</td>
+      <td>A negative range characters. Matches any character not in the specified range. For example, '[^a-z]' matches any character not in the range "a" through "z".</td>
+    </tr>
+    <tr>
+      <td>\b</td>
+      <td>Matches a word boundary, that is, the position between a word and a delimiter. For example, 'er\b' matches the "er" in "never" but not the "er" in "verb".</td>
+    </tr>
+    <tr>
+      <td>\B</td>
+      <td>Matches a non-word boundary. 'er\B' matches the "e" in "verb" but not the "er" in "never".</td>
+    </tr>
+    <tr>
+      <td>\A</td>
+      <td>Matches the position at the beginning of the document. For example, '\Aabc' matches the "abc" in "abc\ndef" but not the "abc" in "def\nabc".</td>
+    </tr>
+    <tr>
+      <td>\Z</td>
+      <td>Matches the position at the end of the document. For example, 'abc\Z' matches the "abc" in "def\nabc" but not the "abc" in "abc\ndef".</td>
+    </tr>
+    <tr>
+      <td>\a</td>
+      <td>Same as \A, but matches the position at the beginning of the search range.</td>
+    </tr>
+    <tr>
+      <td>\z</td>
+      <td>Same as \Z, but matches the position at the end of the search range.</td>
+    </tr>
+    <tr>
+      <td>\K</td>
+      <td>Any previously matched characters not included in the final result. For example, 'a+b+\K\c+' matches the "ccc" in "aaabbbccc".</td>
+    </tr>
+    <tr>
+      <td>\d</td>
+      <td>Matches a digit character. Equivalent to '[0-9]'.</td>
+    </tr>
+    <tr>
+      <td>\D</td>
+      <td>Matches a non-digit character. Equivalent to '[^0-9]'.</td>
+    </tr>
+    <tr>
+      <td>\f</td>
+      <td>Matches a form-feed character. Equivalent to '\x0c'.</td>
+    </tr>
+    <tr>
+      <td>\n</td>
+      <td>Matches any newline. To match Unix newline character use '\x0a'.</td>
+    </tr>
+    <tr>
+      <td>\r</td>
+      <td>Matches any newline. To match Mac newline character use '\x0d'.</td>
+    </tr>
+    <tr>
+      <td>\s</td>
+      <td>Matches any whitespace character including space, tab, form-feed, and so on. Equivalent to '[ \f\n\r\t\v]'.</td>
+    </tr>
+    <tr>
+      <td>\S</td>
+      <td>Matches any non-whitespace character. Equivalent to '[^ \f\n\r\t\v]'.</td>
+    </tr>
+    <tr>
+      <td>\t</td>
+      <td>Matches a tab character. Equivalent to '\x09'.</td>
+    </tr>
+    <tr>
+      <td>\v</td>
+      <td>Matches a vertical tab character. Equivalent to '\x0b'.</td>
+    </tr>
+    <tr>
+      <td>\w</td>
+      <td>Matches any word character (any character excluding delimiter).</td>
+    </tr>
+    <tr>
+      <td>\W</td>
+      <td>Matches any non-word character (any delimiter).</td>
+    </tr>
+    <tr>
+      <td>\x<i>n</i></td>
+      <td>Matches <i>n</i>, where <i>n</i> is a hexadecimal escape value with exactly two digits long. For example, '\x41' matches "A".</td>
+    </tr>
+    <tr>
+      <td>\u<i>n</i></td>
+      <td>Matches <i>n</i>, where <i>n</i> is a Unicode character expressed as four hexadecimal digits. For example, '\u00A9' matches the copyright symbol "©".</td>
+    </tr>
+    <tr>
+      <td>\x{<i>n</i>}</td>
+      <td>Matches <i>n</i>, where <i>n</i> is a hexadecimal escape value. For example, '\x{20027}' is equal to surrogate pair '\uD840\uDC27'.</td>
+    </tr>
+    <tr>
+      <td>\<i>n</i></td>
+      <td>Matches <i>n</i>, where <i>n</i> is a single decimal digit - a reference back to captured matches. For example, '(.)\1' matches two consecutive identical characters.</td>
+    </tr>
+    <tr>
+      <td>\<i>nn</i></td>
+      <td>Matches <i>nn</i>, where <i>nn</i> is a two digit decimal number from 01 through 99 - a reference back to captured matches. For example, '(.)\01' matches two consecutive identical characters.</td>
+    </tr>
+  </table>
+
+  <br><b>Notes:</b>
+  <br>- Regular expression quantifiers (*, +, {n,}) are greedy by default. To make it lazy use "?" after quantifier, like, "\d*?". To make it possessive use "+" after quantifier, like, "\d*+".
+  <br>- Using possessive quantifiers increases the speed of expression execution.
+  <br>- Metacharacters \b, \B, \A, \a, \z, \Z, \K not used in character sets [xyz], because they not relate to any concrete characters.
+  <br>- If metacharacter \K exclude characters from result, button "Replace" in replace dialog will work as "Find".
+  <br>
+
+<a name=ch8><h3>License</h3></a>
+  This program is distributed under <i>"BSD license"</i> conditions. <i>BSD license</i> is open source license approved by OSI. It can be found on <a href=http://www.opensource.org/licenses/bsd-license.php>their site</a>.
+
+<a name=ch9><h3>Contributors</h3></a>
+  Shengalts Aleksander (e-mail: <a href=mailto:shengalts@mail.ru>shengalts@mail.ru</a>)
+  <br>Kuznetsov Alexey
+  <br><br>Home page: <a href=http://akelpad.sf.net>http://akelpad.sf.net</a>
+
+<hr>
+
+</body>
+</html>

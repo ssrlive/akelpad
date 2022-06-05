@@ -1,0 +1,18 @@
+﻿/*CARET*/
+body
+{
+	background-color:#/*CARET*/;
+	background-image:url();
+}
+
+p
+{
+	color:#;
+	font-family:;
+	font-size:;
+}
+
+a:link {color:#; text-decoration:; font-weight:;}
+a:visited {color:#; text-decoration:; font-weight:;}
+a:hover {color:#; text-decoration:; font-weight:;}
+a:active {color:#; text-decoration:; font-weight:;}

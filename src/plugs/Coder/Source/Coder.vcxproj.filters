@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{1ffaef8f-f30a-482a-8974-72c2f2f66846}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{ac2ca9af-8d99-4002-b0aa-b138e18f19ec}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{ce080369-a9be-4daa-ad6a-a863c6e86a09}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AutoComplete.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CodeFold.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Coder.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HighLight.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\00.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\01.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\02.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\03.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\04.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\05.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\06.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\07.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\08.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\09.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\10.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\11.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\12.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources\Coder.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AutoComplete.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CodeFold.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Coder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HighLight.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

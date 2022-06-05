@@ -1,0 +1,16 @@
+*****************************************************************
+***                 Stats AkelPad plugin v3.4                 ***
+*****************************************************************
+
+2008-2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Shows count of characters, words and lines in text.
+
+
+*** Functions ***
+
+Stats::Main
+Main function.

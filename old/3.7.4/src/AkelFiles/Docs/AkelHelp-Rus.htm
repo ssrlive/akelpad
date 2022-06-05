@@ -1,0 +1,1070 @@
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html; charset=windows-1251">
+<title>AkelPad 3 - Справка</title>
+</head>
+
+<body bgcolor="#dadae0">
+
+<font color=green><h2>AkelPad 3 - руководство пользователя</h2></font>
+
+<h3>Содержание</h3>
+<ol>
+  <li><a href=#ch0>Замечания о совместимости</a>
+  <li><a href=#ch1>Общие замечания</a>
+  <li><a href=#ch2>Возможности программы</a>
+  <li><a href=#ch3>Параметры командной строки</a>
+  <li><a href=#ch4>Клавиатурные команды</a>
+  <li><a href=#ch5>Внутренние команды</a>
+  <li><a href=#ch6>Лицензионное соглашение</a>
+  <li><a href=#ch7>Авторы</a>
+</ol>
+
+<a name=ch0><h3>Замечание о совместимости</h3></a>
+  Программа предназначена для работы в системах Windows 95/98/Me и Windows NT 4.0/2000/XP/2003.
+
+<a name=ch1><h3>Общие замечания</h3></a>
+  Блокнот - замечательный редактор, без наворотов, редактирующий в простом текстовом формате и поэтому незаменимый при программировании, редактировании html-документов, да и не только. Однако тот, который входит в состав Windows, крайне неудобен в использовании в силу ряда ограничений. Данная программа претендует на то, чтобы восполнить эти недостатки.
+  <br><i>Внимание:</i> для того, чтобы в полной мере использовать преимущества Unicode, рекомендуется выбрать один из Unicode-шрифтов, каковыми являются большинство шрифтов TrueType (например, Courier New).
+
+<a name=ch2><h3>Возможности</h3></a>
+  Поскольку программа призвана заменить блокнот и нацелена на редактирование файлов в формате plain text, она <font color=red>не</font> поддерживает работу с файлами в формате RTF и т. п. - это не недостаток, а особенность.
+  Коротко об основных возможностях:
+  <ul>
+    <li>Однооконный режим (SDI), многооконный режим (MDI);
+    <li>Редактирование файлов размером более 64K (вообще, размер редактируемого файла теоретически не ограничен);
+    <li>Полная поддержка Unicode строк на Unicode системах (NT/2000/XP/2003);
+    <li>Работа с кодировками Unicode (UTF-16 little endian, UTF-16 big endian, UTF-8);
+    <li>Работа с любой кодовой страницей, установленной в системе;
+    <li>Работа с DOS/Windows и Unix форматами перевода строки (в том числе сохранение);
+    <li>Предпросмотр открытия файлов;
+    <li>Корректное отображение псевдографики;
+    <li>Редактирование файлов с атрибутом "Read Only";
+    <li>Многоуровневый откат действий;
+    <li>Поиск/замена строк текста, escape-последовательностей, а также поиск/замена по шестнадцатеричному коду;
+    <li>Запоминание кодировки и позиции каретки в файле;
+    <li>Список последних открытых файлов;
+    <li>Печать;
+    <li>Поддержка языковых модулей;
+    <li>Поддержка плагинов (подсветка синтаксиса, авто-дополнение, запуск скриптов, клавиатурные макросы и много больше).
+  </ul>
+
+  Настройки сохраняются по выбору в AkelPad.ini или в реестре (<i>HKEY_CURRENT_USER\Software\Akelsoft\AkelPad</i>).
+
+<a name=ch3><h3>Параметры командной строки</h3></a>
+  AkelPad.exe [параметры] "file1.ext" "file2.ext" ...
+  <ul>
+    <table cellspacing=0 cellpadding=0 border=0>
+      <tr>
+        <td width="80"><li><b>/p</b></td>
+        <td>- печать</td>
+      </tr>
+      <tr>
+        <td><li><b>/c+</b></td>
+        <td>- молча создавать новый файл, если он не существует</td>
+      </tr>
+      <tr>
+        <td><li><b>/c-</b></td>
+        <td>- не создавать новый файл, если он не существует</td>
+      </tr>
+      <tr>
+        <td><li><b>/b+</b></td>
+        <td>- молча открывать файл, если он бинарный</td>
+      </tr>
+      <tr>
+        <td><li><b>/b-</b></td>
+        <td>- не открывать файл, если он бинарный</td>
+      </tr>
+      <tr>
+        <td><li><b>/x</b></td>
+        <td>- не использовать режим совместимости с MS Notepad при обработке параметров командной строки</td>
+      </tr>
+      <tr>
+        <td><li><b>/reassoc</b></td>
+        <td>- переустановить ранее назначенные ассоциации типов файлов</td>
+      </tr>
+      <tr>
+        <td><li><b>/deassoc</b></td>
+        <td>- снять ранее назначенные ассоциации типов файлов</td>
+      </tr>
+      <tr>
+        <td><li><b>/quit</b></td>
+        <td>- закончить обработку параметров командной строки и выйти из программы</td>
+      </tr>
+      <tr>
+        <td><li><b>/end</b></td>
+        <td>- закончить обработку параметров командной строки</td>
+      </tr>
+    </table>
+  </ul>
+
+<a name=ch4><h3>Клавиатурные команды</h3></a>
+  <ul>
+  <table cellspacing=0 cellpadding=1 border=1>
+    <tr>
+      <td><b>Ctrl+X</b><br><b>Shift+Del</b></td>
+      <td>вырезать</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+C</b><br><b>Ctrl+Ins</b></td>
+      <td>копировать</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+V</b><br><b>Shift+Ins</b></td>
+      <td>вставить</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+V</b><br><b>Ctrl+Shift+Ins</b></td>
+      <td>вставить текст как ANSI</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+A</b></td>
+      <td>выделить всё</td>
+    </tr>
+
+    <tr>
+      <td><b>Backspace</b></td>
+      <td>удалить слева</td>
+    </tr>
+
+    <tr>
+      <td><b>Del</b></td>
+      <td>удалить справа</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Z</b></td>
+      <td>отменить</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+Z</b></td>
+      <td>повторить</td>
+    </tr>
+
+    <tr>
+      <td><b>Home</b></td>
+      <td>перейти на начало строки</td>
+    </tr>
+
+    <tr>
+      <td><b>End</b></td>
+      <td>перейти на конец строки</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Home</b></td>
+      <td>перейти в начало текста</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+End</b></td>
+      <td>перейти в конец текста</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Left</b></td>
+      <td>перейти на начало слова</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Right</b></td>
+      <td>перейти на конец слова</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Up</b></td>
+      <td>перейти на начало предыдущей строки</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Down</b></td>
+      <td>перейти на начало следующей строки</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+PageUp</b></td>
+      <td>перейти к первому видимому символу</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+PageDown</b></td>
+      <td>перейти к последнему видимому символу</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Backspace</b></td>
+      <td>удалить слово слева</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Del</b></td>
+      <td>удалить слово справа</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+N</b></td>
+      <td>создать новый файл</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+N</b></td>
+      <td>создать новое окно</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+O</b></td>
+      <td>открыть файл</td>
+    </tr>
+
+    <tr>
+      <td><b>F5</b><br><b>Ctrl+Shift+O</b></td>
+      <td>переоткрыть файл</td>
+    </tr>
+
+    <tr>
+      <td><b>F2</b><br><b>Ctrl+S</b></td>
+      <td>сохранить</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+F2</b><br><b>Ctrl+Shift+S</b></td>
+      <td>сохранить как</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Alt+F2</b></td>
+      <td>сохранить все</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Alt+F4</b></td>
+      <td>закрыть все</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+P</b></td>
+      <td>печать</td>
+    </tr>
+
+    <tr>
+      <td><b>Esc</b><br><b>Alt+F4</b></td>
+      <td>выход</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+F</b></td>
+      <td>найти</td>
+    </tr>
+
+    <tr>
+      <td><b>F3</b></td>
+      <td>найти далее вниз. Диалог поиска/замены: закрыть диалог и найти далее вниз.</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+F3</b></td>
+      <td>найти далее вверх. Диалог поиска/замены: закрыть диалог и найти далее вверх.</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+R</b><br><b>Ctrl+H</b></td>
+      <td>найти и заменить</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+G</b></td>
+      <td>перейти к строке (по номеру)</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+I</b></td>
+      <td>запустить "Таблицу символов"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+D</b></td>
+      <td>вставить дату</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+T</b></td>
+      <td>включить/выключить режим "Поверх всех окон"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+U</b></td>
+      <td>включить/выключить режим "Перенос по словам"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+E</b></td>
+      <td>включить/выключить режим "Только чтение"</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+W</b></td>
+      <td>открыть редактируемый файл в кодировке ANSI (Windows)</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+D</b></td>
+      <td>открыть редактируемый файл в кодировке OEM (DOS)</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+K</b></td>
+      <td>открыть редактируемый файл в кодировке КОИ8-Р</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+L</b></td>
+      <td>открыть редактируемый файл в кодировке UTF-16LE</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+B</b></td>
+      <td>открыть редактируемый файл в кодировке UTF-16BE</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+U</b></td>
+      <td>открыть редактируемый файл в кодировке UTF-8</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+W</b></td>
+      <td>сохранить редактируемый файл в кодировке ANSI (Windows)</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+D</b></td>
+      <td>сохранить редактируемый файл в кодировке OEM (DOS)</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+K</b></td>
+      <td>сохранить редактируемый файл в кодировке КОИ8-Р</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+L</b></td>
+      <td>сохранить редактируемый файл в кодировке UTF-16LE</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+B</b></td>
+      <td>сохранить редактируемый файл в кодировке UTF-16BE</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Alt+U</b></td>
+      <td>сохранить редактируемый файл в кодировке UTF-8</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+F5</b></td>
+      <td>переоткрыть файл с определением кодировки</td>
+    </tr>
+
+    <tr>
+      <td><b>F12</b></td>
+      <td>показать контекстное меню для быстрого переоткрытия/сохранения в нужной кодировке</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+R</b></td>
+      <td>перекодировать текст</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+Backspace</b></td>
+      <td>убрать первый символ в начале строк</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+Backspace</b></td>
+      <td>убрать Tab'ы и пробелы в конце строк</td>
+    </tr>
+
+    <tr>
+      <td><b>Alt+P</b></td>
+      <td>плагины</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+F5</b></td>
+      <td>выполнить команду</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+L</b></td>
+      <td>включить/выключить режим "Сохранять отступы слева"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Enter</b></td>
+      <td>новая строка с сохранением отступов слева</td>
+    </tr>
+
+    <tr>
+      <td><b>F4</b><br><b>Alt+Enter</b></td>
+      <td>развернуть/восстановить окно</td>
+    </tr>
+
+    <tr>
+      <td><b>F8</b><br><b>Ctrl+Y</b></td>
+      <td>удалить текущую строку</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Num +</b></td>
+      <td>увеличить шрифт на 1 pt</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Num -</b></td>
+      <td>уменьшить шрифт на 1 pt</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+6</b></td>
+      <td>выделенный текст, как "ВСЕ ПРОПИСНЫЕ"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+7</b></td>
+      <td>выделенный текст, как "все строчные"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+8</b></td>
+      <td>выделенный текст, как "Как в предложениях."</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+9</b></td>
+      <td>выделенный текст, как "Начинать С Прописных"</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+0</b></td>
+      <td>выделенный текст, как "иНВЕРТИРОВАТЬ"</td>
+    </tr>
+
+    <tr>
+      <td><b>F6</b></td>
+      <td>перейти к следующему диалогу</td>
+    </tr>
+
+    <tr>
+      <td><b>Shift+F6</b></td>
+      <td>перейти к предыдущему диалогу</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Tab</b><br><b>Ctrl+F6</b></td>
+      <td>следующее окно (MDI)</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+Shift+Tab</b><br><b>Ctrl+Shift+F6</b></td>
+      <td>предыдующее окно (MDI)</td>
+    </tr>
+
+    <tr>
+      <td><b>Ctrl+F4</b><br><b>Ctrl+W</b></td>
+      <td>закрыть окно (MDI)</td>
+    </tr>
+
+  </table>
+  </ul>
+
+<a name=ch5><h3>Внутренние команды</h3></a>
+  Могут быть использованы в ContextMenu, ToolBar, Hotkeys и Scripts плагинах.
+  <ul>
+  <table cellspacing=0 cellpadding=1 border=1>
+    <tr>
+      <td align=center><b>4101</b></td>
+      <td>Создать новое окно редактирования</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4102</b></td>
+      <td>Создать новую копию программы</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4103</b></td>
+      <td>Диалог открытия файлов</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4104</b></td>
+      <td>Переоткрыть файл</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4105</b></td>
+      <td>Сохранить файл</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4106</b></td>
+      <td>Диалог сохранения файлов</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4107</b></td>
+      <td>Диалог настроек печати</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4108</b></td>
+      <td>Диалог печати</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4109</b></td>
+      <td>Выход из программы</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4110</b></td>
+      <td>Сохранить все документы</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4111</b></td>
+      <td>Закрыть все документы</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4112</b></td>
+      <td>Закрыть все документы, кроме активного</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4113</b></td>
+      <td>Печать без диалога</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4151</b></td>
+      <td>Отменить последнюю операцию (Undo)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4152</b></td>
+      <td>Повторить последнюю операцию (Redo)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4153</b></td>
+      <td>Вырезать</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4154</b></td>
+      <td>Скопировать</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4155</b></td>
+      <td>Вставить</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4156</b></td>
+      <td>Удалить</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4157</b></td>
+      <td>Выделить все</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4158</b></td>
+      <td>Диалог поиска</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4159</b></td>
+      <td>Найти далее вниз</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4160</b></td>
+      <td>Найти далее вверх</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4161</b></td>
+      <td>Диалог замены</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4162</b></td>
+      <td>Диалог перехода к строке</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4163</b></td>
+      <td>Запуск charmap.exe</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4164</b></td>
+      <td>Вставить табуляцию</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4165</b></td>
+      <td>Вставить табуляцию, только если выделено несколько строк</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4166</b></td>
+      <td>Удалить табуляцию</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4167</b></td>
+      <td>Удалить табуляцию, только если выделено несколько строк</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4168</b></td>
+      <td>Вставить пробел</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4169</b></td>
+      <td>Вставить пробел, только если выделено несколько строк</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4170</b></td>
+      <td>Удалить пробел</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4171</b></td>
+      <td>Удалить пробел, только если выделено несколько строк</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4172</b></td>
+      <td>Удалить первый символ</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4173</b></td>
+      <td>Удалить первый символ, только если есть выделение</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4174</b></td>
+      <td>Удалить табы и пробелы в конце</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4175</b></td>
+      <td>Преобразовать в "ВСЕ ПРОПИСНЫЕ"</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4176</b></td>
+      <td>Преобразовать в "все строчные"</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4177</b></td>
+      <td>Преобразовать в "Как в предложениях."</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4178</b></td>
+      <td>Преобразовать в "Начинать С Прописных"</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4179</b></td>
+      <td>Преобразовать в "иНВЕРТИРОВАТЬ</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4180</b></td>
+      <td>Преобразовать по кругу</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4182</b></td>
+      <td>Диалог перекодирования</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4183</b></td>
+      <td>Вставить дату</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4184</b></td>
+      <td>Формат новой строки Windows</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4185</b></td>
+      <td>Формат новой строки Unix</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4201</b></td>
+      <td>Диалог выбора шрифта</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4202</b></td>
+      <td>Диалог выбора цвета текста</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4203</b></td>
+      <td>Диалог выбора цвета фона</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4204</b></td>
+      <td>Увеличить шрифт на 1px</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4205</b></td>
+      <td>Уменьшить шрифт на 1px</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4209</b></td>
+      <td>Перенос по словам (вкл\выкл)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4210</b></td>
+      <td>Поверх всех окон (вкл\выкл)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4211</b></td>
+      <td>Показать строку состояния (вкл\выкл)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4251</b></td>
+      <td>Выполнить</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4252</b></td>
+      <td>Сохранять время файла (вкл\выкл)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4253</b></td>
+      <td>Следить за изменением файла (вкл\выкл)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4254</b></td>
+      <td>Сохранять отступы слева (вкл\выкл)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4255</b></td>
+      <td>Не открывать файл дважды (вкл\выкл)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4256</b></td>
+      <td>Не открывать программу дважды (вкл\выкл)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4257</b></td>
+      <td>Однооконный (SDI) режим</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4258</b></td>
+      <td>Многооконный (MDI) режим</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4259</b></td>
+      <td>Диалог плагинов</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4260</b></td>
+      <td>Диалог настроек</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4261</b></td>
+      <td>Только чтение (вкл\выкл)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4301</b></td>
+      <td>Вкладки сверху (MDI)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4302</b></td>
+      <td>Вкладки снизу (MDI)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4303</b></td>
+      <td>Скрыть вкладки (MDI)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4304</b></td>
+      <td>Стандартные вкладки (MDI)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4305</b></td>
+      <td>Вкладки как кнопки (MDI)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4306</b></td>
+      <td>Вкладки как плоские кнопки (MDI)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4307</b></td>
+      <td>Выстроить горизонтально MDI окна</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4308</b></td>
+      <td>Выстроить вертикально MDI окна</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4309</b></td>
+      <td>Выстроить каскадом MDI окна</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4351</b></td>
+      <td>Диалог о программе</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4401</b></td>
+      <td>Восстановить/Развернуть главное окно программы</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4402</b></td>
+      <td>Удалить текущую строку</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4403</b></td>
+      <td>Вставить текст как ANSI</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4404</b></td>
+      <td>Активировать следующее MDI окно</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4405</b></td>
+      <td>Активировать предыдущее MDI окно</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4406</b></td>
+      <td>Закрыть текущее MDI окно</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4407</b></td>
+      <td>(внутренняя команда)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4408</b></td>
+      <td>Определить кодировку текущего документа заново</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4409</b></td>
+      <td>Переоткрыть файл как ANSI</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4410</b></td>
+      <td>Переоткрыть файл как OEM</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4411</b></td>
+      <td>Переоткрыть файл как UTF16LE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4412</b></td>
+      <td>Переоткрыть файл как UTF16BE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4413</b></td>
+      <td>Переоткрыть файл как UTF8</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4414</b></td>
+      <td>Переоткрыть файл как KOI-R</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4415</b></td>
+      <td>Сохранить файл как ANSI</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4416</b></td>
+      <td>Сохранить файл как OEM</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4417</b></td>
+      <td>Сохранить файл как UTF16LE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4418</b></td>
+      <td>Сохранить файл как UTF16BE</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4419</b></td>
+      <td>Сохранить файл как UTF8</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4420</b></td>
+      <td>Сохранить файл как KOI-R</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4421</b></td>
+      <td>Режим вставки/замены</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4422</b></td>
+      <td>Закрыть файл</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4423</b></td>
+      <td>Перейти к следующему диалогу</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4424</b></td>
+      <td>Перейти к предыдущему диалогу</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4425</b></td>
+      <td>Вставить новую строку с сохранением отступов слева</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4426</b></td>
+      <td>Сохранить файл как UTF8 без BOM</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4430</b></td>
+      <td>Вставить текст из буфера обмена после каретки</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4431</b></td>
+      <td>(внутренняя команда)</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>5001</b></td>
+      <td>В списке последних файлов удалить несуществующие</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>5001 + n</b></td>
+      <td>Из списка последних файлов открыть файл n</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>6001</b></td>
+      <td>Выбрать внутренний язык</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>6001 + n</b></td>
+      <td>Из списка языков выбрать язык n</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>7001</b></td>
+      <td>Открыть в последней кодировке списка</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>7001 + n</b></td>
+      <td>Из списка открыть в кодировке n</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>8001</b></td>
+      <td>Сохранить в последней кодировке списка</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>8001 + n</b></td>
+      <td>Из списка сохранить в кодировке n</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>10019</b></td>
+      <td>Диалог выбора окна (MDI)</td>
+    </tr>
+
+  </table>
+  </ul>
+
+<a name=ch6><h3>Лицензионное соглашение</h3></a>
+  Данная программа распространяется на условиях <i>лицензии BSD</i>. <i>Лицензия BSD</i> (или <i>BSD licence</i>) - это лицензия программного обеспечения с открытым исходным кодом, одобренная OSI (Open Source Initiative). Её текст может быть найден на <a href=http://www.opensource.org/licenses/bsd-license.php>сайте этой организации</a>.
+
+<a name=ch7><h3>Авторы</h3></a>
+  Шенгальц Александр (e-mail: <a href=mailto:shengalts@mail.ru>shengalts@mail.ru</a>)
+  <br>Кузнецов Алексей (e-mail: <a href=mailto:developer@akelpad.net.ru>developer@akelpad.net.ru</a>)
+  <br><br><a href=http://akelpad.sf.net>http://akelpad.sf.net</a>
+
+<hr>
+
+</body>
+</html>

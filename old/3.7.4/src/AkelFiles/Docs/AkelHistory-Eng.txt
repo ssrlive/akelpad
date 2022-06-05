@@ -1,0 +1,1135 @@
+
+AkelPad 3.7.4 (Feb 10, 2010)
+----------------------------
+Changed: plugin architecture. Update plugins.
+
+Added: in the "Select Window" dialog (MDI):
+       - tab search;
+       - arrange horizontally/vertically selected tabs;
+       - sorting, reordering tabs;
+       - save, closing selected tabs;
+       - opportunity to show only modified files;
+       - dialog size is remembered;
+       - F10 hotkey to open dialog.
+Added: check for language modules and program compatibility. Now the language module version
+       must be equal to version of the program.
+Added: manifest in program resources.
+Added: installation with notepad replacement under WinVista and Win7.
+Added: option for going to specified offset in "Go to line..." dialog.
+Added: "Plugins..." dialog now resizable.
+Added: now possible to assign hotkeys in plugins dialog:
+       (Ctrl|Alt|Shift)+Delete, (Ctrl|Alt|Shift)+Backspace, Ctrl+Tab, Ctrl+Shift+Tab and
+       also ability to assign Tab, Shift+Tab on condition that the hotkey input box was
+       activated using the mouse.
+
+
+AkelPad 3.7.3 (Aug 28, 2009)
+----------------------------
+Added: 4113 command - silent printing.
+Added: 4430 command - paste text after caret.
+
+Fixed: correct open/save UTF-8 text containing surrogate pairs.
+
+
+AkelPad 3.7.2 (Apr 26, 2009)
+----------------------------
+Added: AKD_INI* messages for work with ini file in UTF-16LE codepage.
+
+Fixed: change font size using Ctrl+WheelMouse didn't remembered.
+Fixed: duplicating codepage in list when Ansi and Oem codepages are the same.
+
+
+AkelPad 3.7.1 (Apr 06, 2009)
+----------------------------
+Fixed: version 3.7.0 identified itself with AkelEdit instead of RichEdit.
+
+
+AkelPad 3.7.0 (Mar 23, 2009)
+----------------------------
+Added: check for plugins and program compatibility. Update plugins.
+Added: Ctrl+Enter combination - new line with keeping left spaces.
+Added: command 4426 for file saving in UTF-8 without BOM.
+Added: Chinese recognition (UTF-8).
+Added: Japanese recognition (UTF-8).
+Added: Korean recognition (UTF-8).
+Added: Turkish recognition (OEM, UTF-8).
+Added: version information in EXE.
+Added: from uninstaller now possible to remove installer traces (shortcuts, key in registry,
+       Uninstall.exe file) without program files removal.
+
+Fixed: ampersand in tab button name (MDI) and in recent files menu.
+
+
+AkelPad 3.6.4 (Dec 18, 2008)
+----------------------------
+Added: silent install support (/? for help).
+Added: possibility to change default extention of a file save dialog (in program resources).
+Added: hMainAccel parameter in plugin structure.
+
+Fixed: binary file could open as UTF-16.
+
+
+AkelPad 3.6.3 (Nov 20, 2008)
+----------------------------
+Changed: documentation now located in Docs folder.
+
+Added: plugins in installer.
+Added: opportunity to replace notepad without installation of the program in a system
+       directory.
+
+Fixed: context menu on two monitors.
+
+
+AkelPad 3.6.2 (Oct 07, 2008)
+----------------------------
+Fixed: extended hotkey didn't working.
+
+
+AkelPad 3.6.1 (Sep 01, 2008)
+----------------------------
+Changed: hotkeys (conflicted with AltGr key):
+        - Shift+Alt+W save as ANSI (Windows);
+        - Shift+Alt+D save as OEM (DOS);
+        - Shift+Alt+K save as KOI8-R.
+        - Shift+Alt+L save as UTF-16LE;
+        - Shift+Alt+B save as UTF-16BE;
+        - Shift+Alt+U save as UTF-8.
+
+Added: Latin recognition OEM and UTF-8.
+Added: position of modeless dialogs is locally remembered.
+Added: command 4180 for cycle text case changing.
+
+Fixed: "OK" button in plugin dialog, didn't clear non-existent plugin records.
+Fixed: word delimiters saving in INI file.
+
+
+AkelPad 3.6.0 (Jul 03, 2008)
+----------------------------
+Changed: synchronized structures with AkelPad 4.x.x. Update yours plugins.
+
+Added: unicode files without BOM now marked as "*BOM" in status bar.
+
+Fixed: UTF-8 without BOM recognition.
+
+
+AkelPad 3.5.6 (Apr 21, 2008)
+----------------------------
+Added: Turkish language module (fero74).
+Added: lpPluginFunction parameter in plugin structure.
+
+Fixed: working directory manipulation.
+
+
+AkelPad 3.5.5 (Apr 14, 2008)
+----------------------------
+Changed: program working directory restored after file opening.
+
+Added: AKDN_DLLCALL, AKDN_DLLUNLOAD messages.
+
+Fixed: FR_WHOLEWORD flag of AKD_TEXTFIND message didn't working.
+
+
+AkelPad 3.5.4 (Mar 31, 2008)
+----------------------------
+Changed: improved work with docking windows. 
+
+Added: insert date (Ctrl+D).
+Added: possibility to read/save program settings from plugins using AKD_BEGINOPTIONS message.
+
+Fixed: function of change letter case "Sentence case." were not processed "?" and "!"
+       as the end of the sentence.
+
+
+AkelPad 3.5.3 (Mar 20, 2008)
+----------------------------
+Changed: improved work with docking windows. 
+
+Added: IDM_FILE_CLOSEALL_BUTACTIVE command (MDI). 
+Added: AKDN_DOCK_GETMINMAXINFO message.
+
+
+AkelPad 3.5.2 (Mar 10, 2008)
+----------------------------
+Changed: now docking windows can be created in the main thread.
+
+Added: accelerator table (resource identifier 1301), which works in any modeless window
+       of the program.
+Added: opportunity of switching between edit window and modeless dialogs:
+        F6 go to next dialog;
+        Shift+F6 go to previous dialog.
+Added: AKD_POSTMESSAGE, AKDN_MAIN_ONSTART_IDLE messages.
+
+Fixed: AKD_DLLUNLOAD message.
+
+
+AkelPad 3.5.1 (Mar 03, 2008)
+----------------------------
+Added: command line parameters:
+       /reassoc reinstall assigned earlier associations of file types;
+       /deassoc uninstall assigned earlier associations of file types;
+       /quit stop parsing command line parameters and close program.
+Added: program installation reinstall assigned earlier associations of file types,
+       program deinstallation uninstall assigned earlier associations of file types.
+
+Fixed: AKD_DLLUNLOAD message.
+
+
+AkelPad 3.5.0 (Feb 26, 2008)
+----------------------------
+Important: before installation recommended fully uninstall previous versions.
+
+Changed: now if INI file being changed in Win95/98/Me, then it can be
+         successfully used in WinNT/2000/XP/2003 and on the contrary.
+Changed: the important element of interaction with plugins is corrected.
+         Update your plugins.
+
+Added: Polish language module (Faalagorn).
+Added: now program can be compiled with GCC.
+Added: hotkeys Ctrl+Alt+F2 - save all documents, Ctrl+Alt+F4 - close all documents.
+
+Fixed: insert tab as spaces feature.
+
+
+AkelPad 3.4.8 (Feb 14, 2008)
+----------------------------
+Changed: AKDN_SIZE, AKD_DLLUNLOAD, AKD_DLLSAVE message.
+
+Added: Kirghiz language module (Janybek Janyzak).
+Added: AKD_DOCK, AKD_RESIZE messages.
+
+Fixed: when saving settings in registry, changing "Codepage recognition" item was ignored.
+Fixed: registry key had been created when search history was off.
+
+
+AkelPad 3.4.7 (Jan 27, 2008)
+----------------------------
+Fixed: 3.4.6 bug - work with INI file (Win95/98/Me).
+Fixed: tabs Drag'n'Drop (MDI).
+
+
+AkelPad 3.4.6 (Jan 19, 2008)
+----------------------------
+Added: Chinese Simplified language module (cnnnc).
+Added: %d variable in "Execute" settings.
+
+Fixed: DBCS codepages support.
+
+
+AkelPad 3.4.5 (Jan 07, 2008)
+----------------------------
+Changed: hyperlink clickable only if selection empty.
+
+Added: Chinese Traditional language module (Minson).
+Added: now find/replace dialog accept more than one line when pasting from clipboard.
+Added: many IDM_* commands now return values after call.
+
+
+AkelPad 3.4.4 (Nov 28, 2007)
+----------------------------
+Changed: IDM_FILE_SAVEALL command valid also for SDI mode.
+
+Added: Italian language module (Giovanni Fiocco aka Vecna).
+Added: Korean language module (gony).
+Added: IDM_FILE_CLOSEALL command.
+
+Fixed: "OK" button in plugin dialog, didn't clear old plugin records.
+
+
+AkelPad 3.4.3 (Nov 10, 2007)
+----------------------------
+Fixed: "Cancel" button in code pages filter dialog caused custom filter reset.
+
+
+AkelPad 3.4.2 (Oct 27, 2007)
+----------------------------
+Changed: now possible to search in selection in Find/Replace dialog.
+Changed: AKD_DLLCALL message structure complemented.
+
+Added: AKD_CALLPROC, AKD_DLLSAVE messages.
+
+
+AkelPad 3.4.1 (Oct 17, 2007)
+----------------------------
+Changed: improved detection of UTF-16LE, UTF-16BE without BOM.
+
+Added: Brazilian language module (Cleverson Casarin Uliana).
+
+Fixed: now Resource Hacker correctly saving program menu.
+
+
+AkelPad 3.4.0 (Sep 25, 2007)
+----------------------------
+Changed: improved work with plugins:
+        - added lpbAutoLoad parameter in plugin structure;
+        - removed pFile parameter from plugin structure;
+        - nUnload parameter now not a pointer;
+        - replaced message AKD_GETAKELDIR with AKD_GETMAININFO.
+          Update yours plugins.
+Changed: when saving, error message doesn't show, if INI file has read-only attribute.
+Changed: removed "Clear old" button from plugins dialog, now its function performing
+         by "OK" button.
+
+Added: in plugins dialog, when setting autoload check box for function that doesn't
+       support autoload, appropriate message shown.
+
+Fixed: incorrect placement of a print page setup controls, when "Printer..." button
+       doesn't exist.
+Fixed: double click on check box, launched first function in list.
+
+
+AkelPad 3.3.8 (Aug 22, 2007)
+----------------------------
+Added: Japanese language module (Nardog).
+
+Fixed: code page of non-cyrillic language modules.
+Fixed: in find/replace dialog it was unable to select "All files" using keyboard (MDI).
+Fixed: WM_COPYDATA (CD_OPENDOCUMENT) message with window handle specification (SDI).
+
+
+AkelPad 3.3.7 (Aug 08, 2007)
+----------------------------
+Added: POB_CLEAR flag in AKD_BEGINOPTIONS message.
+
+Fixed: generated clipboard text had non-standard new line format.
+
+
+AkelPad 3.3.6 (Aug 03, 2007)
+----------------------------
+Changed: improved text copy to clipboard.
+
+Added: AKD_GETAKELDIR, AKD_WAITKEYBOARD messages.
+
+Fixed: hotkey check in plugins dialog.
+
+
+AkelPad 3.3.5 (Jul 26, 2007)
+----------------------------
+Changed: set minor priority 1251 over 20866 when code page detection.
+
+Added: hotkey existence check in plugins dialog.
+Added: IDM_NONMENU_FILECLOSE command.
+Added: AKD_CREATEWINDOW message.
+
+Fixed: shortcuts created in Total Commander installation mode pointed to
+       an non-existent objects.
+
+
+AkelPad 3.3.4 (Jul 12, 2007)
+----------------------------
+Changed: "Save" menu item disabled if file doesn't changed.
+Changed: message AKDN_EDIT_RBUTTONUP replaced with AKDN_CONTEXTMENU.
+Changed: message AKD_DLLCALL.
+
+Added: AKD_GETRECENTFILES message.
+
+Fixed: infinite loop situation when trying to open file with using
+       "Don't open file twice" (SDI).
+
+
+AkelPad 3.3.3 (Jun 27, 2007)
+----------------------------
+Changed: if edit font, print font, background color and text color didn't changed by user,
+         then they don't writing in program settings.
+
+Added: choice between principles of tabs switching - Next-Previous, Left-Right (MDI).
+Added: possibility to set four-digit "Undo limit".
+
+Fixed: program could hang for a few minutes when saving file on network drive.
+Fixed: message AKD_OPTION with PO_STRING flag when reading/writing in ini file worked
+       with Unicode string instead of ANSI (Win95/98/Me).
+Fixed: program error when trying to call non-existed function from already loaded plugin.
+Fixed: Enter had been processed by program with joint using of "Read only" and
+       "Keep left spaces".
+Fixed: hotkey Ctrl+E for read only mode didn't working.
+
+
+AkelPad 3.3.2 (Jun 13, 2007)
+----------------------------
+Changed: if file has Unicode BOM, then binary detection skipped.
+Changed: now when saving archive attribute will be added.
+Changed: message AKD_SAVEDOCUMENT, AKD_SETMODIFY.
+
+Added: option "Save in read-only files warning".
+Added: message AKD_SETNEWLINE, AKD_RECODESEL, AKDN_ACTIVATE, AKDN_RECENTFILESDELETE.
+
+Fixed: file didn't open, if it located on network read only resource.
+Fixed: code pages/positions mixed when different using of options "Remember code page"/
+       "Remember caret position" in different program instances.
+
+
+AkelPad 3.3.1 (May 10, 2007)
+----------------------------
+Added: message AKD_GETCODEPAGELIST.
+
+Fixed: if error occupied AKD_BEGINOPTIONS with PO_READ flag didn't return NULL.
+Fixed: installer missing Belorussian language module.
+
+
+AkelPad 3.3.0 (Mar 23, 2007)
+----------------------------
+Important: before installation recommended fully uninstall previous versions.
+
+Changed: implement own mechanism to work with ini files:
+        - Unicode format of ini file (UTF-16LE);
+        - no limitation in 64 Kb;
+        - increase speed of reading/writing.
+Changed: improved work with plugins:
+        - added lParam in plugin structure;
+        - changed AKD_DLLCALL, AKD_DLLUNLOAD;
+        - replaced AKD_READOPTION, AKD_SAVEOPTION with
+          AKD_BEGINOPTIONS, AKD_OPTION, AKD_ENDOPTIONS;
+        - fixed AKDN_OPENDOCUMENT_FINISH, AKDN_SAVEDOCUMENT_FINISH messages
+          sent only in case of successful file opening/saving.
+          Update your plugins.
+
+Added: Belorussian language module (Mister Sh).
+Added: middle mouse button click creates and closes frame window (MDI).
+
+Fixed: binary file shown up to first NULL character.
+Fixed: save file message shown, when trying to open file that differ from editing file,
+       using Drag'n'Drop or recent files menu (MDI).
+
+
+AkelPad 3.2.5 (Mar 01, 2007)
+----------------------------
+Changed: now before opening read whole file.
+
+Added: messages AKD_TEXTFIND, AKD_TEXTREPLACE.
+
+Fixed: when opening file in multibyte codepage (932, 936, 949, 950, ...),
+       symbols could be corrupted in positions divisible by 4094.
+Fixed: print margins didn't saved in ini file (WinNT/2000/XP).
+
+
+AkelPad 3.2.4 (Feb 26, 2007)
+----------------------------
+Changed: improved work with command line.
+
+Added: print font settings in dialog "Page setup...".
+Added: print top and bottom headline settings in dialog "Page setup...":
+        - &n[1] page number [first page];
+        - &f print file;
+        - &c center align (default);
+        - &l left align;
+        - &r right align;
+        - && symbol &.
+Added: Unicode support for functions "Tab indent/unindent", "Space indent/unindent",
+       "Delete first char", "Trim trailing whitespace" (Win95/98/Me).
+Added: now possible to assign hotkeys with: Space, Enter, Backspace, Escape.
+Added: command line parameter:
+        - /x don't use MS Notepad compatibility mode when parse command line arguments.
+        - /end stop parsing the command line parameters.
+Added: messages AKD_GETMODELESS, AKD_SETMODELESS.
+
+
+AkelPad 3.2.3 (Feb 10, 2007)
+----------------------------
+Changed: ignoring export names of the plugins beginning with "Dll"
+         (doesn't showing in plugin's functions list).
+
+Added: tab in settings dialog "Advanced (2)".
+Added: possibility to set "SavePositions" from "SaveCodepages" settings dialog.
+Added: opening link by single click.
+Added: possibility to recode text from any to any code page in Win95/98/Me.
+Added: hotkey Ctrl+E - read only mode.
+Added: messages AKD_GETSELTEXTW, AKD_GLOBALALLOC, AKD_GLOBALLOCK, AKD_GLOBALUNLOCK,
+       AKD_GLOBALFREE.
+
+Fixed: in message AKD_SAVEOPTION, PO_DWORD flag allowed for save only the first byte.
+
+
+AkelPad 3.2.2 (Jan 30, 2007)
+----------------------------
+Changed: edit window position restore and smooth execution (without blinking) text alignment.
+         Now if no selection, alignment applied to all text.
+
+Fixed: bug 3.2.1 - tabs code page didn't remembered in WinNT/2000/XP (MDI).
+
+
+AkelPad 3.2.1 (Jan 24, 2007)
+----------------------------
+Changed: edit window position restore and smooth execution (without blinking):
+         selection functions, text recode, word wrap, font size change, tabulation size change.
+Changed: now "Replace all" down - beginning from selection start,
+         "Replace all" up - beginning from selection end.
+Changed: in save dialog added file overwrite confirmation.
+Changed: recode dialog now modeless
+Changed: changing text margins does not require program restart.
+Changed: complement EDITINFO structure of AKD_GETEDITINFO message.
+
+Added: possibility to recode text from any to any code page (WinNT/2000/XP).
+
+Fixed: increase speed of big files processing, with no word wrap.
+Fixed: with using visual styles on windows and buttons in Windows XP, blinking appeared
+       when switching between tabs (MDI).
+Fixed: with using visual styles on windows and buttons in Windows XP, and also using
+       manifest file (AkelPad.exe.manifest), tabs had been incorrectly redrawn
+       in the form of "buttons" and "flat buttons" (MDI).
+Fixed: now font changes do not restored by undo.
+Fixed: with using RichEdit v2.0 in WinNT/2000/XP, font color and size changed only after
+       program restart.
+Fixed: for tabs didn't locally saved - font, text color, background color, tab stop size,
+       undo limit, show URL state, edit margins, delimiters enable state.
+
+
+AkelPad 3.2.0 (Jan 10, 2007)
+----------------------------
+Changed: improved work with plugins:
+        - sorting messages;
+        - changed AKDN_MAIN_ONSTART_PRESHOW;
+        - replaced AKD_GETEDITWINDOW, AKD_GETFILE, AKD_GETCODEPAGE, AKD_GETMODIFY,
+          AKD_GETREADONLY, AKD_GETTABSTOPINFO with AKD_GETEDITINFO;
+        - removed AKD_SETCODEPAGE, AKD_SETREADONLY;
+        - added AKDN_OPENDOCUMENT_START, AKDN_SAVEDOCUMENT_START.
+          Update your plugins.
+
+Added: Drag'n'Drop for tabs (MDI).
+Added: "SaveCodepages" parameter:
+        1 - remember recent files codepage;
+        0 - do not remember recent files codepage;
+       "SavePositions" parameter:
+        1 - remember recent files caret position;
+        0 - do not remember recent files caret position.
+
+
+AkelPad 3.1.9 (Jan 05, 2007)
+----------------------------
+Changed: group menu items now using radiobutton instead checkbox.
+
+Added: context menu on pressing right mouse button on status bar code page (or F12) -
+       for fast reopening/saving in wanted code page.
+Added: messages AKD_READOPTION, AKD_SAVEOPTION, AKD_GETPRINTDLG, AKD_GETPAGEDLG,
+       AKD_GETTABSTOPINFO, AKDN_SEARCH_ENDED.
+Added: bActive, hMenuRecentFiles, hMenuLanguage in plugins structure.
+
+
+AkelPad 3.1.8 (Nov 30, 2006)
+----------------------------
+Changed: to prevent conflict with AkelPad's 2.x.x recent files list, changed names in registry:
+         - "Recent\nameN" -> "Recent\nmN";
+         - "Recent\posN" -> "Recent\psN".
+
+Added: messages AKD_GETFONT, AKD_SETFONT.
+
+Fixed: editing text, using word wrap.
+Fixed: message "N" code page isn't implemented.
+
+
+AkelPad 3.1.7 (Nov 20, 2006)
+----------------------------
+Changed: corrected work with recent files list.
+
+Fixed: reading uninitialized memory when opening empty file.
+
+
+AkelPad 3.1.6 (Nov 12, 2006)
+----------------------------
+Changed: improved "Recode from...".
+
+Added: hotkey Alt+P - open plugins dialog.
+Added: message AKD_GETQUEUE.
+
+
+AkelPad 3.1.5 (Nov 04, 2006)
+----------------------------
+Changed: redirector now wait for notepad.exe close.
+Changed: message AKD_REPLACESEL replaced with AKD_REPLACESELA, AKD_REPLACESELW messages;
+         message AKD_PASTEANSI merged with AKD_PASTE.
+
+Fixed: after closing last tab, main window could stop refreshing (MDI).
+
+
+AkelPad 3.1.4 (Oct 28, 2006)
+----------------------------
+Changed: principle of execution "Replace all" (replace dialog), greatly increased speed of
+         text replacement.
+Changed: removed "Only whole word" from find/replace dialog.
+Changed: first parameter of AKDN_SIZE message.
+
+Added: French language (Pascal Souchet aka MaxPaul).
+
+Fixed: input focus, after using ordering functions from "Window" menu (MDI).
+Fixed: right mouse click on non-active RichEdit window pass input focus,
+       but didn't activate it (MDI).
+Fixed: after changing new line format, selection didn't updated (MDI).
+Fixed: incorrectly position restoring after multi-line "Replace all".
+
+
+AkelPad 3.1.3 (Oct 22, 2006)
+----------------------------
+Fixed: program error when inserting tabs/spaces in long string.
+Fixed: reading uninitialized memory in "Trim trailing whitespaces".
+Fixed: text positioning after change RichEdit control's size.
+Fixed: locally didn't store last used code page "Recode from...".
+Fixed: incorrect selection after "Recode from..." UTF-7.
+
+
+AkelPad 3.1.2 (Oct 16, 2006)
+----------------------------
+Changed: instead AKD_OPENDOCUMENT_GLOBAL message now used WM_COPYDATA.
+
+Added: possibility to change/turn off insert/overwrite mode in program resources (ID 4421).
+
+Fixed: didn't pass working directory before open file without full path (MDI).
+Fixed: without opened tabs, menu item "Save all" was not grayed (MDI).
+
+
+AkelPad 3.1.1 (Oct 08, 2006)
+----------------------------
+Changed: bytes order in hex string (WinNT/2000/XP).
+
+Added: special launch program that located in "%SystemRoot%" and redirect input to the
+       "%SystemRoot%\System32\notepad.exe" (WinNT/2000/XP).
+
+Fixed: tabs buttons update problems (MDI).
+Fixed: "Clear Old" from plugins dialog, might don't clear records in registry (WinNT/2000/XP).
+Fixed: installation with notepad replacement on Windows NT.
+Fixed: hPopupMenu in plugins structure pass only hPopupEdit menu.
+
+
+AkelPad 3.1.0 (Sep 29, 2006)
+----------------------------
+Changed: improved work with plugins:
+        - implement own subclass mechanism;
+        - sorting messages;
+        - removed AKD_MAINCOMMAND_FINISH;
+        - added AKD_GETMAINPROC, AKD_SETMAINPROC, AKD_GETMAINPROCRET, AKD_SETMAINPROCRET,
+          AKD_GETEDITPROCRET, AKD_SETEDITPROCRET, AKD_GETFRAMEPROCRET, AKD_SETFRAMEPROCRET,
+          AKD_EDIT_RBUTTONUP;
+          Update yours plugins.
+Changed: soft program closing, without blinking (MDI).
+Changed: optimize processing of menu commands.
+Changed: after changing text align, document marked as modified.
+
+Added: Ukrainian translation (Fedorow Olexandr).
+Added: option "Read only".
+Added: option to close replace dialog after "Replace all".
+
+Fixed: with using "Don't open file twice", one cannot reopen file in different code page.
+Fixed: when opening several files from open dialog box with "Autodetect" check, code page
+       correct detected only at first file (MDI).
+Fixed: with word wrap on, appeared horizontal scroll bar after window resize.
+Fixed: didn't work Drag'n'Drop from one tab to another (MDI).
+Fixed: losing edit window focus after switching tabs (MDI).
+
+
+AkelPad 3.0.9 (Sep 19, 2006)
+----------------------------
+Changed: improved word break procedure.
+Changed: hide horizontal scroll bar with using word wrap.
+Changed: now recent files code page information doesn't contain BOM, which always again
+         detected during file opening.
+Changed: calculation principle of print font size.
+Changed: improved positioning of edit window context menu with using keyboard.
+Changed: corrected first MDI window sizes.
+Changed: after changing tabulation size, text marked as modified.
+
+Added: find/replace dialog hot keys:
+        - F3 find down without dialog;
+        - Shift+F3 find up without dialog.
+Added: possibility to set standard word break procedure.
+Added: check code page validity before file open/save.
+Added: messages AKD_MAINCOMMAND_FINISH, AKD_SAVEDOCUMENT, AKD_SAVEDOCUMENT_FINISH, AKD_COPY,
+       AKD_PASTEANSI.
+
+Fixed: compatibility with RichEdit 4.0.
+Fixed: default assigned font cause print problems.
+Fixed: when drag'n'drop of a text, didn't inserted '\n', if existed at the end.
+Fixed: program hang on open corrupted UTF-8 files.
+Fixed: after coping, clipboard besides plain text contained also text with formatting.
+Fixed: ignored lines scroll change in mouse properties.
+Fixed: scroll bars context menu didn't appeared.
+Fixed: if program opened in small window, when main menu placed on two or more lines,
+       then client part of main window incorrectly determined (SDI).
+
+
+AkelPad 3.0.8 (Sep 10, 2006)
+----------------------------
+Changed: improved work with plugins.
+Changed: 1251 and 20866 code page recognition tables were corrected.
+
+Added: code page list filter.
+Added: menu item "Save all" (MDI).
+
+
+AkelPad 3.0.7 (Aug 31, 2006)
+----------------------------
+Changed: localized versions now support language modules.
+Changed: improve detection UTF16LE, UTF16BE without BOM.
+
+Added: Spanish language module (Trducido por Vico//Koby).
+Added: button "Clear old" in plugins dialog for deleting non-existent records.
+Added: possibility to set undo operations limit.
+Added: Shift+BackSpace - delete first char in selection.
+Added: message beep when nothing to delete.
+
+Fixed: on print document ampersand "&" didn't appeared.
+Fixed: assigned font without Unicode support for dialogs text WinNT/2000/XP.
+Fixed: wait cursor shown, if on program start it stand on Tab Control.
+
+
+AkelPad 3.0.6 (Aug 26, 2006)
+----------------------------
+Changed: remade print.
+Changed: preview window now has font and color identical to main edit window.
+Changed: if in command line one file to open, then no new copy of the program
+         will be start (MDI).
+Changed: AKD_GETSELTEXT -> AKD_GETTEXTRANGE.
+
+Added: hot key Shift+F2 - save as.
+
+Fixed: string with national characters didn't found, using find/replace
+       dialog (RichEdit v3.0, Win95/98/Me).
+Fixed: assigned font without Unicode support for tabs text WinNT/2000/XP.
+
+
+AkelPad 3.0.5 (Aug 21, 2006)
+----------------------------
+Changed: improved work with plugins.
+Changed: by default background color and font color assigned based on Windows colors.
+Changed: EM_GETTEXTEX -> EM_GETTEXTRANGE. Now program can correctly work with
+         RichEdit v2.0 on WinNT/2000/XP.
+
+Added: possibility to change recognition codepage buffer size.
+
+Fixed: errors in program concerned with Unicode RichEdit control creation
+       in 3.0.4 (WinNT/2000/XP): "Keep leftspaces", "Show URLs".
+Fixed: exiting from editor, answer "Yes" on prompt of saving file, and if
+       error happened while file saving, editor exiting after answer.
+Fixed: print a lot of needless lists, after document print.
+Fixed: main windows didn't activated with using one of options:
+       "Don't open file twice", "Don't open program twice".
+Fixed: incorrectly refreshed icons when saving file with change extension.
+Fixed: assigned incorrect background color for the tabs icons.
+
+
+AkelPad 3.0.4 (Aug 16, 2006)
+----------------------------
+Changed: license from FreeWare to BSD.
+Changed: improved plugins model.
+Changed: now with using "Don't open a file twice" in SDI mode, window of the already opened
+         file restoring, if was minimized.
+
+Added: German language module (Michael Kogan aka Photon).
+
+Fixed: incorrectly opened file with new line format \r\r\n
+       (received with redirect, for example ipconfig > "C:\File.txt").
+       Also incorrectly pasted text, if contained \r\r\n.
+Fixed: changed replacement order of the Windows Notepad in installer.
+Fixed: string STR_FILE_FILTER has been ignored in language module.
+
+
+AkelPad 3.0.3 (Aug 11, 2006)
+----------------------------
+Changed: improve plugins work. Remade plugins hotkeys support.
+Changed: now after changing font, text don't marked as changed.
+
+Added: hotkey Alt+F5 - redetect code page of the current file.
+Added: middle mouse button click close tab.
+
+Fixed: file delete with active option "Watch file change", cause continuous message
+       showing about file open error.
+Fixed: program error with joint using word wrap and selection functions (indent tab,
+       indent space). Now those selection functions work only with no wrap.
+Fixed: hadn't been allowed press "Save" in situation, when no changes made
+       and edited file had been deleted.
+
+
+AkelPad 3.0.2 (Aug 06, 2006)
+----------------------------
+Changed: returned non-conflict characters graphic symbols in Cyrillic recognition tables.
+Changed: now command line parameter "/p" print immediately (without dialog).
+
+Added: Show URLs.
+Added: hotkeys:
+        - Alt+L reopen as UTF-16LE;
+        - Alt+B reopen as UTF-16BE;
+        - Ctrl+Alt+W save as ANSI (Windows);
+        - Ctrl+Alt+D save as OEM (DOS);
+        - Ctrl+Alt+K save as KOI8-R.
+        - Ctrl+Alt+L save as UTF-16LE;
+        - Ctrl+Alt+B save as UTF-16BE;
+        - Ctrl+Alt+U save as UTF-8.
+
+Fixed: after replace Windows Notepad program doesn't understand print command.
+Fixed: with drag'n'drop or with using open dialog, option "don't open a file twice"
+       ignored in SDI mode.
+Fixed: doesn't received long file name, if in command line was only name (without path)
+       of the nonexistent file.
+
+
+AkelPad 3.0.1 (Aug 04, 2006)
+----------------------------
+Added: localized versions support.
+Added: detailed UNDO.
+
+Fixed: after replace Windows Notepad program doesn't understand long file names.
+Fixed: print problems.
+Fixed: errors in Cyrillic code page detection tables.
+
+
+AkelPad 3.0.0 Final (Aug 01, 2006)
+----------------------------------
+Fixed: missing UTF-7 code page on WinNT/2000/XP.
+Fixed: Shift+Tab didn't delete spaces on WinNT/2000/XP.
+Fixed: after using selection changing functions, statusbar coordinates pointed to the
+       selection beginning.
+
+
+AkelPad 3.0.0 beta 11 (Jul 30, 2006)
+------------------------------------
+Changed: DoEditInsertStringInSelection also delete:
+          - Shift+Tab tab stops and spaces equal to tab size;
+          - Shift+Space space and tab stop.
+
+Added: INI file saving Unicode support (WinNT/2000/XP)
+
+Fixed: errors to work with RichEdit v2.0:
+        - text paste;
+        - all functions that working with selection;
+        - ignore mouse wheel.
+Fixed: memory read error on some conditions in function DoEditInsertStringInSelectionW.
+Fixed: access right for an opening files.
+Fixed: after changing rich edit control size, sometimes text scrolled to the beginning
+       (RichEdit bug).
+Fixed: when trying to open file in empty editor, message appeared, if before file had been
+       closed with cancel saving (MDI).
+Fixed: "Esc-sequences" item doesn't checked (Win95/98/Me).
+Fixed: on some conditions syntax error message doesn't shown using "Esc-sequences"
+       (Win95/98/Me).
+
+
+AkelPad 3.0.0 beta 10 (Jul 26, 2006)
+------------------------------------
+Changed: now possible to use right mouse button in context menu.
+
+Added: saving settings in .ini file.
+Added: possibility to set tab stops size.
+
+Fixed: context menu doesn't appeared.
+Fixed: "Beginning" item doesn't updated on some conditions in SDI mode.
+
+
+AkelPad 3.0.0 beta 9 (Jul 23, 2006)
+-----------------------------------
+Changed: synchronization improved.
+Changed: removed scroll mechanically move with using mouse wheel.
+
+Added: return autodetect codepages, for now only Cyrillic (1251, 866, 20866).
+
+Fixed: text with drag'n'drop method, dropped with formatting.
+Fixed: in some conditions main window doesn't maximize on start (MDI).
+
+
+AkelPad 3.0.0 beta 8 (Jul 16, 2006)
+-----------------------------------
+Changed: new "All files" and "Beginning" algorithm (MDI).
+
+Added: search in "All files" (MDI).
+Added: drag'n'drop of the directory, will open all files in this directory (MDI).
+
+Fixed: drag'n'drop error in MDI mode (Win95/98/Me).
+Fixed: tab associations error when more then 10 or more documents open (MDI).
+
+
+AkelPad 3.0.0 beta 7 (Jul 05, 2006)
+-----------------------------------
+Changed: combination Shift+Backspace replaced with Alt+Backspace, since
+         DoEditDeleteTrailingWhitespaces works also without selection.
+Changed: work with "Don't open a file twice" and "Don't open a program twice".
+
+Added: support of plug-ins.
+Added: tracking change of a file - "Watch file change".
+
+Fixed: absence of start synchronization of several applications.
+Fixed: errors of reading memory in RecentFilesMenu and RecentFilesUpdate.
+Fixed: in Windows 2000 at repeated opening open/save dialog PlacesBar appeared.
+
+
+AkelPad 3.0.0 beta 6 (Jun 23, 2006)
+-----------------------------------
+Changed: improved work with the command line.
+Changed: again in Esc-sequences hex symbol:
+          in Windows 95/98/Me (Ansi - 1 byte):
+            - "\[204944]" == "\[20 49 44]" == " ID",
+          in Windows NT/2000/XP/2003 (Unicode - 2 bytes):
+            - "\[200049004400]" == "\[2000 4900 4400]" == " ID".
+Changed: rewrote functions DoEditInsertCharInSelection, DoEditDeleteTrailingWhitespaces,
+         DoEditChangeCase. Now if there is no selection, then letter case changing and
+         "Trim trailing whitespace" use all text.
+
+Added: complete support UNICODE names/lines in Windows NT/2000/XP/2003.
+       The size of the program has increased almost twice in connection
+       with existence of two versions of functions.
+Added: an opportunity to specify the working directory for "Execute".
+Added: parameters in the command line:
+        - /c+ silently create a new file if it does not exist
+        - /c- don't create a new file if it does not exist
+        - /b+ silently open a file, if its binary
+        - /b- don't open a file, if its binary
+Added: replacement in all documents (MDI).
+Added: an opportunity to cancel replacement process.
+
+Fixed: at opening a nonexistent file, the error message shown after the positive answer
+       on a file creation question.
+Fixed: buffer overflow in function EscapeStringToEscapeData.
+Fixed: program error at attempt in the empty editor (without MDI windows) to close MDI window.
+
+
+AkelPad 3.0.0 beta 5 (Jun 11, 2006)
+-----------------------------------
+Changed: files of the program now located in a directory "AkelFiles".
+Changed: language modules now located in a directory "Langs".
+Changed: program options now saved in "HKEY_CURRENT_USER\Software\Akelsoft\AkelPad\Options".
+Changed: selection updating at change of a new line format.
+
+Added: the multi-window interface (MDI) (item of the menu "Window mode"):
+        - tabs panel with opened files names and their icons;
+        - menu "Window":
+        - tabs placement and type;
+        - alignment of the open documents;
+        - list of the open documents;
+        - item of the menu "Don't open a program twice";
+        - opportunity of a choice of several files in open file dialog;
+        - combinations of keys for work with windows:
+          - Ctrl+Tab or Ctrl+F6 the following tab;
+          - Ctrl+Shift+Tab or Ctrl+Shift+F6 the previous tab;
+          - Ctrl+W or Ctrl+F4 to close the tab;
+Added: files associations in dialog "Parameters...".
+Added: context menu in a preview window.
+
+Fixed: at use Alt+F4 or "х" for exit and a choice "Cancel" on a question about saving,
+       the program exit anyway.
+Fixed: at opening a binary file (open file dialog) with a check "Autodetect" there was
+       no warning and the file opened.
+Fixed: flags of search conflicted with already existing.
+Fixed: an opportunity of the incorrect pointing of a file name in message
+       MSG_ERROR_CANNOT_OPEN_FILE.
+
+
+AkelPad 3.0.0 beta 4 (Apr 29, 2006)
+-----------------------------------
+Changed: now options window has Tab control.
+Changed: since on some Windows there were difficulties with use of combinations
+         Shift+Ctrl+W, Shift+Ctrl+D, Shift+Ctrl+U, Shift+Ctrl+K replaced with:
+          - Alt+W reopen as ANSI (Windows);
+          - Alt+D reopen as OEM (DOS);
+          - Alt+U reopen as UTF-8;
+          - Alt+K reopen as KOI8-R.
+Added: recode of the selected/all text
+Added: remembering last lines in find/replace dialog.
+Added: opportunity to change amount of find/replace lines to remember.
+
+Fixed: bugs in beta 3 connected with reorganization some parts of a code.
+Fixed: RichEdit v2.0 - after "Replace all" the text was scrolled on the beginning.
+Fixed: problems with the sizes of a window after closing the minimized program.
+
+
+AkelPad 3.0.0 beta 3 (Apr 22, 2006)
+-----------------------------------
+Changed: improved saving of the main window sizes.
+Changed: key's names in the registry.
+
+Added: "Options..." dialog:
+        - Change left/right margins;
+        - Change amount of recent files;
+        - Clearing the list of recent files;
+        - Change words delimiters;
+        - Change default codepage;
+        - Change "Execute" command;
+Added: "Execute" menu item - an opportunity to execute the custom user command.
+Added: hotkeys for a file reopening in other codepages returned:
+        - Shift+Ctrl+W reopen as ANSI (Windows);
+        - Shift+Ctrl+D reopen as OEM (DOS);
+        - Shift+Ctrl+U reopen as UTF-8;
+        - Shift+Ctrl+K reopen as KOI8-R.
+
+Fixed: change font size using Ctrl+WheelMouse (mouse scroll), now correctly
+       processed by the program.
+Fixed: letter case "Sentence case.". If the sentence has not ended, and the new line
+       has begun, the first symbol at a new line was recognized as the beginning of
+       the new sentence.
+
+
+AkelPad 3.0.0 beta 2 (Apr 15, 2006)
+-----------------------------------
+Changed: "Codepage" menu item is removed, the choice of codepage is transferred
+         to open/save dialogs.
+Changed: now hex symbol is not dependent on Windows version - 2 bytes
+         "\[200049004400]" == "\[2000 4900 4400]" == " ID".
+
+Added: preview of a file before opening (file open dialog).
+Added: besides a caret position, the codepage of recent files is remembered.
+Added: auto detection of UTF16LE, UTF16BE without BOM.
+Added: choice of any color for a font.
+
+Fixed: problems with RichEdit 2.0, now used only SF_TEXT|SF_UNICODE in
+       EM_STREAMIN and EM_STREAMOUT:
+        - incorrect saving in other codepage;
+        - eternal cycle at text replacement with esc-sequences and line of replacement "\n".
+Fixed: now there is no necessity to update RichEdit up to v3.0, since the program
+       now correctly changes color of a font, using RichEdit v2.0.
+Fixed: cycling in the end of the text when the line of search is "\n".
+Fixed: occurrence of duplications in the list of codepages.
+Fixed: error message on exit from the program in Win9x.
+Fixed: codepages which numbers more than four figures, were not displayed in Win9x
+       (EnumSystemCodePages restriction).
+Fixed: change of the font size Ctrl+Num +, Ctrl+Num - now processed more quickly.
+Fixed: if in a line of replacement on positions multiple by 2047 was a symbol
+        '\r' and it did not follow the '\n', the new line was ignored.
+
+
+AkelPad 3.0.0 beta 1 (Mar 28, 2006)
+-----------------------------------
+Changed: language modules now located in a directory "languages".
+Changed: now in find/replace dialog the item "From beginning" is replaced on "Down"
+         after finding of the first ocurrence.
+
+Added: item in a status bar - display new line format.
+Added: Ctrl+Shift+V and Ctrl+Shift+Ins - to insert the text as ANSI
+        (sometimes UNICODE clipboard buffer contains the incorrect national symbols).
+
+Fixed: the program now correctly works with RichEdit v2.0. To have an opportunity
+       to change font color update RichEdit up to v3.0 (RichEdit30Update.exe).
+Fixed: program error at use of Esc-sequences and line "\".
+Fixed: problems at joint using word wrap and text alignment.
+
+
+AkelPad 3.0.0 alpha 5 (Mar 21, 2006)
+------------------------------------
+Changed: work with codepages is completely rewrote/optimized at opening/saving.
+Changed: at a choice "Word wrap" now placement is restored.
+Changed: detection of a new line (Unix/Windows) is improved.
+
+Added: hide/show a status bar.
+
+Fixed: empty file lost Unicode.
+
+
+AkelPad 3.0.0 alpha 4 (Mar 18, 2006)
+------------------------------------
+Changed: modified main menu structure.
+Changed: deactivation of item "Insert character" if the file charmap.exe does not exist.
+Changed: at change of a font the text is again marked as changed, since RichEdit remembers
+         the made changes of a font in the undo buffer.
+
+Added: change of the font size (hotkeys).
+Added: left/center/right text alignment.
+Added: lines marking.
+
+Fixed: the reason of a problem with fonts in early versions Windows (Win95/Win98)
+       is found - for normal work of the program with fonts it is necessary
+       to update RichEdit up to v3.0. The special program for updating
+       riched20.dll (RichEdit30Update.exe) is created.
+Fixed: the undo buffer was not empty at the program opening.
+
+
+AkelPad 3.0.0 alpha 3 (Mar 07, 2006)
+------------------------------------
+Changed: find/replace hex symbol - on a possibility to enter hex line,
+         in Windows 95/98/Me (Ansi - 1 byte):
+          "\[204944]" == "\[20 49 44]" == " ID",
+         in Windows 2k/XP/2003 (Unicode - 2 bytes):
+          "\[200049004400]" == "\[2000 4900 4400]" == " ID".
+Changed: extensions in the menu of languages are removed.
+
+Added: support of Unicode in Windows 2k/XP/2003 (find/replace dialog).
+
+Fixed: dialog was not loaded (by default), if it was missing in the module.
+Fixed: the line for find/replace was not saving in an original form.
+Fixed: deactivation of buttons in find/replace dialog.
+
+
+AkelPad 3.0.0 alpha 2 (Feb 17, 2006)
+------------------------------------
+Changed: transferred changes of print settings from version 2.1.6.
+Changed: in find/replace dialog now for saving options is not necessary to begin search.
+Changed: if the option "In selection" of find/replace dialog has been checked,
+         then at opening dialog the selected text is not sent to a field "That:",
+         and previous line of search used.
+Changed: reduction of a file name in the menu of recent files if it exceeds 90 symbols.
+Changed: dialog "About".
+Changed: the WS_BORDER flag of a edit window is removed.
+Changed: faster compilation of the project.
+
+Added: item "Delete non-existent" in the menu of recent files.
+
+Fixed: EM_REPLACESEL bug, at which line for replacement terminated with \n,
+       incorrectly replaced with a line in one symbol.
+Fixed: inserted national Unicode text in a find/replace dialog was displayed as questions.
+Fixed: the file rewrote all changes in recent files, made in an interval from its opening
+       and before closing.
+Fixed: at drag'n'drop the caret position was not saving.
+Fixed: an error of the program at background color change in Windows 95.
+Fixed: color of a font was not loaded.
+Fixed: at change of a font the text was marked as changed.
+Fixed: missing files filter in the open/save dialog.
+Fixed: problems at opening a file with incomplete path. The full path now received before
+       file opening.
+Fixed: ignoring of the answer "Cancel" at opening a file/closing the program.
+Fixed: non modal windows (open/save, font/background, print setup).
+Fixed: incorrect display of the codepage "CP-0" at opening the program in Windows 95.
+
+
+AkelPad 3.0.0 alpha 1 (Feb 11, 2006)
+------------------------------------
+Reworked, optimized the most part of a code (AkelPad 2.1.5)
+
+Changed: AkelPad again supports Windows 95. Replaced all possible CRT
+         functions with API calls, input entry WinMain replaced with own _WinMain,
+         calculations with floating point now are not used, a code recompiled
+         statically (without msvcrt.lib), as the result - 44Kb! For compilation
+         were used Microsoft Visual C++ Toolkit 2003, Microsoft Platform SDK SP1.
+         Added Visual C++ 6 projects for IDE.
+Changed: find/replace/go to line dialogs:
+          - now they are not modal (an opportunity of simultaneous work with the text);
+          - view now is approached to classical;
+          - added option of search text from the beginning;
+          - after pressing on "Replace all" and after replacement of last found phrase,
+            the editor restores the corrected selection which were before pressing;
+          - dialog "Go to line" now accepts negative values. For example, -1 means
+            go to last line.
+Changed: used TM_RICHTEXT instead of TM_PLAINTEXT.
+Changed: parsing of the command line parameters is improved.
+
+Added: support of language modules, the module can contain the information of the
+       menus, dialogs, messages, hotkeys, icons, and also the information of the
+       module version. If the program does not find something in the module -
+       defaults are used. Default language is selected at compilation.
+       One file of resources is used both for the language module, and for the program.
+Added: change of the selected text:
+        - addition in the beginning of lines of selected text tabs or spaces;
+        - removal from the beginning of lines of selected text tabs or spaces;
+        - removal from the end of selected text tabs and spaces.
+Added: change selected text case:
+        - UPPERCASE
+        - lowercase
+        - Sentence case.
+        - Title Case
+        - iNVERT cASE
+Added: recognition of opened file type, if the file binary, then confirmation on opening shown.
+Added: menu of recent open files. Now the file is not duplicated, if it is already in the list.
+Added: the improved selection/moving on Ctrl+Left/Ctrl+Right, an opportunity to set custom
+       separators (in a code).
+Added: display of the size of selection in bytes.
+Added: an option to show program window on top.
+Added: if the block of the text at opening of find/replace dialog is selected, then it is sent
+       to a "That:" field.
+Added: the key for the contextual menu call now works.
+
+Fixed: if earlier 3Mb the file could open one and a half minute now it is less than a second.
+Fixed: a bug with last line if at the end of the document were present \r\n, then scroll bar
+       did not go down up to the end, and the cursor under certain conditions did not go down
+       to the line with zero length (changeover from TM_PLAINTEXT to TM_RICHTEXT).
+Fixed: not correct search/replace possibility if on system had been installed more then two
+       keyboard layouts.
+Fixed: after the answer to the message "Not enough memory" the program was closed
+       not giving to save data.
+Fixed: the allocated memory was not released at program close.
+Fixed: coordinates were not displayed at text selection to the right/down.
+Fixed: not correct position saving possibility if at saving of the document was
+       the text block selected.
+Fixed: change of a variable storing the active codepage, in case of: choice
+        in the menu of "Codepages"->"Open..." and the negative answer to a
+        question about reopening/saving of a file.
+Fixed: ignoring of assigned style of a window at start (for example, using a shortcut).

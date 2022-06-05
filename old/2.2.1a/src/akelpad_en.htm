@@ -1,0 +1,124 @@
+<html>
+<head>
+<title>AkelPad 2 - Online Help</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body bgcolor="#dadae0">
+<p align=justify>
+<font color=green><h2>AkelPad 2 - User's Manual</h2></font>
+<p align=justify>
+	<h3>Contents:</h3>
+	<ol>
+		<li><a href=#ch0>Compatibility</a>
+		<li><a href=#ch1>General remarks</a>
+		<li><a href=#ch2>Features</a>
+		<li><a href=#ch2.5>Settings</a>
+		<li><a href=#ch3>Keyboard commands</a>
+		<li><a href=#ch4>Licence</a>
+		<li><a href=#ch5>Support</a>
+		<li><a href=#ch6>Contacts</a>
+	</ol>
+<p align=justify>
+	<a name=ch0><h3>Compatibility</h3></a>
+<p align=justify>
+		Programs is intended to work under Windows 98 and newer versions of Windows. If you are using Windows 95, you may:
+<p align=justify>
+		<ul>
+			<li>Copy files <i>msvcrt.dll</i> and <i>riched20.dll</i> to <i>WINDOWS\SYSTEM</i> (they are legally distributed by Microsoft as parts of <i>VC6RedistSetup_enu.exe</i> and <i>InstMsiA.exe</i> packages respectively).
+<p align=justify>
+		</ul>
+<p align=justify>
+	<a name=ch1><h3>General remarks</h3></a>
+<p align=justify>
+		Notepad is a wonderful editor, being used to edit files in plain text format, thus it is irreplacable for programming, designing of Web documents, and so on. However, the one comprised in Windows, is very inconvenient due to several limitations. This program claims to be able to fill up these drawbacks.
+<p align=justify>
+		If you like the program, it is the most convenient to overwrite notepad.exe by akelpad.exe in Windows directory (and, possibly, WINDOWS\SYSTEM32 - if you've got Windows NT).
+<p align=justify>
+		<font color=red><i>Attention: this program takes a lot of advantages from Unicode representation. It is strongly recommended that you set up TrueType font (as Courier New) to gain more advantages from this feature.</i></font>
+<p align=justify>
+	<a name=ch2><h3>Features</h3></a>
+<p align=justify>
+		As long as the program is intended to replace standard Notepad, it's target is plain text files, it <font color=red>doesn't</font> support RTF files and so on - it isn't a drawback, it's a feature.
+<p align=justify>
+		Brief description of general features:
+<p align=justify>
+		<ul>
+			<li>Program understands different codepages: Windows (ANSI), DOS (OEM), and any code page installed in the system.
+			<li>Correct pseudographics displaying;
+			<li>Support of Unicode (little endian, big endian, UTF-8);
+			<li>Full support of DOS/Windows and Unix newline formats;
+			<li>Convenient controls (especially for those, who edits many files: save on F2, delete current string on F8, exit on ESC...);
+			<li>Search/replace of both text strings and arbitrary character sequences (they can be entered using escape-sequences like \XX, where XX is hexadecimal character code);
+		</ul>
+<p align=justify>
+		Settings are saved only in registry (<i>HKEY_CURRENT_USER\Software\Akelsoft\AkelPad</i> key).
+<p align=justify>
+	<a name=ch2.5><h3>Settings</h3></a>
+<p align=justify>
+	<ol>
+		<li><i>Keep left spaces</i> - a new line begins with the same indent as a previous one.
+		<li><i>Don't open a file twice</i> - if the file is already opened in AkelPad, this window will be activated instead of creating a new one.
+		<li><i>Support Asian characters</i> - toggles Asian characters support, but with this option toggled big files (especially binary) are being opened <b>significantly</b> slower.
+	</ol>
+
+<p align=justify>
+	<a name=ch3><h3>Keyboard commands</h3></a>
+<p align=justify>
+		<ul>
+			<li><b>Ctrl+N</b> - create new file
+			<li><b>Shift+Ctrl+N</b> - create new window
+			<li><b>Ctrl+O</b> - open file
+			<li><b>Shift+Ctrl+O</b> - reopen file
+			<li><b>F2</b> or <b>Ctrl+S</b> - save
+			<li><b>Shift+Ctrl+S</b> - save as
+			<li><b>Ctrl+P</b> - print
+			<li><b>Esc</b> or <b>Alt+F4</b> - exit
+			<li><b>Shift+Ctrl+Z</b> - redo
+			<li><b>Ctrl+I</b> - run "charmap"
+			<li><b>Ctrl+W</b> - toggle on/off "Wrap words" option
+			<li><b>Ctrl+L</b> - toggle on/off "Keep left spaces" option
+			<li><b>Ctrl+F</b> - search
+			<li><b>F3</b> - find next
+			<li><b>Shift+F3</b> - find in other direction than was specified in "Find" dialog
+			<li><b>Ctrl+R</b> or <b>Ctrl+H</b>- find and replace
+			<li><b>Ctrl+G</b> - go to line (by number)
+			<li><b>Shift+Ctrl+W</b> - open in Windows (ANSI) codepage
+			<li><b>Shift+Ctrl+D</b> - the same in DOS (OEM)
+			<li><b>Shift+Ctrl+U</b> - in Unicode little endian
+			<li><b>F5</b> - save in Windows (ANSI)
+			<li><b>F6</b> - save in DOS-866 (OEM)
+			<li><b>Alt+Enter</b> or <b>F4</b> - maximize/restore window
+			<li><b>F8</b> or <b>Ctrl+Y</b> - delete current string
+		</ul>
+<p align=justify>
+		Certainly, standard Windows key combinations like Ctrl+C are also supported.
+<p align=justify>
+	<a name=ch4><h3>Licence</h3></a>
+<p align=justify>
+		This program is distributed under the terms of the BSD license (http://www.opensource.org/licenses/bsd-license.php).
+<p align=justify>
+		Copyright of this program belongs to Kuznetsov Alexey Igorevich.
+<p align=justify>
+	<a name=ch5><h3>Support</h3></a>
+<p align=justify>
+		This program doesn't have any known errors. If you detect any error, please, write to me its detailed description, and I will try to fix it.
+<p align=justify>
+		Opinions about the program and suggestions for improvement are also welcomed.
+<p align=justify>
+	<a name=ch6><h3>Contacts</h3></a>
+<p align=justify>
+		<ul>
+		<table>
+			<tr><td><li>E-mail:<td><a href=mailto:developer@akelpad.net.ru>developer@akelpad.net.ru</a>
+			<tr><td><li>ICQ:<td>#109590531
+			<tr><td><li>WWW:<td><a href=http://akelpad.sourceforge.net>http://akelpad.sourceforge.net</a>
+		</table>
+		</ul>
+<hr>
+<p align=justify>
+© Alexey Kuznetsov, 2003-2007.
+<p align=justify>
+All mentioned trademarks are registered trademarks of their respective holders.
+</body>
+</html>

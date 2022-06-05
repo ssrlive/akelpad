@@ -1,0 +1,108 @@
+/**
+ *		Templates for AkelPad
+ *		Panych Y.W. aka FeyFre (c) 2010-2014 (panych.y@gmail.com)
+ *
+ *		This piece of software is distributed under BSD license.
+ *		AkelPad is property of its copyright holders.
+ */
+#include "resource.h"
+#include <windows.h>
+
+//! Russian resources
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+#ifdef _WIN32
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+#endif //_WIN32
+
+IDD_TEMPLATE DIALOGEX 0, 0, 200, 169
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_CLIPCHILDREN
+CAPTION "Выберите шаблон"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_TREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_NOHSCROLL | WS_BORDER | WS_TABSTOP,7,5,129,155
+    DEFPUSHBUTTON   "&Открыть",IDOK,143,5,50,14
+    PUSHBUTTON      "О&тмена",IDCANCEL,143,25,50,14
+    PUSHBUTTON      "В&ставить",IDC_INSERT,143,45,50,14
+    PUSHBUTTON      "&Изменить",IDC_EDIT,143,63,50,14
+    AUTOCHECKBOX    "&Удалять метку", IDC_REMMARKER, 143, 85, 60, 20, BS_AUTOCHECKBOX|WS_TABSTOP|BS_MULTILINE
+END
+
+#endif //! Russian resources
+
+//! Ukrainian resources
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_UKR)
+#ifdef _WIN32
+LANGUAGE LANG_UKRAINIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+#endif //_WIN32
+
+IDD_TEMPLATE DIALOGEX 0, 0, 200, 169
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_CLIPCHILDREN
+CAPTION "Оберіть шаблон"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_TREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_NOHSCROLL | WS_BORDER | WS_TABSTOP,7,5,129,155
+    DEFPUSHBUTTON   "&Відкрити",IDOK,143,5,50,14
+    PUSHBUTTON      "&Скасувати",IDCANCEL,143,25,50,14
+    PUSHBUTTON      "Вс&тавити",IDC_INSERT,143,45,50,14
+    PUSHBUTTON      "&Редагувати",IDC_EDIT,143,63,50,14
+    AUTOCHECKBOX    "В&идаляти мітку", IDC_REMMARKER, 143, 85, 50, 14, BS_AUTOCHECKBOX|WS_TABSTOP|BS_MULTILINE
+END
+
+#endif //! Ukrainian resources
+
+//! English (Neutral) resources
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
+#pragma code_page(1252)
+#endif //_WIN32
+
+IDD_TEMPLATE DIALOGEX 0, 0, 200, 169
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_CLIPCHILDREN
+CAPTION "Select template"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_TREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | TVS_NOHSCROLL | WS_BORDER | WS_TABSTOP,7,5,129,155
+    DEFPUSHBUTTON   "&Open",IDOK,143,5,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,143,25,50,14
+    PUSHBUTTON      "&Insert",IDC_INSERT,143,45,50,14
+    PUSHBUTTON      "&Edit",IDC_EDIT,143,65,50,14
+    AUTOCHECKBOX    "&Remove marker", IDC_REMMARKER, 143, 85, 50, 14, BS_AUTOCHECKBOX|WS_TABSTOP|BS_MULTILINE
+END
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,18,0,0
+ PRODUCTVERSION 1,18,0,0
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "Plugin allows use fill newly created files with predefined content"
+            VALUE "FileDescription", "Templates for AkelPad"
+            VALUE "FileVersion", "1, 18, 0, 0"
+            VALUE "InternalName", "Templates"
+            VALUE "LegalCopyright", "Panych Y.W. (C) 2010-2014"
+            VALUE "OriginalFilename", "Templates.dll"
+            VALUE "ProductName", "Templates for AkelPad"
+            VALUE "ProductVersion", "1, 18, 0, 0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif //! English (Neutral) resources

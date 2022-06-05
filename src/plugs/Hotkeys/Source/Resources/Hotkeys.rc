@@ -1,0 +1,163 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "Resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#if (RC_VERSIONBIT == 64)
+  #define RC_VERSIONDESCRIPTION "AkelPad (x64) text editor plugin"
+#else
+  #define RC_VERSIONDESCRIPTION "AkelPad (x86) text editor plugin"
+#endif
+#include "winresrc.h"
+#ifdef RC_VERSIONBIT
+  #include "Version.rc"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_PLUGIN         ICON    DISCARDABLE     "Hotkeys.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_MAIN DIALOG DISCARDABLE  70, 70, 438, 209
+STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU | WS_THICKFRAME
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_EDITLABELS | 
+                    LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,8,38,350,146
+    EDITTEXT        IDC_MAIN_FILTER,8,188,350,14,ES_AUTOHSCROLL
+    LTEXT           "",IDC_NAME_LABEL,11,8,93,8
+    EDITTEXT        IDC_NAME,9,19,97,13,ES_AUTOHSCROLL
+    LTEXT           "",IDC_COMMAND_LABEL,111,8,176,8
+    COMBOBOX        IDC_COMMAND,108,19,182,121,CBS_DROPDOWN | 
+                    CBS_AUTOHSCROLL | WS_TABSTOP
+    LTEXT           "",IDC_HOTKEY_LABEL,291,8,53,8
+    CONTROL         "HotKey1",IDC_HOTKEY,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,291,19,67,13
+    PUSHBUTTON      "...",IDC_HOTKEYCODE,347,8,11,10
+    GROUPBOX        "",IDC_BUTTONGROUP,365,6,63,110
+    PUSHBUTTON      "",IDC_ADDMODIFYHOTKEY,371,18,50,15
+    PUSHBUTTON      "",IDC_ITEMMOVEUP,371,48,50,15
+    PUSHBUTTON      "",IDC_ITEMMOVEDOWN,371,64,50,15
+    PUSHBUTTON      "",IDC_ITEMDELETE,371,94,50,15
+    PUSHBUTTON      "",IDC_ALLKEYS,368,123,56,15
+    PUSHBUTTON      "",IDC_CLOSE,371,188,50,14,BS_CENTER
+END
+
+IDD_INPUTBOX DIALOG DISCARDABLE  0, 0, 220, 62
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | 
+    WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "",IDC_INPUTBOX_LABEL,9,8,203,8,SS_NOPREFIX
+    EDITTEXT        IDC_INPUTBOX_EDIT,7,19,206,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_INPUTBOX_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,44,95,8
+    DEFPUSHBUTTON   "",IDOK,110,43,50,14,BS_CENTER
+    PUSHBUTTON      "",IDCANCEL,163,43,50,14,BS_CENTER
+END
+
+IDD_ALLKEYS DIALOG DISCARDABLE  0, 0, 414, 234
+STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU | WS_THICKFRAME
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "List1",IDC_ALLKEYS_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
+                    WS_BORDER | WS_TABSTOP,9,6,395,206
+    EDITTEXT        IDC_ALLKEYS_FILTER,9,216,172,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_ALLKEYS_ONLYASSIGNED,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,191,218,212,10
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "Resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#if (RC_VERSIONBIT == 64)\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x64) text editor plugin""\r\n"
+    "#else\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x86) text editor plugin""\r\n"
+    "#endif\r\n"
+    "#include ""winresrc.h""\r\n"
+    "#ifdef RC_VERSIONBIT\r\n"
+    "  #include ""Version.rc""\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ALLKEYS, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 233
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

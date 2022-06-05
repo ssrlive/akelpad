@@ -1,0 +1,64 @@
+#include <winresrc.h>
+#include "resource.h"
+
+LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
+#pragma code_page(1252)
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+IDD_WORKBAR DIALOGEX 0, 0, 562, 15
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_VOICE,1,1,134,53,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_OUTPUT,136,1,128,51,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "P",IDC_PLAY,266,1,13,13
+    CONTROL         "",IDC_VOLUME,"msctls_trackbar32",TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,293,1,107,12
+    CONTROL         "",IDC_RATE,"msctls_trackbar32",TBS_AUTOTICKS | TBS_TOP | WS_TABSTOP,414,1,48,12
+    PUSHBUTTON      "Play2File",IDC_PLAY2FILE,461,2,45,12
+    CONTROL         "X",IDCANCEL,"Button",BS_OWNERDRAW | WS_TABSTOP,522,3,11,10
+    ICON            IDI_VOLUME,IDC_STATIC,283,2,21,20,SS_REALSIZEIMAGE
+    ICON            IDI_RATE,IDC_STATIC,401,2,21,20,SS_REALSIZEIMAGE
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+IDI_VOLUME              ICON                    "vol.ico"
+IDI_RATE                ICON                    "rate.ico"
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,10,0,0
+ PRODUCTVERSION 1,10,0,0
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080904b0"
+        BEGIN
+            VALUE "FileDescription", "Text-To-Speech plugin for AkelPad"
+            VALUE "FileVersion", "1, 10, 0, 0"
+            VALUE "InternalName", "Speech"
+            VALUE "LegalCopyright", "Copyright (C) Panych Y.W. aka FeyFre 2010-2014"
+            VALUE "OriginalFilename", "Speech.dll"
+            VALUE "ProductVersion", "1, 10, 0, 0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x809, 1200
+    END
+END

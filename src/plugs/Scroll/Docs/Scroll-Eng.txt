@@ -1,0 +1,120 @@
+*****************************************************************
+***                Scroll AkelPad plugin v3.4                 ***
+*****************************************************************
+
+2007-2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Features ***
+
+- Text autoscrolling.
+- Horizontal/vertical synchronization of split or MDI windows.
+- Set no scroll operation, like, "Select all".
+- Caret alignment.
+- Mouse wheel scrolling without focus set.
+
+
+*** Functions ***
+
+Scroll::AutoScroll
+On/off text autoscrolling.
+
+Scroll::SyncHorz
+On/off horizontal synchronization.
+
+Scroll::SyncVert
+On/off vertical synchronization.
+
+Scroll::NoScroll
+On/off no scroll operation processing.
+
+Scroll::AlignCaret
+On/off caret alignment.
+  Manual parameters:
+    AlignCaretFlags
+      See description of AESCROLLCARETOPTIONS.dwFlags in AkelEdit.h.
+    AlignCaretSelFlags
+      See description of AESCROLLCARETOPTIONS.dwSelFlags in AkelEdit.h.
+    AlignCaretSelType
+      See description of AESCROLLCARETOPTIONS.dwSelType in AkelEdit.h.
+
+Scroll::AutoFocus
+On/off object management over which mouse wheel is scrolling.
+  Supported controls:
+    AkelEdit, RichEdit20, Edit, SysTreeView32, SysListView32, ListBox, ComboBox, SysTabControl32.
+
+Scroll::Settings
+Settings dialog.
+
+
+*** External call ***
+
+Call("Scroll::AutoScroll", 1, "STEPTIME", "STEPWIDTH", *STEPTIME, *STEPWIDTH)
+  Parameters:
+    1
+      Autoscrolling.
+    "STEPTIME"
+      Step time.
+      "100" step time is 100 milliseconds.
+      "+50" increase step time to 50 milliseconds.
+      "-50" decrease step time to 50 milliseconds.
+      0     don't change.
+    "STEPWIDTH"
+      Step width.
+      "1"   step width is 1 pixel.
+      "+10" increase step width to 10 pixels.
+      "-10" decrease step width to 10 pixels.
+      0     don't change.
+    *STEPTIME
+      Optional parameter. Pointer to a variable, that receives step time value.
+    *STEPWIDTH
+      Optional parameter. Pointer to a variable, that receives step width value.
+
+Call("Scroll::Settings", 1, TYPE)
+  Parameters:
+    1
+      Horizontal scroll.
+    TYPE (one of the following):
+      0  scrolls left by one character.
+      1  scrolls right by one character.
+      2  scrolls left by the width of the window.
+      3  scrolls right by the width of the window.
+      6  scrolls to the most left.
+      7  scrolls to the most right.
+
+Call("Scroll::Settings", 2, TYPE)
+  Parameters:
+    2
+      Vertical scroll.
+    TYPE (one of the following):
+      0  scrolls one line up.
+      1  scrolls one line down.
+      2  scrolls one page up.
+      3  scrolls one page down.
+      6  scrolls to the most up.
+      7  scrolls to the most down.
+
+Call("Scroll::Settings", 3, VALUE, MOVECARET)
+  Parameters:
+    3
+      Horizontal scroll.
+    VALUE
+      The number of characters to scroll horizontally. Positive - right, negative - left.
+    MOVECARET (one of the following):
+      0  don't move caret.
+      1  move caret.
+
+Call("Scroll::Settings", 4, VALUE, MOVECARET)
+  Parameters:
+    4
+      Vertical scroll.
+    VALUE
+      The number of lines to scroll vertically. Positive - down, negative - up.
+    MOVECARET (one of the following):
+      0  don't move caret.
+      1  move caret.
+
+Call("Scroll::Settings", 5)
+  Parameters:
+    5
+      Press Enter and scroll one line down.

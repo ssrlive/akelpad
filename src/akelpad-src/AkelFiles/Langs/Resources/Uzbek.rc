@@ -1,0 +1,1184 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef RC_EXEVERSION
+  #if (RC_VERSIONBIT == 64)
+    #define RC_VERSIONDESCRIPTION "AkelPad (x64) language module"
+  #else
+    #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
+  #endif
+  #define RC_VERSIONCOPYRIGHT "© 2015 Shamsiddinov Zafar"
+  #define RC_VERSIONNAME "Uzbek.dll"
+#endif
+#include "winresrc.h"
+#include "staticedit.h"
+#include "version.h"
+#include "..\..\Plugs\AkelDLL\AkelDLL.h"
+#ifndef LANG_UZBEK
+  #define LANG_UZBEK 0x43
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Unknown language: 0x43, 0x1 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_UZB)
+#ifdef _WIN32
+LANGUAGE 0x43, 0x1
+#pragma code_page(1254)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDM_MENU_MAIN MENU DISCARDABLE
+BEGIN
+    POPUP "&Fayl"
+    BEGIN
+        MENUITEM "&Yangi\tCtrl+N",              IDM_FILE_NEW
+        MENUITEM "Oyna &yaratmoq\tCtrl+Shift+N", IDM_FILE_CREATENEW
+        MENUITEM "&Ochmoq...\tCtrl+O",          IDM_FILE_OPEN
+        MENUITEM "&Qayta ochmoq\tF5",           IDM_FILE_REOPEN
+        MENUITEM SEPARATOR
+        MENUITEM "&Saqlamoq\tCtrl+S",           IDM_FILE_SAVE
+        MENUITEM "Quyidagicha &saqlamoq...\tCtrl+Shift+S", IDM_FILE_SAVEAS
+        MENUITEM "Barini &saqlamoq\tCtrl+Alt+F2", IDM_FILE_SAVEALL
+        MENUITEM "Quyidagicha &barini saqlamoq...", IDM_FILE_SAVEALLAS
+        MENUITEM SEPARATOR
+        MENUITEM "Sahifalar &parametri...",     IDM_FILE_PAGESETUP
+        MENUITEM "&Oldindan ko‘rish...",        IDM_FILE_PRINTPREVIEW
+        MENUITEM "&Chop etish...\tCtrl+P",      IDM_FILE_PRINT
+        MENUITEM SEPARATOR
+        POPUP "Oxirgi &fayllar"
+        BEGIN
+            MENUITEM "_",                           IDM_RECENT_FILES
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Chiqish\tEsc",               IDM_FILE_EXIT
+    END
+    POPUP "&Tahrir"
+    BEGIN
+        MENUITEM "&Bekor qilmoq\tCtrl+Z",       IDM_EDIT_UNDO
+        MENUITEM "&Qaytarmoq\tCtrl+Shift+Z",    IDM_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "&Qirqmoq\tCtrl+X",            IDM_EDIT_CUT
+        MENUITEM "&Nusxa olmoq\tCtrl+C",        IDM_EDIT_COPY
+        MENUITEM "&Qo‘ymoq\tCtrl+V",            IDM_EDIT_PASTE
+        MENUITEM "&O‘chirmoq\tDel",             IDM_EDIT_CLEAR
+        MENUITEM "&Barini belgilamoq\tCtrl+A",  IDM_EDIT_SELECTALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Izlash...\tCtrl+F",          IDM_EDIT_FIND
+        MENUITEM "Pastdan &izlash\tF3",         IDM_EDIT_FINDNEXTDOWN
+        MENUITEM "Yuqoridan izlash\tShift+F3",  IDM_EDIT_FINDNEXTUP
+        MENUITEM "&Almashtirmoq...\tCtrl+R",    IDM_EDIT_REPLACE
+        MENUITEM "&O‘tish...\tCtrl+G",          IDM_EDIT_GOTO
+        MENUITEM SEPARATOR
+        MENUITEM "Belgi &qo‘ymoq\tCtrl+I",      IDM_EDIT_INSERTCHAR
+        MENUITEM "Sana &qo‘ymoq\tCtrl+D",       IDM_EDIT_INSERTDATE
+        POPUP "Belgi&lash"
+        BEGIN
+            MENUITEM "Vertikal tarzda qo‘yish\tAlt+V", IDM_EDIT_PASTECOLUMN
+            MENUITEM SEPARATOR
+            MENUITEM "&Tab qo‘shmoq\tTab",          IDM_EDIT_INSERT_TAB_MENU
+            MENUITEM "&Tab olmoq\tShift+Tab",       IDM_EDIT_DELETE_TAB_MENU
+            MENUITEM "&Probel qo‘shmoq\tSpace",     IDM_EDIT_INSERT_SPACE_MENU
+
+            MENUITEM "Probelni &olmoq\tShift+Space",
+                                                    IDM_EDIT_DELETE_SPACE_MENU
+
+            MENUITEM "Birinchi belgini &o‘chirmoq\tShift+Backspace",
+                                                    IDM_EDIT_DELETE_FIRST_CHAR_MENU
+
+            MENUITEM "Oxiridagi &Tablar va probellarni o‘chirmoq\tAlt+Backspace",
+                                                    IDM_EDIT_DELETE_TRAILING_WHITESPACES
+
+            MENUITEM "&Belgilangan Tablar va probellarni o‘chirmoq",
+                                                    IDM_EDIT_DELETESELWHITESPACES
+
+            MENUITEM SEPARATOR
+            MENUITEM "BARI &KATTA HAFRLARDA\tCtrl+6", IDM_EDIT_UPPERCASE
+            MENUITEM "bari &kichik harflarda\tCtrl+7", IDM_EDIT_LOWERCASE
+            MENUITEM "&Gap tarzida.\tCtrl+8",       IDM_EDIT_SENTENCECASE
+            MENUITEM "&Katta Harflarda Boshlash\tCtrl+9", IDM_EDIT_TITLECASE
+            MENUITEM "&tESKARI TARTIBDA\tCtrl+0",   IDM_EDIT_INVERTCASE
+            MENUITEM SEPARATOR
+            MENUITEM "&Qayta kodlamoq...\tAlt+R",   IDM_EDIT_RECODE
+        END
+        POPUP "&Yangi satrlar formati"
+        BEGIN
+            MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
+            MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
+            MENUITEM "Mac (0Dh)",                   IDM_EDIT_NEWLINE_MAC
+        END
+    END
+    POPUP "&Ko‘rinish"
+    BEGIN
+        MENUITEM "&Shrift...",                  IDM_VIEW_FONT
+        MENUITEM "&Ranglar...",                 IDM_VIEW_COLORS
+        MENUITEM SEPARATOR
+        MENUITEM "&Faqat o‘qish",               IDM_VIEW_READONLY
+        MENUITEM "&So‘zlarni bo‘g‘in ko‘chirish\tCtrl+U", IDM_VIEW_WORDWRAP
+        MENUITEM "&Oynani ajratmoq",            IDM_VIEW_SPLIT_WINDOW_ONOFF
+        MENUITEM "&Barcha oynalardan yuqorida\tCtrl+T", IDM_VIEW_ONTOP
+        MENUITEM "&Satr holati",                IDM_VIEW_SHOW_STATUSBAR
+        MENUITEM SEPARATOR
+        POPUP "&Til"
+        BEGIN
+            MENUITEM "_",                           IDM_LANGUAGE
+        END
+    END
+    POPUP "&Moslash"
+    BEGIN
+        MENUITEM "&Plaginlar...\tAlt+P",        IDM_OPTIONS_PLUGINS
+        MENUITEM "&Bajarmoq\tCtrl+F5",          IDM_OPTIONS_EXEC
+        MENUITEM SEPARATOR
+        MENUITEM "Chap &chekinishni saqlamoq\tCtrl+L", IDM_OPTIONS_KEEPSPACE
+        MENUITEM "Fayl o‘zgarishini &kuzatmoq", IDM_OPTIONS_WATCHFILE
+        MENUITEM "&Fayl vaqtini saqlamoq",      IDM_OPTIONS_SAVETIME
+        MENUITEM "Faylni &ikki bor ochmaslik",  IDM_OPTIONS_SINGLEOPEN_FILE
+        MENUITEM "&Dasturni ikki bor ochmaslik",
+                                                IDM_OPTIONS_SINGLEOPEN_PROGRAM
+
+        MENUITEM SEPARATOR
+        POPUP "&Oyna rejimi"
+        BEGIN
+            MENUITEM "&Biroynali (SDI)",            IDM_OPTIONS_SDI
+            MENUITEM "&Ko‘poynali (MDI)",           IDM_OPTIONS_MDI
+            MENUITEM "&Psevdo-ko‘poynali (PMDI)",   IDM_OPTIONS_PMDI
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Parametrlar...",             IDM_OPTIONS
+    END
+    POPUP "&Oyna"
+    BEGIN
+        POPUP "Xat&cho‘plar"
+        BEGIN
+            MENUITEM "&Yuqoriga",                   IDM_WINDOW_TABVIEW_TOP
+            MENUITEM "&Pastga",                     IDM_WINDOW_TABVIEW_BOTTOM
+
+            MENUITEM "Ber&kitmoq",                  IDM_WINDOW_TABVIEW_NONE
+            MENUITEM SEPARATOR
+            MENUITEM "&Standart",                   IDM_WINDOW_TABTYPE_STANDARD
+
+            MENUITEM "Tug&malar",                   IDM_WINDOW_TABTYPE_BUTTONS
+
+            MENUITEM "&Tekis tugmalar",             IDM_WINDOW_TABTYPE_FLATBUTTONS
+
+            MENUITEM SEPARATOR
+            MENUITEM "&Keyingi-oldingi",            IDM_WINDOW_TABSWITCH_NEXTPREV
+
+            MENUITEM "&O‘ng-chap",                  IDM_WINDOW_TABSWITCH_RIGHTLEFT
+
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "&Gorizontal",                 IDM_WINDOW_TILEHORIZONTAL
+        MENUITEM "&Vertikal",                   IDM_WINDOW_TILEVERTICAL
+        MENUITEM "&Pog‘onasimon",               IDM_WINDOW_CASCADE
+        MENUITEM "&Yopmoq",                     IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Barini &yopmoq",              IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Faoldan boshqa barini &yopmoq",
+                                                IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+
+        MENUITEM SEPARATOR
+        MENUITEM "&Klonlamoq",                  IDM_WINDOW_FRAMECLONE
+        MENUITEM "&Yo‘lakni nusxalamoq",        IDM_WINDOW_COPYPATH
+        MENUITEM "&Oyna tanlovi...",            IDM_WINDOW_MDILIST
+    END
+    POPUP "&Ma’lumot"
+    BEGIN
+        MENUITEM "&Qo‘llanma",                  IDM_MANUAL
+        MENUITEM "&Yangilash...",               IDM_UPDATE
+        MENUITEM SEPARATOR
+        MENUITEM "&Dastur haqida",              IDM_ABOUT
+    END
+END
+
+IDM_MENU_POPUP MENU DISCARDABLE
+BEGIN
+    POPUP "EditPopup"
+    BEGIN
+        MENUITEM "&Bekor qilmoq",               IDM_EDIT_UNDO
+        MENUITEM "&Qaytarmoq",                  IDM_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "&Qirqmoq",                    IDM_EDIT_CUT
+        MENUITEM "&Nusxa olmoq",                IDM_EDIT_COPY
+        MENUITEM "&Qo‘ymoq",                    IDM_EDIT_PASTE
+        MENUITEM "&O‘chirmoq",                  IDM_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "&Barini belgilamoq",          IDM_EDIT_SELECTALL
+    END
+    POPUP "ViewPopup"
+    BEGIN
+        MENUITEM "&Nusxa olmoq",                IDM_EDIT_COPY
+        MENUITEM SEPARATOR
+        MENUITEM "&barini belgilamoq",          IDM_EDIT_SELECTALL
+    END
+    POPUP "CodepagePopup"
+    BEGIN
+        POPUP "Quyidagicha ochmoq"
+        BEGIN
+            MENUITEM "_",                           IDM_POPUP_OPENAS
+        END
+        MENUITEM SEPARATOR
+        POPUP "Quyidagicha saqlamoq"
+        BEGIN
+            MENUITEM "_",                           IDM_POPUP_SAVEAS
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Qayta aniqlamoq",             IDM_FILE_REDETECT
+    END
+    POPUP "HeadlinePopup"
+    BEGIN
+        MENUITEM "Sahifalar raqami[birinchi sahifa]\t%n[1]",
+                                                IDM_POPUP_HEADLINE_PAGE_NUMBER
+
+        MENUITEM "Fayl nomi\t%f",               IDM_POPUP_HEADLINE_FILENAME
+        MENUITEM "Fayl jildi\t%d",              IDM_POPUP_HEADLINE_FILEDIR
+        MENUITEM "Belgi %\t%%",                 IDM_POPUP_HEADLINE_SYMBOL
+        MENUITEM SEPARATOR
+        MENUITEM "Markazga tekislash\t%c",      IDM_POPUP_HEADLINE_ALIGN_CENTER
+
+        MENUITEM "Chap burchakka tekislash\t%l",
+                                                IDM_POPUP_HEADLINE_ALIGN_LEFT
+
+        MENUITEM "O‘ng burchakka tekislash\t%r",
+                                                IDM_POPUP_HEADLINE_ALIGN_RIGHT
+
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_MAIN           ICON    DISCARDABLE     "AkelPad.ico"
+IDI_ICON_EMPTY          ICON    DISCARDABLE     "Empty.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_CURSOR_DRAGMOVE     CURSOR  DISCARDABLE     "DragMove.cur"
+IDC_CURSOR_HANDOPEN     CURSOR  DISCARDABLE     "HandOpen.cur"
+IDC_CURSOR_HANDCLOSE    CURSOR  DISCARDABLE     "HandClose.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDA_ACCEL_GLOBAL ACCELERATORS MOVEABLE PURE
+BEGIN
+    VK_F6,          IDM_WINDOW_DLGNEXT,     VIRTKEY, NOINVERT
+    VK_F6,          IDM_WINDOW_DLGPREV,     VIRTKEY, SHIFT, NOINVERT
+END
+
+IDA_ACCEL_MAIN ACCELERATORS MOVEABLE PURE
+BEGIN
+    "0",            IDM_EDIT_INVERTCASE,    VIRTKEY, CONTROL, NOINVERT
+    "5",            IDM_EDIT_LOOPCASE,      VIRTKEY, CONTROL, NOINVERT
+    "6",            IDM_EDIT_UPPERCASE,     VIRTKEY, CONTROL, NOINVERT
+    "7",            IDM_EDIT_LOWERCASE,     VIRTKEY, CONTROL, NOINVERT
+    "8",            IDM_EDIT_SENTENCECASE,  VIRTKEY, CONTROL, NOINVERT
+    "9",            IDM_EDIT_TITLECASE,     VIRTKEY, CONTROL, NOINVERT
+    "A",            IDM_EDIT_SELECTALL,     VIRTKEY, CONTROL, NOINVERT
+    "B",            IDM_FILE_REOPENAS_UTF16BE, VIRTKEY, ALT, NOINVERT
+    "B",            IDM_FILE_SAVEAS_UTF16BE, VIRTKEY, SHIFT, ALT, NOINVERT
+    "C",            IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
+    "C",            IDM_EDIT_COPY,          VIRTKEY, SHIFT, CONTROL,
+                                                    NOINVERT
+    "D",            IDM_EDIT_INSERTDATE,    VIRTKEY, CONTROL, NOINVERT
+    "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
+    "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
+    "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,          VIRTKEY, CONTROL, NOINVERT
+    "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
+    "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
+    "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT
+    "K",            IDM_FILE_REOPENAS_KOIR, VIRTKEY, ALT, NOINVERT
+    "K",            IDM_FILE_SAVEAS_KOIR,   VIRTKEY, SHIFT, ALT, NOINVERT
+    "L",            IDM_OPTIONS_KEEPSPACE,  VIRTKEY, CONTROL, NOINVERT
+    "L",            IDM_FILE_REOPENAS_UTF16LE, VIRTKEY, ALT, NOINVERT
+    "L",            IDM_FILE_SAVEAS_UTF16LE, VIRTKEY, SHIFT, ALT, NOINVERT
+    "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL, NOINVERT
+    "N",            IDM_FILE_CREATENEW,     VIRTKEY, SHIFT, CONTROL,
+                                                    NOINVERT
+    "O",            IDM_FILE_OPEN,          VIRTKEY, CONTROL, NOINVERT
+    "O",            IDM_FILE_REOPEN,        VIRTKEY, SHIFT, CONTROL,
+                                                    NOINVERT
+    "P",            IDM_FILE_PRINT,         VIRTKEY, CONTROL, NOINVERT
+    "P",            IDM_OPTIONS_PLUGINS,    VIRTKEY, ALT, NOINVERT
+    "R",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
+    "R",            IDM_EDIT_RECODE,        VIRTKEY, ALT, NOINVERT
+    "S",            IDM_FILE_SAVE,          VIRTKEY, CONTROL, NOINVERT
+    "S",            IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, CONTROL,
+                                                    NOINVERT
+    "T",            IDM_VIEW_ONTOP,         VIRTKEY, CONTROL, NOINVERT
+    "U",            IDM_VIEW_WORDWRAP,      VIRTKEY, CONTROL, NOINVERT
+    "U",            IDM_FILE_REOPENAS_UTF8, VIRTKEY, ALT, NOINVERT
+    "U",            IDM_FILE_SAVEAS_UTF8,   VIRTKEY, SHIFT, ALT, NOINVERT
+    "V",            IDM_EDIT_PASTE,         VIRTKEY, CONTROL, NOINVERT
+    "V",            IDM_EDIT_PASTECOLUMN,   VIRTKEY, ALT, NOINVERT
+    "V",            IDM_EDIT_PASTEANSI,     VIRTKEY, SHIFT, CONTROL,
+                                                    NOINVERT
+    VK_ADD,         IDM_VIEW_FONTSIZE_INCREASE, VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        IDM_EDIT_DELETE_TRAILING_WHITESPACES, VIRTKEY, ALT,
+                                                    NOINVERT
+    VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT
+    VK_DELETE,      IDM_EDIT_CUT,           VIRTKEY, SHIFT, NOINVERT
+    VK_MULTIPLY,    IDM_VIEW_FONTSIZE_RESTORE, VIRTKEY, CONTROL, NOINVERT
+    VK_ESCAPE,      IDM_FILE_EXIT,          VIRTKEY, NOINVERT
+    VK_F10,         IDM_SELECTWINDOW,       VIRTKEY, NOINVERT
+    VK_F12,         IDM_FILE_CODEPAGEMENU,  VIRTKEY, NOINVERT
+    VK_F2,          IDM_FILE_SAVE,          VIRTKEY, NOINVERT
+    VK_F2,          IDM_FILE_SAVEALL,       VIRTKEY, CONTROL, ALT, NOINVERT
+    VK_F2,          IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, NOINVERT
+    VK_F3,          IDM_EDIT_FINDNEXTDOWN,  VIRTKEY, NOINVERT
+    VK_F3,          IDM_EDIT_FINDNEXTUP,    VIRTKEY, SHIFT, NOINVERT
+    VK_F4,          IDM_WINDOW_CHANGESIZE,  VIRTKEY, NOINVERT
+    VK_F4,          IDM_WINDOW_FRAMECLOSE,  VIRTKEY, CONTROL, NOINVERT
+    VK_F4,          IDM_WINDOW_FRAMECLOSEALL, VIRTKEY, CONTROL, ALT,
+                                                    NOINVERT
+    VK_F5,          IDM_FILE_REOPEN,        VIRTKEY, NOINVERT
+    VK_F5,          IDM_OPTIONS_EXEC,       VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          IDM_FILE_REDETECT,      VIRTKEY, ALT, NOINVERT
+    VK_F6,          IDM_WINDOW_FRAMENEXT,   VIRTKEY, CONTROL, NOINVERT
+    VK_F6,          IDM_WINDOW_FRAMEPREV,   VIRTKEY, SHIFT, CONTROL,
+                                                    NOINVERT
+    VK_F8,          IDM_EDIT_DELLINE,       VIRTKEY, NOINVERT
+    VK_F9,          IDM_WINDOW_CLONENEXT,   VIRTKEY, NOINVERT
+    VK_F9,          IDM_WINDOW_CLONEPREV,   VIRTKEY, SHIFT, NOINVERT
+    VK_INSERT,      IDM_EDIT_INSERTMODE,    VIRTKEY, NOINVERT
+    VK_INSERT,      IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      IDM_EDIT_PASTE,         VIRTKEY, SHIFT, NOINVERT
+    VK_INSERT,      IDM_EDIT_PASTEANSI,     VIRTKEY, SHIFT, CONTROL,
+                                                    NOINVERT
+    VK_RETURN,      IDM_EDIT_AUTOINDENT,    VIRTKEY, CONTROL, NOINVERT
+    VK_RETURN,      IDM_WINDOW_CHANGESIZE,  VIRTKEY, ALT, NOINVERT
+    VK_SPACE,       IDM_EDIT_INSERT_SPACE,  VIRTKEY, NOINVERT
+    VK_SPACE,       IDM_EDIT_DELETE_SPACE,  VIRTKEY, SHIFT, NOINVERT
+    VK_SUBTRACT,    IDM_VIEW_FONTSIZE_DECREASE, VIRTKEY, CONTROL, NOINVERT
+    VK_TAB,         IDM_EDIT_INSERT_TAB,    VIRTKEY, NOINVERT
+    VK_TAB,         IDM_WINDOW_FRAMENEXT,   VIRTKEY, CONTROL, NOINVERT
+    VK_TAB,         IDM_EDIT_DELETE_TAB,    VIRTKEY, SHIFT, NOINVERT
+    VK_TAB,         IDM_WINDOW_FRAMEPREV,   VIRTKEY, SHIFT, CONTROL,
+                                                    NOINVERT
+    "W",            IDM_WINDOW_FRAMECLOSE,  VIRTKEY, CONTROL, NOINVERT
+    "W",            IDM_FILE_REOPENAS_ANSI, VIRTKEY, ALT, NOINVERT
+    "W",            IDM_FILE_SAVEAS_ANSI,   VIRTKEY, SHIFT, ALT, NOINVERT
+    "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
+    "Y",            IDM_EDIT_DELLINE,       VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDM_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDM_EDIT_REDO,          VIRTKEY, SHIFT, CONTROL,
+                                                    NOINVERT
+    188,            IDM_EDIT_RECENTCARETPREV, VIRTKEY, ALT, NOINVERT
+    190,            IDM_EDIT_RECENTCARETNEXT, VIRTKEY, ALT, NOINVERT
+    220,            IDM_EDIT_SELJUMPCARET,  VIRTKEY, ALT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_OFN DIALOGEX 0, 0, 275, 120
+STYLE DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_CLIPSIBLINGS
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "&Kodlash:",IDC_OFN_CODEPAGE_LABEL,8,3,40,8
+    COMBOBOX        IDC_OFN_CODEPAGE,53,1,145,130,CBS_DROPDOWNLIST |
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_OFN_AUTODETECT,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,211,4,55,8
+    CONTROL         "",IDC_OFN_PREVIEW,"AkelEditA",WS_VSCROLL | WS_HSCROLL |
+                    WS_TABSTOP | 0x2904,6,20,263,98,WS_EX_CLIENTEDGE
+    CONTROL         "",IDC_OFN_SHOWPLACESBAR,"Button",BS_OWNERDRAW,0,112,6,7
+END
+
+IDD_SAVEALLAS DIALOG DISCARDABLE  70, 70, 200, 135
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE |
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Quyidagicha barini saqlamoq"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "&Kodlash:",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
+    GROUPBOX        "",IDC_STATIC,9,16,182,35
+    COMBOBOX        IDC_SAVEALLAS_CODEPAGE_LIST,18,29,131,82,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,155,31,27,10
+    CONTROL         "&Yangi satr formati:",IDC_SAVEALLAS_NEWLINE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    GROUPBOX        "",IDC_STATIC,9,69,182,35
+    CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
+                    BS_AUTORADIOBUTTON,17,85,60,8
+    CONTROL         "Unix",IDC_SAVEALLAS_NEWLINE_UNIX,"Button",
+                    BS_AUTORADIOBUTTON,84,85,50,8
+    CONTROL         "Mac",IDC_SAVEALLAS_NEWLINE_MAC,"Button",
+                    BS_AUTORADIOBUTTON,140,85,40,8
+    DEFPUSHBUTTON   "OK",IDOK,47,115,50,14,BS_CENTER
+    PUSHBUTTON      "Bekor qilmoq",IDCANCEL,102,115,50,14,BS_CENTER
+END
+
+IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 264
+STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Oyna tanlovi"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LISTBOX         IDC_MDILIST_LIST,6,9,178,219,LBS_SORT |
+                    LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL |
+                    WS_TABSTOP
+    RTEXT           "",IDC_MDILIST_STATS,92,232,89,8
+    EDITTEXT        IDC_MDILIST_SEARCH,6,243,178,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,198,10,50,14
+    GROUPBOX        "Tekislash",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
+    PUSHBUTTON      "Gorizontal",IDC_MDILIST_HORZ,198,45,50,14
+    PUSHBUTTON      "Vertikal",IDC_MDILIST_VERT,198,60,50,14
+    GROUPBOX        "Xatcho‘plar",IDC_MDILIST_TABS_GROUP,191,86,64,72
+    PUSHBUTTON      "Yuqoriga",IDC_MDILIST_UP,198,100,50,14
+    PUSHBUTTON      "Pastga",IDC_MDILIST_DOWN,198,115,50,14
+    PUSHBUTTON      "Saralamoq",IDC_MDILIST_SORT,198,138,50,14
+    GROUPBOX        "Fayllar",IDC_MDILIST_FILES_GROUP,191,163,64,49
+    PUSHBUTTON      "Saqlamoq",IDC_MDILIST_SAVE,198,177,50,14
+    PUSHBUTTON      "Yopmoq",IDC_MDILIST_CLOSE,198,192,50,14
+    CONTROL         "Faqat nomlar",IDC_MDILIST_ONLYNAMES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,191,219,67,10
+    PUSHBUTTON      "Bekor qilmoq",IDCANCEL,198,243,50,14
+END
+
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
+STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP |
+    WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+EXSTYLE WS_EX_CLIENTEDGE
+CAPTION "Oldindan ko‘rish"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Chop etish...",IDC_PREVIEW_PRINT,9,9,50,14
+    PUSHBUTTON      "&Sahifa...",IDC_PREVIEW_PAGESETUP,62,9,50,14
+    GROUPBOX        "",IDC_STATIC,131,2,121,24
+    PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
+    EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER |
+                    ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUTTON      ">",IDC_PREVIEW_NEXTPAGE,223,10,20,12
+    COMBOBOX        IDC_PREVIEW_ZOOM,267,10,48,200,CBS_DROPDOWN | WS_VSCROLL |
+                    WS_TABSTOP
+    CONTROL         "&Belgilash",IDC_PREVIEW_SELECTION,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "&Yopmoq",IDC_PREVIEW_CLOSE,390,9,50,14
+END
+
+IDD_FIND DIALOGEX 70, 70, 257, 108
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+    WS_SYSMENU
+EXSTYLE WS_EX_DLGMODALFRAME
+CAPTION "Izlash"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN |
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Registr hisobi bilan",IDC_SEARCH_MATCHCASE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
+    CONTROL         "&To‘liq so‘zlarni",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
+    CONTROL         "&Davomiy ifoda",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,53,95,12
+    CONTROL         "",IDC_SEARCH_REGEXP_ARROW,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,106,55,10,9
+    CONTROL         "Esc-&davomchisi",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,65,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,77,96,12,NOT
+                    WS_GROUP
+    GROUPBOX        "Yo‘nalish",IDC_STATIC,121,27,66,58
+    CONTROL         "&Pastdan",IDC_SEARCH_FORWARD,"Button",
+                    BS_AUTORADIOBUTTON,126,37,60,10
+    CONTROL         "Yuqori&dan",IDC_SEARCH_BACKWARD,"Button",
+                    BS_AUTORADIOBUTTON,126,48,60,10
+    CONTROL         "&Boshidan",IDC_SEARCH_BEGINNING,"Button",
+                    BS_AUTORADIOBUTTON,126,59,60,10
+    CONTROL         "&Belgilangandan",IDC_SEARCH_INSEL,"Button",
+                    BS_AUTORADIOBUTTON,126,70,60,10
+    CONTROL         "Barcha &fayllar",IDC_SEARCH_ALLFILES,"Button",
+                    BS_AUTORADIOBUTTON,126,87,60,10
+    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,66,19
+    DEFPUSHBUTTON   "&Davom etish",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
+                    BS_CENTER
+    PUSHBUTTON      "Bekor qilmoq",IDCANCEL,196,23,54,14,BS_CENTER
+    LTEXT           "So‘z:",IDC_STATIC,5,11,22,12,NOT WS_GROUP
+END
+
+IDD_REPLACE DIALOGEX 70, 70, 257, 122
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+    WS_SYSMENU
+EXSTYLE WS_EX_DLGMODALFRAME
+CAPTION "Almashtirmoq"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN |
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_SEARCH_REPLACE,27,23,160,100,CBS_DROPDOWN |
+                    CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Registr hisobi bilan",IDC_SEARCH_MATCHCASE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
+    CONTROL         "To‘liq &so‘zlarni",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
+    CONTROL         "&Davomiy ifoda",IDC_SEARCH_REGEXP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,95,12
+    CONTROL         "",IDC_SEARCH_REGEXP_ARROW,"Button",BS_OWNERDRAW | 
+                    WS_TABSTOP,106,69,10,9
+    CONTROL         "Esc-&davomchisi",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,79,109,12
+    LTEXT           "(\\[0020], \\\\, \\n, \\t)",IDC_STATIC,22,91,96,12,NOT
+                    WS_GROUP
+    GROUPBOX        "Yo‘nalish",IDC_STATIC,121,41,66,58
+    CONTROL         "Past&dan",IDC_SEARCH_FORWARD,"Button",
+                    BS_AUTORADIOBUTTON,126,51,60,10
+    CONTROL         "Yuqori&dan",IDC_SEARCH_BACKWARD,"Button",
+                    BS_AUTORADIOBUTTON,126,62,60,10
+    CONTROL         "&Boshidan",IDC_SEARCH_BEGINNING,"Button",
+                    BS_AUTORADIOBUTTON,126,73,60,10
+    CONTROL         "&Belgilangandan",IDC_SEARCH_INSEL,"Button",
+                    BS_AUTORADIOBUTTON,126,84,60,10
+    CONTROL         "Barcha &fayllar",IDC_SEARCH_ALLFILES,"Button",
+                    BS_AUTORADIOBUTTON,126,101,60,10
+    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,94,66,19
+    DEFPUSHBUTTON   "&Davom etish",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
+                    BS_CENTER
+    PUSHBUTTON      "&Almashtirmoq",IDC_SEARCH_REPLACE_BUTTON,196,23,54,14,
+                    BS_CENTER
+    PUSHBUTTON      "Barini &almash",IDC_SEARCH_ALL_BUTTON,196,39,54,14,
+                    BS_CENTER
+    PUSHBUTTON      "Bekor qilmoq",IDCANCEL,196,55,54,14,BS_CENTER
+    LTEXT           "so‘zni:",IDC_STATIC,5,11,22,12,NOT WS_GROUP
+    LTEXT           "so‘zga:",IDC_STATIC,5,25,22,12,NOT WS_GROUP
+END
+
+IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+    WS_SYSMENU
+CAPTION "O‘tish"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Raqam:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
+    EDITTEXT        IDC_GOTO_NUMBER,14,20,122,13
+    CONTROL         "Satr:Ustun",IDC_GOTO_LINE,"Button",BS_AUTORADIOBUTTON,
+                    14,41,70,10
+    CONTROL         "Aralash",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,86,
+                    41,50,10
+    PUSHBUTTON      "OK",IDOK,23,63,50,14,BS_CENTER
+    PUSHBUTTON      "Bekor qilmoq",IDCANCEL,77,63,50,14,BS_CENTER
+END
+
+IDD_RECODE DIALOGEX 70, 70, 278, 214
+STYLE DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU |
+    WS_THICKFRAME
+CAPTION "Qayta kodlamoq"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    RTEXT           "dan:",IDC_RECODE_CODEPAGEFROM_LABEL,6,11,35,8
+    COMBOBOX        IDC_RECODE_CODEPAGEFROM_LIST,45,9,152,130,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    RTEXT           "ga:",IDC_RECODE_CODEPAGETO_LABEL,6,29,35,8
+    COMBOBOX        IDC_RECODE_CODEPAGETO_LIST,45,27,152,130,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_RECODE_AUTODETECT,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,207,19,65,12
+    CONTROL         "",IDC_RECODE_PREVIEW,"AkelEditA",WS_VSCROLL |
+                    WS_HSCROLL | WS_TABSTOP | 0x2904,6,50,263,134,
+                    WS_EX_CLIENTEDGE
+    PUSHBUTTON      "OK",IDOK,165,193,50,14,BS_CENTER
+    PUSHBUTTON      "Bekor qilmoq",IDCANCEL,219,193,50,14,BS_CENTER
+END
+
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 260, 246
+STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+    WS_SYSMENU | WS_THICKFRAME
+CAPTION "Ranglar"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Ranglar temasi:",IDC_COLORS_THEMENAME_LABEL,11,6,103,8
+    COMBOBOX        IDC_COLORS_THEMENAME_COMBO,9,17,129,83,CBS_DROPDOWN |
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Saqlamoq",IDC_COLORS_THEMESAVE,145,16,50,14
+    PUSHBUTTON      "O‘chirmoq",IDC_COLORS_THEMEDELETE,197,16,50,14
+    CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT |
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT |
+                    WS_BORDER | WS_TABSTOP,9,40,239,144
+    LTEXT           "Fon rasmi (%a akelpad jildi):",
+                    IDC_COLORS_BKIMAGEFILE_LABEL,14,189,190,8,NOT WS_GROUP
+    EDITTEXT        IDC_COLORS_BKIMAGEFILE_EDIT,10,200,177,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_COLORS_BKIMAGEFILE_BROWSE,190,200,14,13
+    LTEXT           "Alfa:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,8
+    EDITTEXT        IDC_COLORS_BKIMAGEALPHA_EDIT,211,200,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_COLORS_BKIMAGEALPHA_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,233,
+                    200,11,13
+    PUSHBUTTON      "OK",IDOK,145,224,50,14,BS_CENTER
+    PUSHBUTTON      "Bekor qilmoq",IDCANCEL,198,224,50,14,BS_CENTER
+END
+
+IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 230
+STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+    WS_SYSMENU | WS_THICKFRAME
+CAPTION "Plaginlar"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "List1",IDC_PLUGINS_LIST,"SysListView32",LVS_REPORT |
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING |
+                    LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,9,11,265,178
+    LTEXT           "Plaginni avtomatik yuklash uchun nishonni belgilang.",
+                    IDC_PLUGINS_LIST_INFO,11,192,264,8
+    LTEXT           "Chaqiruv tugmasi:",IDC_PLUGINS_HOTKEY_LABEL,277,13,62,8
+    CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",WS_BORDER |
+                    WS_TABSTOP,282,24,50,14
+    PUSHBUTTON      "Tayinlamoq",IDC_PLUGINS_ASSIGN,282,42,50,14
+    DEFPUSHBUTTON   "Chaqirmoq",IDC_PLUGINS_CALL,9,209,50,14
+    PUSHBUTTON      "OK",IDOK,228,209,50,14,BS_CENTER
+    PUSHBUTTON      "Bekor qilmoq",IDCANCEL,282,209,50,14,BS_CENTER
+END
+
+IDD_OPTIONS_GENERAL DIALOG DISCARDABLE  0, 0, 220, 230
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+    WS_SYSMENU
+CAPTION "Umumiy"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    GROUPBOX        "Bajarmoq",IDC_STATIC,9,6,200,90
+    LTEXT           "Buyruq (%f fayl, %a akelpad jildi):",IDC_STATIC,21,24,
+                    160,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
+    LTEXT           "ishchi katalog (%d fayl jildi):",IDC_STATIC,21,59,160,8,
+                    NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
+    LTEXT           "Kodlashni aniqlashtirish:",IDC_STATIC,12,107,150,8
+    COMBOBOX        IDC_OPTIONS_CODEPAGE_RECOGNITION,9,118,154,90,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Bufer:",IDC_STATIC,170,107,37,8
+    EDITTEXT        IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER,168,118,40,13,
+                    ES_NUMBER
+    LTEXT           "Standart kodlash:",IDC_STATIC,12,144,150,8
+    COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,155,154,90,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Filtr",IDC_OPTIONS_CODEPAGE_FILTER,168,155,40,13
+    GROUPBOX        "Yangi fayl",IDC_STATIC,9,182,200,41
+    COMBOBOX        IDC_OPTIONS_NEWFILE_CODEPAGE,18,200,110,90,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "BOM",IDC_OPTIONS_NEWFILE_BOM,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,134,202,27,8
+    COMBOBOX        IDC_OPTIONS_NEWFILE_NEWLINE,168,200,33,90,
+                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_OPTIONS_GENERAL_FILTER DIALOG DISCARDABLE  0, 0, 364, 255
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE |
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Filtr"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Foydalanuvchi:",IDC_STATIC,11,7,135,8
+    LISTBOX         IDC_OPTIONS_CODEPAGES_FILTER_CUSTOM,7,18,141,209,
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Yuqoriga",IDC_OPTIONS_CODEPAGES_FILTER_UP,155,19,50,14
+    PUSHBUTTON      "Pastga",IDC_OPTIONS_CODEPAGES_FILTER_DOWN,155,34,50,14
+    PUSHBUTTON      "<",IDC_OPTIONS_CODEPAGES_FILTER_ADD,155,56,50,14
+    PUSHBUTTON      ">",IDC_OPTIONS_CODEPAGES_FILTER_DELETE,155,71,50,14
+    PUSHBUTTON      "<<",IDC_OPTIONS_CODEPAGES_FILTER_ADDALL,155,93,50,14
+    PUSHBUTTON      ">>",IDC_OPTIONS_CODEPAGES_FILTER_DELETEALL,155,108,50,
+                    14
+    LTEXT           "Tizimga oid:",IDC_STATIC,217,7,135,8
+    LISTBOX         IDC_OPTIONS_CODEPAGES_FILTER_SYSTEM,213,18,141,209,
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "OK",IDOK,127,235,50,14,BS_CENTER
+    PUSHBUTTON      "Bekor qilmoq",IDCANCEL,181,235,50,14,BS_CENTER
+END
+
+IDD_OPTIONS_REGISTRY DIALOG DISCARDABLE  0, 0, 220, 230
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+    WS_SYSMENU
+CAPTION "Ryestr"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    GROUPBOX        "Sozlamani saqlamoq",IDC_STATIC,9,6,200,29
+    CONTROL         "Ryestr",IDC_OPTIONS_SAVESETTINGS_REGISTRY,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,32,19,70,10
+    CONTROL         "INI fayl",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
+                    BS_AUTORADIOBUTTON,133,19,70,10
+    GROUPBOX        "Save history",IDC_STATIC,9,42,200,105
+    CONTROL         "Ryestr",IDC_OPTIONS_SAVEHISTORY_REGISTRY,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,32,55,70,10
+    CONTROL         "INI fayl",IDC_OPTIONS_SAVEHISTORY_INI,"Button",
+                    BS_AUTORADIOBUTTON,134,55,70,10
+    CONTROL         "Karetka o‘rnini yodda saqlamoq",
+                    IDC_OPTIONS_SAVEPOSITIONS,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,17,75,185,10
+    CONTROL         "Kodlashni yodda saqlamoq",IDC_OPTIONS_SAVECODEPAGES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,86,185,10
+    LTEXT           "Oxirgi fayllar:",IDC_STATIC,19,108,73,15,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,106,18,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
+                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS |
+                    UDS_NOTHOUSANDS,113,106,11,13
+    PUSHBUTTON      "Tozalamoq",IDC_OPTIONS_RECENTFILES_CLEAR,141,105,54,14
+    LTEXT           "Izlash tarixi:",IDC_STATIC,19,128,73,15,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,
+                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS |
+                    UDS_NOTHOUSANDS,113,126,11,13
+    PUSHBUTTON      "Tozalamoq",IDC_OPTIONS_SEARCHSTRINGS_CLEAR,141,125,54,
+                    14
+    GROUPBOX        "Fayl turlari",IDC_STATIC,9,153,200,70
+    CONTROL         "Ochmoq:",IDC_OPTIONS_ASSOCIATE_OPEN,"Button",
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,169,49,10
+    EDITTEXT        IDC_OPTIONS_FILETYPES_OPEN,69,167,133,13,ES_AUTOHSCROLL
+    CONTROL         "O‘zgartirmoq:",IDC_OPTIONS_ASSOCIATE_EDIT,"Button",
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,187,49,10
+    EDITTEXT        IDC_OPTIONS_FILETYPES_EDIT,69,185,133,13,ES_AUTOHSCROLL
+    CONTROL         "Chop etish:",IDC_OPTIONS_ASSOCIATE_PRINT,"Button",
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,205,49,10
+    EDITTEXT        IDC_OPTIONS_FILETYPES_PRINT,69,203,133,13,ES_AUTOHSCROLL
+END
+
+IDD_OPTIONS_EDITOR1 DIALOG DISCARDABLE  0, 0, 220, 230
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+    WS_SYSMENU
+CAPTION "Muharrir 1"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    GROUPBOX        "Tab o‘lchami",IDC_STATIC,9,6,105,34
+    EDITTEXT        IDC_OPTIONS_TABSIZE,18,20,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_TABSIZE_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,20,
+                    11,13
+    CONTROL         "Probellar",IDC_OPTIONS_TABSIZE_SPACES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,58,22,50,10
+    GROUPBOX        "Bekor qilish cheklovi",IDC_STATIC,9,46,105,34
+    EDITTEXT        IDC_OPTIONS_UNDO_LIMIT,18,59,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,59,
+                    11,13
+    CONTROL         "Batafsil",IDC_OPTIONS_UNDO_DETAILED,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,58,61,50,10
+    GROUPBOX        "Bo‘gin ko‘chirish",IDC_STATIC,124,6,87,74
+    CONTROL         "So‘z bo‘yicha",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
+                    BS_AUTORADIOBUTTON,133,19,72,10
+    CONTROL         "Belgilar bo‘yicha",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
+                    BS_AUTORADIOBUTTON,133,31,72,10
+    LTEXT           "Cheklov:",IDC_STATIC,131,49,36,8
+    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,131,60,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,153,60,
+                    11,13
+    LTEXT           "Marker:",IDC_STATIC,171,49,36,8
+    EDITTEXT        IDC_OPTIONS_MARKER,171,60,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,193,60,
+                    11,13
+    GROUPBOX        "Karetka",IDC_STATIC,9,86,202,51
+    CONTROL         "Satrlar burchagida karetkadan chiqish",
+                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,16,98,132,10
+    CONTROL         "Faol ustunlarni ko‘rsatmoq",IDC_OPTIONS_CARETVERTLINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
+    CONTROL         "Faol satrlarni ko‘rsatmoq",IDC_OPTIONS_CARETACTIVELINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
+    CONTROL         "chegara",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
+    LTEXT           "Eni:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_CARETWIDTH,151,105,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    105,11,13
+    GROUPBOX        "Zebra chiziq",IDC_STATIC,9,144,105,62
+    LTEXT           "Skip:",IDC_STATIC,18,160,43,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_ALTLINESKIP,18,171,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_ALTLINESKIP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,171,
+                    11,13
+    LTEXT           "To‘ldirish:",IDC_STATIC,67,160,43,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_ALTLINEFILL,67,171,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_ALTLINEFILL_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,171,
+                    11,13
+    CONTROL         "Chegara",IDC_OPTIONS_ALTLINEBORDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,191,90,10
+    GROUPBOX        "Matnni chekinish",IDC_STATIC,124,144,87,62
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,131,171,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_LEFT_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,153,
+                    171,11,13
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_RIGHT,171,172,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
+                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS |
+                    UDS_NOTHOUSANDS,193,172,11,13
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_TOP,151,156,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_TOP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,173,
+                    156,11,13
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_BOTTOM,151,187,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_BOTTOM_SPIN,
+                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS |
+                    UDS_NOTHOUSANDS,173,187,11,13
+    RTEXT           "Satrlar orasi oralig‘i:",IDC_STATIC,104,214,70,8,NOT
+                    WS_GROUP
+    EDITTEXT        IDC_OPTIONS_LINEGAP,178,212,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,200,
+                    212,11,13
+END
+
+IDD_OPTIONS_EDITOR2 DIALOG DISCARDABLE  0, 0, 220, 230
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+    WS_SYSMENU
+CAPTION "Muharrir 2"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "Chekinishda chap tugmani bosish bilan satrni belgilamoq",
+                    IDC_OPTIONS_MOUSELEFTMARGIN,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,11,9,200,10
+    CONTROL         "RichEdit sichqoncha belgilashi",
+                    IDC_OPTIONS_MOUSERICHEDIT,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,11,20,200,10
+    CONTROL         "Sichqoncha bilan surib olib kelmoq",
+                    IDC_OPTIONS_MOUSEDRAGGING,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,11,31,200,10
+    CONTROL         "Karetkani aralashtirish uchun o‘ng tugmani bosmoq",
+                    IDC_OPTIONS_RCLICKMOVECARET,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,11,42,200,10
+    GROUPBOX        "Giperhavolalar",IDC_STATIC,9,60,200,100
+    CONTROL         "Ko‘rsatmoq",IDC_OPTIONS_URL_SHOW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,76,90,10
+    CONTROL         "Bir marta bosmoq",IDC_OPTIONS_URL_SINGLECLICK,"Button",
+                    BS_AUTORADIOBUTTON,112,76,90,10
+    CONTROL         "Ikki marta bosmoq",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
+                    BS_AUTORADIOBUTTON,112,87,90,10
+    CONTROL         "Prefikslar:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,97,172,10
+    EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,109,172,13,ES_AUTOHSCROLL
+    CONTROL         "Ajratgichlar:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,128,172,10
+    EDITTEXT        IDC_OPTIONS_URL_LEFTDELIMITERS,23,140,83,13,
+                    ES_AUTOHSCROLL
+    EDITTEXT        IDC_OPTIONS_URL_RIGHTDELIMITERS,112,140,83,13,
+                    ES_AUTOHSCROLL
+    CONTROL         "So‘zlar ajratgichi:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
+    EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "Tashlamoq",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,
+                    13,BS_CENTER
+    CONTROL         "Bo‘ginlar ajratgichi:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
+    EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "Tashlamoq",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,
+                    13,BS_CENTER
+END
+
+IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+    WS_SYSMENU
+CAPTION "Qo‘shimcha"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    CONTROL         "Klaviatura tilini avtomatik yoqmoq",
+                    IDC_OPTIONS_SWITCH_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,9,11,200,10
+    CONTROL         "(MDI) xatcho‘pi uchun klaviatura tilini yodda saqlamoq",
+                    IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,9,23,200,10
+    CONTROL         "Bo‘sh (MDI) xatcho‘pini saqlash haqida so‘ramaslik",
+                    IDC_OPTIONS_SILENTCLOSEEMPTY,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,9,35,200,10
+    CONTROL         "Fayl avvalida .LOG mavjud bo‘lsa sanani qo‘shib qo‘ymoq",
+                    IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,9,47,200,10
+    CONTROL         "Faqat-o‘qish fayllarida saqlanmasligi haqida ogohlantirish",
+                    IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,9,59,200,10
+    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
+    LTEXT           "sukut bo‘yicha hujjatni saqlash kengaytmasi",IDC_STATIC,
+                    37,77,171,8
+    GROUPBOX        "Izlash/almashtirish muloqot oynasi",IDC_STATIC,9,96,200,
+                    66
+    CONTROL         """Barini almash"" oynani yopsin",
+                    IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,17,109,185,10
+    CONTROL         """Barini almash"" xabarsiz",
+                    IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,17,121,185,10
+    CONTROL         "Bekor qilmoq ""Belgilangandan"", agar belgilash bo‘lsa",
+                    IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,17,133,185,10
+    CONTROL         "Aylanasiga izlash",IDC_OPTIONS_CYCLESEARCH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
+    CONTROL         "So‘rov",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+    CONTROL         "Modal bo‘lmagan oynalar o‘rnini saqlamoq",
+                    IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX |
+                    WS_TABSTOP,9,169,185,10
+END
+
+IDD_ABOUT DIALOGEX 0, 0, 220, 207
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE |
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Dastur haqida"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDI_ICON_MAIN,IDC_ABOUT_ICON,10,10,20,20
+    CONTROL         "",IDC_ABOUT_VERSION,"Static",SS_LEFTNOWORDWRAP,44,16,
+                    150,11
+    LTEXT           "Rasmiy veb-sahifa:",IDC_STATIC,19,41,85,11
+    PUSHBUTTON      "",IDC_ABOUT_HOMEPAGE,105,40,92,14,0,WS_EX_STATICEDGE
+    GROUPBOX        "Mualliflar:",IDC_STATIC,20,62,177,109
+    LTEXT           "Shengalts Aleksander, 2006-2017",IDC_STATIC,73,82,120,12,
+                    NOT WS_GROUP
+    LTEXT           "E-Mail:",IDC_STATIC,46,98,22,12,NOT WS_GROUP,
+                    WS_EX_RIGHT
+    EDITTEXT        IDC_ABOUT_EMAIL_SHENGALTS,74,96,107,12,ES_READONLY | NOT
+                    WS_BORDER,WS_EX_STATICEDGE
+    LTEXT           "Alexey Kuznetsov, 2003-2006",IDC_STATIC,73,125,120,12,
+                    NOT WS_GROUP
+    LTEXT           "E-Mail:",IDC_STATIC,46,142,22,12,WS_DISABLED | NOT
+                    WS_GROUP,WS_EX_RIGHT
+    EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY |
+                    WS_DISABLED | NOT WS_BORDER | NOT WS_TABSTOP,
+                    WS_EX_STATICEDGE
+    PUSHBUTTON      "OK",IDOK,148,183,50,14,BS_CENTER
+END
+
+IDD_MESSAGEBOX DIALOG DISCARDABLE  0, 0, 227, 58
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+    WS_SYSMENU
+FONT 8, "MS Shell Dlg"
+BEGIN
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE
+BEGIN
+    "#ifndef RC_EXEVERSION\r\n"
+    "  #if (RC_VERSIONBIT == 64)\r\n"
+    "    #define RC_VERSIONDESCRIPTION ""AkelPad (x64) language module""\r\n"
+    "  #else\r\n"
+    "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
+    "  #endif\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""© 2015 Shamsiddinov Zafar""\r\n"
+    "  #define RC_VERSIONNAME ""Uzbek.dll""\r\n"
+    "#endif\r\n"
+    "#include ""winresrc.h""\r\n"
+    "#include ""staticedit.h""\r\n"
+    "#include ""version.h""\r\n"
+    "#include ""..\\..\\Plugs\\AkelDLL\\AkelDLL.h""\r\n"
+    "#ifndef LANG_UZBEK\r\n"
+    "  #define LANG_UZBEK 0x43\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE
+BEGIN
+    IDD_ABOUT, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 206
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    MSG_ERROR_IN_MESSAGE_QUEUE "Xabar navbatini xatolik."
+    MSG_ERROR_NOT_ENOUGH_MEMORY
+                            "Kritik xatolik: xotira yetarli emas. Dastur ishini tugallash tavsiya etiladi."
+    MSG_ERROR_BINARY        """%s"" binar fayl. Davom etilsinmi?"
+    MSG_ERROR_IO            "Kiritish/chiqarishda xatolik."
+    MSG_ERROR_SYNTAX        "Sintaktik xatolik (%d)."
+    MSG_ERROR_PRINT         "Hujjatni chop etishda xatolik"
+    MSG_ERROR_RUN           "Dasturga kirishning imkoni yo‘q."
+    MSG_ERROR_LOAD_DLL      """%s""ni yuklab bo‘lmadi."
+    MSG_ERROR_UNLOAD_DLL    """%s""ni yuklab bo‘lmadi."
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" avto yuklashni qo‘llamaydi."
+    MSG_FUNCTION_NOT_FOUND  """%s""dan ""%s::%s"" funksiyani topib bo‘lmadi."
+    MSG_UPDATE_PROGRAM      "AkelPadni yangilang.\n\nAkelPadning: %d.%d.%d.%d-dan past bo‘lmagan versiyasi talab etiladi\nAkelPadning joriy versiyasi: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x qo‘llamaydi."
+    MSG_UPDATE_PLUGIN       "%sni yangilang.\n\nAkelPad arxitekturasi: %d.%d.%d.%d\n%s plagini arxitekturasi: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" AkelPad plagini sifatida aniqlanmadi."
+    MSG_UPDATE_LANGMODULE   "%sni yangilang\n\nJoriy versiya: %d.%d.%d.%d\nTalab etilgan versiya: %d.%d.%d.%d"
+    MSG_HOTKEY_EXISTS       "Chaqiruv tugmasi ""%s"" uchun oldindan belgilangan."
+    MSG_CANNOT_OPEN_FILE    """%s"" faylini ochib bo‘lmaydi."
+    MSG_WRONG_STRING        "Satr raqami noto‘g‘ri."
+    MSG_LONG_FILELIST       "Juda ko‘p fayllar tanlangan."
+    MSG_DOCUMENT_CHANGED    "Hujjatda o‘zgarish bor. Saqlansinmi?"
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    MSG_FILE_DOES_NOT_EXIST """%s"" yangi fayli yaratilsinmi?"
+    MSG_RECENTFILES_DELETED "O‘chirilgan qaydlar: %d ta"
+    MSG_SEARCH_ENDED        "Topish bajarildi."
+    MSG_SEARCH_CYCLEPROMPT  "Fayl oxiriga kelindi. Davom etilsinmi?"
+    MSG_REPLACE_COUNT       "Almashtirishlar soni: %d ta"
+    MSG_REPLACE_COUNT_ALLFILES
+                            "O‘zgargan fayllar: %d ta\nAlmashtirishlar soni: %Id"
+    MSG_FILE_WILL_BE_REOPENED
+                            "Fayl qayta ochiladi, barcha o‘zgarishlar yo‘q bo‘ladi."
+    MSG_FILE_CHANGED        """%s"" o‘zgarishlardan tashqarida.\n\nQayta ochilsinmi?"
+    MSG_CP_UNIMPLEMENTED    """%d"" kodlash sahifasi qo‘llanmaydi."
+    MSG_CP_MISMATCH         "Satrda ""%d"" belgilar mavjud, ushbu kodlashda ba’zi bir belgilar yo‘qotiladi. Davom etilsinmi?"
+    MSG_ACCESSDENIED        "Ma’mur huquqi kerak.\n\n""%s""\n\n"
+    MSG_RESTART_PROGRAM     "O‘zgarish dasturga qayta kirgandan so‘ng amalga oshadi."
+    MSG_SAVEIN_READONLY     """%s"" faylida ""Faqat o‘qish"" xossasi mavjud. Davom etilsinmi?"
+    MSG_OVERWRITEPROMPT     """%s"" allaqachon mavjud. Qayta yozilsinmi?"
+    MSG_DOCUMENTSLIMIT      "Hujjatlar chekloviga yetildi. Juda ko‘p hujjatlarni ochish uchun PMDI rejimidan foydalaning."
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    STR_DOCNAME             "AkelPad hujjati"
+    STR_MODIFIED            "O‘zgargan"
+    STR_READONLY            "Faqat o‘qish"
+    STR_COUNT               "%d dan %d"
+    STR_WITHOUT             "siz"
+    STR_AUTODETECT          "&Avtotanlov"
+    STR_RECENT_FILES_EMPTY  "Bo‘sh"
+    STR_RECENT_FILES_DELETE_DEAD "Mavjud bo‘lmaganlarni o‘chirmoq"
+    STR_OPTIONS             "Parametrlar..."
+    STR_LANGUAGE_NONE       "Ichki"
+    STR_FILE_FILTER         "Matnli fayllar (*.txt)|*.txt|Barcha fayllar (*.*)|*.*"
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    STR_EXECUTABLE_FILTER   "Bajaruvchi fayllar (*.exe)|*.exe|Barcha fayllar (*.*)|*.*"
+    STR_NONE                "Yo‘q"
+    STR_PLUGIN              "Plagin"
+    STR_FUNCTION            "Funksiya"
+    STR_HOTKEY              "Chaqiruv tugmasi"
+    STR_STATUS              "Holat"
+    STR_RUNNING             "Faol"
+    STR_FONT                "Shrift"
+    STR_COLOR               "Rang"
+    STR_HEADLINE            "Kolontitullar"
+    STR_TOP                 "Yuqori:"
+    STR_BOTTOM              "Quyi:"
+    STR_ELEMENT             "Element"
+    STR_STANDARDTHEME       "Standart"
+    STR_TEXT                "Matn"
+    STR_BACKGROUND          "Fon"
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    STR_SAMPLE              "Namuna"
+    STR_BASIC               "Asosiy rang"
+    STR_SELECTION           "Belgilangan"
+    STR_ACTIVELINE          "Faol satr"
+    STR_ACTIVELINEBORDER    "Faol satr chegarasi"
+    STR_ALTLINE             "Zebra"
+    STR_ALTLINEBORDER       "Zebra chiziqlar chegarasi"
+    STR_ACTIVECOLUMN        "Faol ustunlar"
+    STR_COLUMNMARKER        "Marker"
+    STR_CARET               "Karetka"
+    STR_URL                 "Havola"
+    STR_ACTIVEURL           "Faol havola"
+    STR_VISITURL            "Kirilgan havola"
+    STR_PAGEFIT             "Butunicha"
+    STR_PAGEWIDTH           "Eniga moslash"
+    STR_ALLFILES            "Barcha fayllar"
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    STR_ONLYMODIFIED        "O‘zgargan"
+    STR_ONLYUNMODIFIED      "O‘zgarmagan"
+    STR_INVERTSELECTION     "Belgilashni teskarilamoq"
+    STR_NEWLINEDOT          ". matches \\n"
+    STR_MESSAGEBOX_OK       "OK"
+    STR_MESSAGEBOX_YES      "&Ha"
+    STR_MESSAGEBOX_NO       "&Yo‘q"
+    STR_MESSAGEBOX_CANCEL   "Bekor qilmoq"
+    STR_MESSAGEBOX_YESTOALL "Bariga ha"
+    STR_MESSAGEBOX_NOTOALL  "Bariga yo‘q"
+    STR_MESSAGEBOX_GOTO     "O‘tish"
+    STR_MESSAGEBOX_TERMINATE "Tugatmoq"
+    STR_MESSAGEBOX_CONTINUE "Davom etmoq"
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    STR_AUTODETECT_RUSSIAN  "Kirilcha (1251, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_EASTERNEUROPE "Sharqiy-Yevropa (1250, OEM, UTF-8)"
+    STR_AUTODETECT_WESTERNEUROPE "G‘arbiy-Yevropa (1252, OEM, UTF-8)"
+    STR_AUTODETECT_TURKISH  "Turkcha (1254, OEM, UTF-8)"
+    STR_AUTODETECT_CHINESE  "Xitoycha (ANSI, UTF-8)"
+    STR_AUTODETECT_JAPANESE "Yaponcha (932, UTF-8)"
+    STR_AUTODETECT_KOREAN   "Koreyscha (949, UTF-8)"
+END
+
+#endif    // Unknown language: 0x43, 0x1 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

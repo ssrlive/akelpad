@@ -1,0 +1,19 @@
+﻿/**                                                             
+ *		Speech for AkelPad                                      
+ *		Panych Y.W. aka FeyFre (c) 2010-2011 (panych.y@gmail.com)    
+ *                                                              
+ *		This piece of software is distributed under BSD license.
+ *		AkelPad is property of its copyright holders.           
+ */
+
+
+Plugin performs machine reading of selection.
+
+Plugin uses Text-To-Speech(TTS)-engines compatible with MS SAPI 5.x.
+(In Windows XP and later some voices are pre-installed. For more see Control Panel - Speech)
+
+In order to activate plugin run Speech::Main function.
+It is possible select Voice, Volume, Reading speed in appeared panel(as far as implemented in TTS-engines)
+
+There is also ability to read text into audio(waveform) file. 
+NOTE: When reading text into audio file you MUST set its extension as WAV.

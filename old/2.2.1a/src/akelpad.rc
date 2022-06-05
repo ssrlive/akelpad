@@ -1,0 +1,368 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winresrc.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Russian resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+#ifdef _WIN32
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDM_APPMENU MENU DISCARDABLE 
+BEGIN
+    POPUP "&Файл"
+    BEGIN
+        MENUITEM "Созд&ать\tCtrl+N",            IDM_FILE_NEW
+        MENUITEM "Создать в &новом окне\tShift+Ctrl+N", IDM_FILE_CREATENEW
+        MENUITEM "&Открыть...\tCtrl+O",         IDM_FILE_OPEN
+        MENUITEM "Открыть &заново\tShift+Ctrl+O", IDM_FILE_REOPEN
+        MENUITEM "&Сохранить\tF2",              IDM_FILE_SAVE
+        MENUITEM "Сохранить &как...\tShift+Ctrl+S", IDM_FILE_SAVEAS
+        MENUITEM SEPARATOR
+        MENUITEM "П&араметры страницы...",      IDM_FILE_PAGESETUP
+        MENUITEM "&Печать...\tCtrl+P",          IDM_FILE_PRINT
+        MENUITEM SEPARATOR
+        POPUP "&История"
+        BEGIN
+            MENUITEM "(пусто)",                     0, GRAYED
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "В&ыход\tEsc",                 IDM_FILE_EXIT
+    END
+    POPUP "&Правка"
+    BEGIN
+        MENUITEM "&Отменить\tCtrl+Z",           IDM_EDIT_UNDO
+        MENUITEM "&Повторить\tShift+Ctrl+Z",    IDM_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "&Вырезать\tCtrl+X",           IDM_EDIT_CUT
+        MENUITEM "&Копировать\tCtrl+C",         IDM_EDIT_COPY
+        MENUITEM "Вст&авить\tCtrl+V",           IDM_EDIT_PASTE
+        MENUITEM "&Удалить\tDel",               IDM_EDIT_CLEAR
+        MENUITEM "В&ыделить всё\tCtrl+A",       IDM_EDIT_SELECTALL
+        MENUITEM "Вставить &символ\tCtrl+I",    IDM_EDIT_INSERTCHAR
+        MENUITEM SEPARATOR
+        MENUITEM "П&еренос по словам\tCtrl+W",  IDM_EDIT_WRAP
+        MENUITEM "Со&хранять отступы слева\tCtrl+L", IDM_EDIT_KEEPSPACE
+    END
+    POPUP "По&иск"
+    BEGIN
+        MENUITEM "&Найти...\tCtrl+F",           IDM_SEARCH_FIND
+        MENUITEM "Найти &далее\tF3",            IDM_SEARCH_FINDNEXT
+        MENUITEM "Найти &в другом направлении\tShift+F3", 
+                                                IDM_SEARCH_FINDOTHER
+        MENUITEM "&Заменить...\tCtrl+R",        IDM_SEARCH_REPLACE
+        MENUITEM "&Перейти к строке...\tCtrl+G", IDM_SEARCH_GOTOLINE
+    END
+    POPUP "&Кодировки"
+    BEGIN
+        MENUITEM "Открыть как Windows-1251\tShift+Ctrl+W", 
+                                                IDM_CODEPAGE_OPENAS_ANSI
+        MENUITEM "Открыть как DOS-866\tShift+Ctrl+D", 
+                                                IDM_CODEPAGE_OPENAS_OEM
+        MENUITEM "Открыть как КОИ8-Р\tShift+Ctrl+K", IDM_CODEPAGE_OPENAS_KOI
+        POPUP "Открыть как Unicode"
+        BEGIN
+            MENUITEM "UCS-2 little endian (стандартная)\tShift+Ctrl+U", 
+                                                    IDM_CODEPAGE_OPENAS_UNICODE_UCS2_LE
+
+            MENUITEM "UCS-2 big endian",            IDM_CODEPAGE_OPENAS_UNICODE_UCS2_BE
+
+            MENUITEM "UTF-8",                       IDM_CODEPAGE_OPENAS_UNICODE_UTF8
+
+        END
+        MENUITEM "Открыть как...",              IDM_CODEPAGE_OPENAS
+        MENUITEM SEPARATOR
+        MENUITEM "Сохранить в Windows-1251\tF5", IDM_CODEPAGE_SAVEIN_ANSI
+        MENUITEM "Сохранить в DOS-866\tF6",     IDM_CODEPAGE_SAVEIN_OEM
+        MENUITEM "Сохранить в КОИ8-Р\tF7",      IDM_CODEPAGE_SAVEIN_KOI
+        POPUP "Сохранить в Unicode"
+        BEGIN
+            MENUITEM "UCS-2 little endian (стандартная)", 
+                                                    IDM_CODEPAGE_SAVEIN_UNICODE_UCS2_LE
+
+            MENUITEM "UCS-2 big endian",            IDM_CODEPAGE_SAVEIN_UNICODE_UCS2_BE
+
+            MENUITEM "UTF-8",                       IDM_CODEPAGE_SAVEIN_UNICODE_UTF8
+
+        END
+        MENUITEM "Сохранить в...",              IDM_CODEPAGE_SAVEIN
+        MENUITEM SEPARATOR
+        POPUP "Формат новой строки"
+        BEGIN
+            MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_CODEPAGE_NEWLINE_WIN
+            MENUITEM "Unix (0Ah)",                  IDM_CODEPAGE_NEWLINE_UNIX
+
+        END
+    END
+    POPUP "&Настройки"
+    BEGIN
+        MENUITEM "&Шрифт...",                   IDM_SETTINGS_FONT
+        MENUITEM "&Фон...",                     IDM_SETTINGS_BG
+        MENUITEM SEPARATOR
+        MENUITEM "Не &открывать файл дважды",   IDM_SETTINGS_NOMULTIOPEN
+        MENUITEM "Поддержка &азиатских символов (медленнее)",   IDM_SETTINGS_ASIAN
+    END
+    POPUP "&Справка"
+    BEGIN
+        MENUITEM "&О программе",                IDM_HELP_ABOUT
+    END
+END
+
+IDM_POPUP MENU DISCARDABLE 
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Отменить",                   IDM_EDIT_UNDO
+        MENUITEM "&Повторить",                  IDM_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "&Вырезать",                   IDM_EDIT_CUT
+        MENUITEM "&Копировать",                 IDM_EDIT_COPY
+        MENUITEM "Вст&авить",                   IDM_EDIT_PASTE
+        MENUITEM "&Удалить",                    IDM_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "В&ыделить всё",               IDM_EDIT_SELECTALL
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON    DISCARDABLE     "AKELPAD.ICO"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDM_APPMENU ACCELERATORS MOVEABLE PURE 
+BEGIN
+    "N",            IDM_FILE_CREATENEW,     VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "D",            IDM_CODEPAGE_OPENAS_OEM, VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "F",            IDM_SEARCH_FIND,        VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_SEARCH_GOTOLINE,    VIRTKEY, CONTROL, NOINVERT
+    "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
+    "K",            IDM_CODEPAGE_OPENAS_KOI, VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "L",            IDM_EDIT_KEEPSPACE,     VIRTKEY, CONTROL, NOINVERT
+    "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL, NOINVERT
+    "O",            IDM_FILE_OPEN,          VIRTKEY, CONTROL, NOINVERT
+    "O",            IDM_FILE_REOPEN,        VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "P",            IDM_FILE_PRINT,         VIRTKEY, CONTROL, NOINVERT
+    "R",            IDM_SEARCH_REPLACE,     VIRTKEY, CONTROL, NOINVERT
+    "H",            IDM_SEARCH_REPLACE,     VIRTKEY, CONTROL, NOINVERT
+    "S",            IDM_FILE_SAVE,          VIRTKEY, CONTROL, NOINVERT
+    "S",            IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "U",            IDM_CODEPAGE_OPENAS_UNICODE_UCS2_LE, VIRTKEY, SHIFT, 
+                                                    CONTROL, NOINVERT
+    "V",            IDM_EDIT_PASTE,         VIRTKEY, CONTROL, NOINVERT
+    "V",            IDM_EDIT_PASTE,         VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    VK_ESCAPE,      IDM_FILE_EXIT,          VIRTKEY, NOINVERT
+    VK_TAB,      IDM_NONMENU_TAB,          VIRTKEY, NOINVERT
+    VK_TAB,      IDM_NONMENU_SHIFTTAB,          VIRTKEY, SHIFT, NOINVERT
+    VK_SPACE,      IDM_NONMENU_SPACE,          VIRTKEY, NOINVERT
+    VK_SPACE,      IDM_NONMENU_SHIFTSPACE,          VIRTKEY, SHIFT, NOINVERT
+    VK_F2,          IDM_FILE_SAVE,          VIRTKEY, NOINVERT
+    VK_F3,          IDM_SEARCH_FINDNEXT,    VIRTKEY, NOINVERT
+    VK_F3,          IDM_SEARCH_FINDOTHER,   VIRTKEY, SHIFT, NOINVERT
+    VK_F4,          IDM_NONMENU_CHANGESIZE, VIRTKEY, NOINVERT
+    VK_F5,          IDM_CODEPAGE_SAVEIN_ANSI, VIRTKEY, NOINVERT
+    VK_F6,          IDM_CODEPAGE_SAVEIN_OEM, VIRTKEY, NOINVERT
+    VK_F7,          IDM_CODEPAGE_SAVEIN_KOI, VIRTKEY, NOINVERT
+    VK_F8,          IDM_NONMENU_DELLINE,    VIRTKEY, NOINVERT
+    VK_INSERT,      IDM_EDIT_PASTE,         VIRTKEY, SHIFT, NOINVERT
+    VK_INSERT,      IDM_EDIT_PASTE,         VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    VK_RETURN,      IDM_NONMENU_CHANGESIZE, VIRTKEY, ALT, NOINVERT
+    "W",            IDM_EDIT_WRAP,          VIRTKEY, CONTROL, NOINVERT
+    "W",            IDM_CODEPAGE_OPENAS_ANSI, VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "Y",            IDM_NONMENU_DELLINE,    VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDM_EDIT_REDO,          VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_FIND DIALOGEX 0, 0, 230, 120
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CONTEXTHELP | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_DLGMODALFRAME | WS_EX_CONTEXTHELP
+CAPTION "Поиск"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_TEXT,52,9,168,12,ES_AUTOHSCROLL
+    CONTROL         "Назад",IDC_BACKWARD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,25,204,12
+    CONTROL         "Использовать Escape-последовательности",IDC_ESCAPESEQ,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,39,192,12
+    CONTROL         "Учитывать регистр",IDC_MATCHCASE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,66,148,12
+    CONTROL         "Только слово целиком",IDC_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,80,148,12
+    PUSHBUTTON      "OK",IDOK,48,96,50,14,BS_CENTER
+    PUSHBUTTON      "Отмена",IDCANCEL,124,96,50,14,BS_CENTER
+    LTEXT           "Образец:",-1,4,9,44,12,NOT WS_GROUP
+    LTEXT           "(\\XX - символ с кодом XX, \\\\ - обратный слэш, \\n - конец строки, \\t - знак табуляции)",
+                    -1,24,51,192,17,NOT WS_GROUP
+END
+
+IDD_REPLACE DIALOGEX 0, 0, 230, 142
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CONTEXTHELP | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_DLGMODALFRAME | WS_EX_CONTEXTHELP
+CAPTION "Замена"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_TEXT,60,9,160,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_NEWTEXT,60,22,160,12,ES_AUTOHSCROLL
+    CONTROL         "Назад",IDC_BACKWARD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,37,204,12
+    CONTROL         "Использовать Escape-последовательности",IDC_ESCAPESEQ,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,51,192,12
+    CONTROL         "Учитывать регистр",IDC_MATCHCASE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,78,148,12
+    CONTROL         "Только слово целиком",IDC_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,12,92,148,12
+    PUSHBUTTON      "OK",IDOK,29,122,50,14,BS_CENTER
+    PUSHBUTTON      "Отмена",IDCANCEL,89,122,50,14,BS_CENTER
+    LTEXT           "Образец:",-1,4,9,44,12,NOT WS_GROUP
+    LTEXT           "(\\XX - символ с кодом XX, \\\\ - обратный слэш, \\n - конец строки, \\t - знак табуляции)",
+                    -1,24,63,192,16,NOT WS_GROUP
+    LTEXT           "Чем заменить:",-1,4,22,52,13,NOT WS_GROUP
+    PUSHBUTTON      "Всё",IDC_ALL,149,122,50,14,BS_CENTER
+    CONTROL         "В выделении",IDC_INSEL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,12,106,183,11
+END
+
+IDD_CONFIRM DIALOG DISCARDABLE  0, 0, 117, 44
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CONTEXTHELP | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_DLGMODALFRAME | WS_EX_CONTEXTHELP
+CAPTION "Заменить?"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Да",IDOK,5,4,50,14,BS_CENTER
+    PUSHBUTTON      "Нет",IDNO,61,4,50,14,BS_CENTER
+    PUSHBUTTON      "Всё",IDC_ALL,5,25,50,14,BS_CENTER
+    PUSHBUTTON      "Отмена",IDCANCEL,61,25,50,14,BS_CENTER
+END
+
+IDD_SELECTCODEPAGE DIALOG DISCARDABLE  0, 0, 233, 78
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CONTEXTHELP | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Перекодировка"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "OK",IDOK,62,57,50,14,BS_CENTER
+    PUSHBUTTON      "Отмена",IDCANCEL,122,57,50,14,BS_CENTER
+    LTEXT           "Укажите номер кодовой страницы (она должна быть установлена в системе)",
+                    -1,3,7,226,20,NOT WS_GROUP
+    COMBOBOX        IDC_CODEPAGE,6,31,223,80,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
+IDD_GOTOLINE DIALOG DISCARDABLE  0, 0, 140, 62
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CONTEXTHELP | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Перейти к строке..."
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_GOTOLINE,21,20,90,13,ES_NUMBER
+    PUSHBUTTON      "OK",IDOK,18,40,50,14,BS_CENTER
+    PUSHBUTTON      "Отмена",IDCANCEL,74,40,50,14,BS_CENTER
+    LTEXT           "Номер строки:",-1,21,7,182,12,NOT WS_GROUP
+END
+
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 155, 94
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "О программе"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "",-1,"Static",SS_ETCHEDFRAME,8,4,139,67
+    LTEXT           "AkelPad 2.2.1 (classic)",-1,14,8,132,11,NOT WS_GROUP
+    LTEXT           "© Алексей Кузнецов, 2003-2007.\nВсе права защищены.",-1,
+                    14,20,124,18,NOT WS_GROUP
+    LTEXT           "E-mail:",-1,21,41,28,12,NOT WS_GROUP
+    EDITTEXT        IDC_ABOUT_EMAIL,48,39,90,12,ES_READONLY | NOT WS_TABSTOP
+    LTEXT           "ICQ:",-1,21,54,24,12,NOT WS_GROUP
+    EDITTEXT        IDC_ABOUT_ICQ,48,52,90,12,ES_READONLY | NOT WS_TABSTOP
+    PUSHBUTTON      "OK",IDOK,87,73,50,14,BS_CENTER
+    PUSHBUTTON      "Homepage",IDC_HOMEPAGE,19,73,50,14
+END
+
+//CREATEPROCESS_MANIFEST_RESOURCE_ID   RT_MANIFEST   "akelpad.exe.manifest"
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""winresrc.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Russian resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

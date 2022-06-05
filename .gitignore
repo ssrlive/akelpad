@@ -1,0 +1,14 @@
+*.vcxproj.user
+x64/
+Release/
+Debug/
+AkelFiles/Plugs/Coder/Cache
+
+*.obj
+*.aps
+*.opensdf
+*.sdf
+*.suo
+ipch/
+
+

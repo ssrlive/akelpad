@@ -1,0 +1,109 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#if (RC_AKELEDITBIT == 64)
+  #define RC_AKELEDITDESCRIPTION "AkelPad (x64) text edit control"
+#else
+  #define RC_AKELEDITDESCRIPTION "AkelPad (x86) text edit control"
+#endif
+#include "winresrc.h"
+#include "version.h"
+#ifdef RC_AKELEDITBIT
+  #include "Version.rc"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BITMAP_MCENTERALL   BITMAP  DISCARDABLE     "MCenterAll.bmp"
+IDB_BITMAP_MCENTERLEFTRIGHT BITMAP  DISCARDABLE     "MCenterLeftRight.bmp"
+IDB_BITMAP_MCENTERTOPBOTTOM BITMAP  DISCARDABLE     "MCenterTopBottom.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_AEMARGIN            CURSOR  DISCARDABLE     "Margin.cur"
+IDC_AEHAND              CURSOR  DISCARDABLE     "Hand.cur"
+IDC_AEMCENTERALL        CURSOR  DISCARDABLE     "MCenterAll.cur"
+IDC_AEMCENTERLEFTRIGHT  CURSOR  DISCARDABLE     "MCenterLeftRight.cur"
+IDC_AEMCENTERTOPBOTTOM  CURSOR  DISCARDABLE     "MCenterTopBottom.cur"
+IDC_AEMLEFT             CURSOR  DISCARDABLE     "MLeft.cur"
+IDC_AEMLEFTTOP          CURSOR  DISCARDABLE     "MLeftTop.cur"
+IDC_AEMTOP              CURSOR  DISCARDABLE     "MTop.cur"
+IDC_AEMRIGHTTOP         CURSOR  DISCARDABLE     "MRightTop.cur"
+IDC_AEMRIGHT            CURSOR  DISCARDABLE     "MRight.cur"
+IDC_AEMRIGHTBOTTOM      CURSOR  DISCARDABLE     "MRightBottom.cur"
+IDC_AEMBOTTOM           CURSOR  DISCARDABLE     "MBottom.cur"
+IDC_AEMLEFTBOTTOM       CURSOR  DISCARDABLE     "MLeftBottom.cur"
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#if (RC_AKELEDITBIT == 64)\r\n"
+    "  #define RC_AKELEDITDESCRIPTION ""AkelPad (x64) text edit control""\r\n"
+    "#else\r\n"
+    "  #define RC_AKELEDITDESCRIPTION ""AkelPad (x86) text edit control""\r\n"
+    "#endif\r\n"
+    "#include ""winresrc.h""\r\n"
+    "#include ""version.h""\r\n"
+    "#ifdef RC_AKELEDITBIT\r\n"
+    "  #include ""Version.rc""\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

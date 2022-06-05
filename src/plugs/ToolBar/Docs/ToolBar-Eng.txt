@@ -1,0 +1,297 @@
+*****************************************************************
+***                ToolBar AkelPad plugin v12.6               ***
+*****************************************************************
+
+2006-2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+Displays customizable tool bar menu.
+
+Remarks:
+- Right mouse click (or left mouse click with Ctrl key) on the toolbar button
+  opens the preferences dialog with the button code selected.
+
+
+*** Functions ***
+
+ToolBar::Main
+Main function for start and stop plugin.
+
+
+*** Syntax ***
+
+Variables:
+  %f active file
+  %d directory of active file
+  %a AkelPad's directory
+  %m tool bar ID (handle)
+  %i button item ID
+  %bl left corner of the pressed button in screen coordinates
+  %bt top corner of the pressed button in screen coordinates
+  %br right corner of the pressed button in screen coordinates
+  %bb bottom corner of the pressed button in screen coordinates
+  %% symbol %
+  %system variable%
+
+Comments:
+  # comment
+  ; comment
+
+Special items:
+  SEPARATOR
+    separator button.
+  SEPARATOR1
+    same as SEPARATOR, but if specified multiple SEPARATOR1 in sequence, then merged into a single SEPARATOR1.
+  BREAK
+    wrap next buttons to new line (new row creation). If a button is preceded by a SEPARATOR, new line will be
+    divided with separator. BREAK works only on horizontal ToolBar.
+  SET(flags[, additional parameters])
+    set text parse flags (doesn't remove flags that already set). Sets by the sum of members:
+      SET(1)
+        ignore following lines, if SDI mode is used.
+      SET(2)
+        ignore following lines, if MDI mode is used.
+      SET(4)
+        ignore following lines, if PMDI mode is used.
+      SET(32, "%a\AkelFiles\Plugs\Scripts.dll")
+        parse following lines, if "Scripts.dll" file exists.
+      SET(64, If("expression"[, IfTrue, IfFalse]))
+        parse following lines, if result not equal to zero.
+          "expression"
+            Expression could consist of::
+            - mathematical operations:
+              +, -, *, /, %, &, |, ^.
+            - logical operations:
+              >, <, ==, !=, >=, <=, &&, ||, x?y:z.
+            - comments:
+              /*comment*/
+            - methods:
+              SendMain(nMessage, wParam, lParam)
+                nMessage
+                  Specifies the message to be sent to the main window.
+                wParam
+                  Specifies additional message-specific information.
+                lParam
+                  Specifies additional message-specific information.
+              SendEdit(nMessage, wParam, lParam)
+                nMessage
+                  Specifies the message to be sent to the current edit window.
+                wParam
+                  Specifies additional message-specific information.
+                lParam
+                  Specifies additional message-specific information.
+              Call("Plugin::Function"[, additional parameters])
+                - If a plugin is called, then exit code transfered via special parameter &nResult. &nResult must be located in a place where external call syntax requires a pointer to an integer.
+                  SET(64, If(`Call("Coder::CodeFold", 1, &nResult)`))
+                    parse following lines, if CodeFold window is open.
+                - If a script is called, then it is necessary to use external calls 2 or 4 and also transfer exit code from script via AkelPad.ScriptExitCode.
+                  SET(64, If(`Call("Scripts::Main", 4, "EvalCmd.js", 'if (AkelPad.GetEditFile(0)) AkelPad.ScriptExitCode(1);')`))
+                    parse following lines, if current document has name.
+                - It is possible to call Scripts plugin method directly. Allowed in SET(128).
+                  SET(64, If(`AkelPad.Constants._X64 == 1`))
+                    parse following lines, if program is x64.
+          IfTrue
+            Numeric value, if expression result is true (not equal to zero).
+          IfFalse
+            Numeric value, if expression result is false (equal to zero).
+        SET(64, If(`SendMain(1222 /*AKD_GETMAININFO*/, 5 /*MI_SAVESETTINGS*/, 0) == 2 /*SS_INI*/`))
+          parse following lines, if settings saved to ini file.
+      SET(128, If("expression"[, IfTrue, IfFalse]))
+        set button status.
+          "expression"
+            See SET(64) description. Script execution in SET(128) is denied.
+          IfTrue
+            0x0 //IFS_NORMAL    Normal item.
+            0x1 //IFS_CHECKED   Checked item.
+            0x2 //IFS_GRAYED    Disabled, grayed item.
+          IfFalse
+            0x0 //IFS_NORMAL    Normal item.
+            0x1 //IFS_CHECKED   Checked item.
+            0x2 //IFS_GRAYED    Disabled, grayed item.
+        SET(128, If("SendMain(1223 /*AKD_GETFRAMEINFO*/, 69 /*FI_CARETOPTIONS*/, 0) & 0x2 /*CO_CARETVERTLINE*/", 0x1, 0x0))
+          check following items, if caret active column is on.
+        SET(128, If(`Call("Scripts::Main", 5, "SearchReplace.js", 2 /*SH_THISSCRIPT*/, &nResult)`, 0x1, 0x0))
+          check following items, if script SearchReplace.js is working.
+        SET(128, If(`AkelPad.IsPluginRunning("Coder::HighLight")`, 0x1, 0x0))
+          check following items, if Coder::HighLight is working.
+  UNSET(flags)
+    unset text parse flags. See SET() for description.
+
+Button creation:
+  [-]"[button text]" [Command() | Call() | +Call() | Exec() | OpenFile() | SaveFile() | Font() | Recode() | Insert() | Menu()] Icon()
+
+  [-]"[button text]"
+    "My Button"
+      text appearing in the screen tip at mouse moving on the button.
+    -"My Button"
+      at presence of a minus sign the button status will not change somehow (become inactive,
+      be pressed).
+    ""
+      at absence of the button text, and also use of method Command(), plugin uses main menu
+      item text instead, to which Command() method refers.
+
+    Command(number)
+      Command(4162)
+        method calls the internal command at number 4162. In this case this code
+        is responsible for opening a dialog box "Go to line...".
+        For the full list of commands: see AkelHelp-Eng.htm or AkelDLL.h in source code of a plugin.
+    Call("Plugin::Function"[, additional parameters])
+      Call("Scripts::Main")
+        method calls Scripts plugin and Main function.
+    +Call("Plugin::Function"[, additional parameters])
+      +Call("LineBoard::Main")
+        method calls LineBoard plugin and Main function. Plug-in will work also after
+        program restart.
+    Exec("command line"[, "working directory"][, Wait][, WindowStyle])
+      "command line"
+        Command line string.
+      "working directory"
+        Working directory string. Default is "".
+      Wait
+        Wait until the program finishes. 1 - wait, 0 - return immediately (default).
+      WindowStyle (one of the following):
+        0 hidden window.
+        1 window as is (by default).
+        2 minimized window.
+        3 maximized window.
+        6 minimized, inactive window.
+        9 non-maximized window.
+        Note: programs could ignore this parameter.
+      Exec("notepad.exe")
+        method calls notepad.
+      Exec(`notepad.exe`)
+        method calls notepad.
+      Exec('notepad.exe')
+        method calls notepad.
+      Exec('%windir%\notepad.exe')
+        method calls notepad.
+      Exec(`rundll32.exe shell32,ShellExec_RunDLL "%f"`, "%d")
+        method pass an active file for opening on Windows association.
+    OpenFile("file"[, OpenCodepage][, OpenBOM])
+      "file"
+        File to open.
+      OpenCodepage
+        Open codepage. If -1 or not specified, it will be autodetected.
+      OpenBOM
+        File byte order mark. If -1 or not specified, it will be autodetected.
+      OpenFile("C:\File.txt", 65001, -1)
+        method opens file in UTF-8 codepage.
+    SaveFile("file"[, SaveCodepage][, SaveBOM])
+      "file"
+        Save current document to a specified file name.
+      SaveCodepage
+        Save codepage. If -1 or not specified, current codepage will be used.
+      SaveBOM
+        File byte order mark. 1 - exist, 0 - doesn't exist, -1 or not specified - current BOM will be used.
+      SaveFile("C:\File.txt", 65001, 0)
+        method saves file in UTF-8 codepage without BOM.
+    Font("FaceName", Style, Size)
+      "FaceName"
+        Font face, for example, "Courier". Unchanged, if "".
+      Style (one of the following):
+        0  ignored.
+        1  normal.
+        2  bold.
+        3  italic.
+        4  bold italic.
+      Size
+        Font size. Unchanged, if 0.
+      Font("Courier", 4, 10)
+        method sets Courier bold italic font with 10 pt.
+    Recode(RecodeFrom, RecodeTo)
+      RecodeFrom
+        Codepage source. If -1, it will be autodetected.
+      RecodeTo
+        Codepage target. If -1, it will be autodetected.
+      Recode(1252, 437)
+        method recodes the text from 1252 codepage to 437.
+    Insert("text"[, Esc-sequences])
+      "text"
+        Inserted text.
+      Esc-sequences:
+        0  "text" isn't contain Esc-sequences (default).
+        1  "text" contain Esc-sequences. A set of sequences similar to the
+           find/replace dialog in the program, and also:
+           "\s" - replaced by the selected text of the editing window;
+           "\|" - set the caret position after text insertion.
+      Insert("Some string")
+        method replaces selection with the specified text.
+      Insert("<B>\s</B>", 1)
+        method enclose selection.
+      Insert("\[0031 0032 0033]", 1)
+        method replaces selection with "123".
+
+    Menu("MENU NAME")
+      "MENU NAME"
+        Specified submenu name from "ContextMenu::Show menu" (ContextMenu plugin).
+        If method used as additional method, like with Command(), then menu will be available through down arrow.
+        If method used as single method, then down arrow is not painted and menu will be available at buttom press.
+        Example:
+          1. Create new button.
+               "Special characters" +Call("SpecialChar::Main") Menu("SPECIALCHAR") Icon("%a\AkelFiles\Plugs\SpecialChar.dll", 0)
+          2. Create new submenu. For this open "Main menu->Options->Plugins...->ContextMenu::Main",
+             select "ContextMenu::Show menu" and add submenu code:
+               "SPECIALCHAR"
+               {
+                 "Settings..." Call("SpecialChar::Settings")
+               }
+
+    Icon(["file"][, index])
+      Icon("Shell32.dll", 47)
+        icon located in file Shell32.dll under index 47.
+      Icon("%a\AkelFiles\Plugs\Explorer.dll")
+        icon located in file Explorer.dll under index 0.
+      Icon("%a\AkelFiles\Plugs\Toolbar\MyIcon.ico")
+        icon located in file MyIcon.ico.
+      Icon(12)
+        icon located in file ToolBar.dll under index 12.
+
+Examples:
+  "Recode selection" Command(4182) Icon(0)
+  "" Command(4182) Icon(0)
+  "Sort lines" Call("Format::LineSortStrAsc") Icon(0)
+  -"Spell check" Call("Scripts::Main", 1, "SpellCheck.js", "") Icon(0)
+  "Syntax highlighting" +Call("Coder::Highlight") Icon(0)
+  "Registry editor" Exec("regedit.exe") Icon("regedit.exe")
+
+
+*** External call ***
+
+Call("ToolBar::Main", 1, "ROWS(SHOW)")
+  Parameters:
+    1
+      Open ToolBar with specified rows. See BREAK description.
+       If ToolBar is already open, then:
+       - If the specified string of rows are equal to the active one, then panel is closed;
+       - If the specified string of rows are not equal to the active one, then panel stay open and the new set of rows is activated.
+    "ROWS(SHOW)"
+      String with row numbers and they visibility (optionally) separated by commas. For example: "1,2,4" or  "1(1),2(-1),4".
+      If "", then all rows displayed.
+      ROWS
+        Row number.
+      SHOW
+        Row visibility (one of the following):
+          -2  don't change row visibility.
+          -1  invert row visibility.
+           0  hide row.
+           1  show row (default).
+
+
+*** Manual settings ***
+
+SidePriority
+  Priority of the toolbars side placing (one of the following):
+    1  place top and bottom first, then left and right (default).
+    2  place left and right first, then top and bottom.
+ArrowOverlay
+  Draw overlay array for button with Menu() method without action (one of the following):
+   -1  don't draw, but use style BTNS_WHOLEDROPDOWN.
+    0  don't draw.
+    1  draw normal.
+    2  draw white as mask, i.e. white color in arrow icon removed from result icon (default).
+GrayedIcons
+  Drawing grayed icons (one of the following):
+    0  icons on inactive buttons drawing by system (default).
+    1  icons on inactive buttons drawing by plugin.

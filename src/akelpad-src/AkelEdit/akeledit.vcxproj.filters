@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{3b22a08c-b99a-413d-b125-73d1ff05e425}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{2daa40a1-ecfd-4ade-8981-acc914d377a0}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{f8b5536f-9424-4f12-8619-f4603d433773}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AkelEdit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources\AkelEdit.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Hand.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\Margin.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\MBottom.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\MCenterAll.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\MCenterLeftRight.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\MCenterTopBottom.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\MLeft.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\MLeftBottom.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\MLeftTop.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\MRight.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\MRightBottom.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\MRightTop.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resources\MTop.cur">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\MCenterAll.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\MCenterLeftRight.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\MCenterTopBottom.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Resources\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

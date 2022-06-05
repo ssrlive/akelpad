@@ -1,0 +1,225 @@
+*****************************************************************
+***               LineBoard AkelPad plugin v12.6              ***
+*****************************************************************
+
+2007-2017 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+
+
+*** Description ***
+
+1. Shows line and column numbers.
+2. Adds bookmarks support.
+
+Remarks:
+- If in settings no hotkey is assigned for bookmark delete, then
+  hotkey for bookmark set is working like "Set/Delete".
+
+
+*** Functions ***
+
+LineBoard::Main
+Main function for start and stop plugin.
+
+LineBoard::Settings
+Settings dialog.
+
+
+*** External call ***
+
+Call("LineBoard::Main", 1)
+  Parameters:
+    1
+      Wait for plugin initialized.
+
+Call("LineBoard::Main", 2, *HEIGHT, *ENABLE)
+  Parameters:
+    2
+      Get ruler height.
+    *HEIGHT
+      Pointer to a memory, that receives ruler height.
+    *ENABLE
+      Optional parameter. Pointer to a memory, that receives ruler visibility.
+  Example:
+    WScript.Echo(GetRulerHeight());
+
+    function GetRulerHeight()
+    {
+      var lpHeight;
+      var nHeight=0;
+
+      if (lpHeight=AkelPad.MemAlloc(4 /*sizeof(int)*/))
+      {
+        AkelPad.CallW("LineBoard::Main", 2, lpHeight);
+        nHeight=AkelPad.MemRead(lpHeight, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpHeight);
+      }
+      return nHeight;
+    }
+
+Call("LineBoard::Main", 3, HEIGHT)
+  Parameters:
+    3
+      Set ruler height.
+    HEIGHT
+      Ruler height.
+        If the new ruler height is equal to the current one, then ruler is hiding (height set to 0).
+        If -1, then invert ruler visibility.
+
+Call("LineBoard::Main", 4, *BOOL)
+  Parameters:
+    4
+      Show/Hide panel.
+    *BOOL
+      Optional parameter. Pointer to a variable, that receives panel visibility.
+  Example (get panel visibility):
+    WScript.Echo(IsLineBoardVisible());
+
+    function IsLineBoardVisible()
+    {
+      var lpVisible;
+      var bVisible=false;
+
+      if (lpVisible=AkelPad.MemAlloc(4 /*sizeof(BOOL)*/))
+      {
+        AkelPad.CallW("LineBoard::Main", 4, lpVisible);
+        bVisible=AkelPad.MemRead(lpVisible, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpVisible);
+      }
+      return bVisible;
+    }
+
+Call("LineBoard::Main", 11, WINDOW, DOCUMENT, *RECT)
+  Parameters:
+    11
+      Get rectangle outside panels.
+    WINDOW
+      Edit window handle.
+    DOCUMENT
+      Edit document handle.
+    *RECT
+      Pointer to a memory, that receives rectangle outside panels.
+        RECT.left - width line panel.
+        RECT.top - ruler height.
+        RECT.right - right boundary of the edit window client area.
+        RECT.bottom - bottom boundary of the edit window client area.
+  Example:
+    WScript.Echo(GetBoardWidth(AkelPad.GetEditWnd(), 0));
+
+    function GetBoardWidth(hWndEdit, hDocEdit)
+    {
+      var lpRect;
+      var nWidth=0;
+
+      if (lpRect=AkelPad.MemAlloc(16 /*sizeof(RECT)*/))
+      {
+        AkelPad.CallW("LineBoard::Main", 11, hWndEdit, hDocEdit, lpRect);
+        nWidth=AkelPad.MemRead(lpRect + 0 /*offsetof(RECT, left)*/, 3 /*DT_DWORD*/);
+        AkelPad.MemFree(lpRect);
+      }
+      return nWidth;
+    }
+
+Call("LineBoard::Main", 12, WINDOW, DOCUMENT, *BOOKMARK, *BOOKMARKLENGTH)
+  Parameters:
+    12
+      Get string with bookmarks numbers.
+    WINDOW
+      Edit window handle.
+    DOCUMENT
+      Edit document handle.
+    *BOOKMARK
+      Pointer to a memory, that receives string with bookmarks numbers separated by commas. Can be NULL. String type is Unicode.
+    *BOOKMARKLENGTH
+      Characters count in BOOKMARK. Can be NULL.
+  Example:
+    WScript.Echo(GetBookmarksString(AkelPad.GetEditWnd(), 0));
+
+    function GetBookmarksString(hWndEdit, hDocEdit)
+    {
+      var pBookmarksStr="";
+      var lpBookmarksStr;
+      var nBookmarksLen;
+      var lpBookmarksLen;
+
+      if (lpBookmarksLen=AkelPad.MemAlloc(4 /*sizeof(int)*/))
+      {
+        AkelPad.CallW("LineBoard::Main", 12, hWndEdit, hDocEdit, 0, lpBookmarksLen);
+
+        if ((nBookmarksLen=AkelPad.MemRead(lpBookmarksLen, 3 /*DT_DWORD*/)) > 1)
+        {
+          if (lpBookmarksStr=AkelPad.MemAlloc(nBookmarksLen * 2 /*sizeof(wchar_t)*/))
+          {
+            AkelPad.CallW("LineBoard::Main", 12, hWndEdit, hDocEdit, lpBookmarksStr, 0);
+            pBookmarksStr=AkelPad.MemRead(lpBookmarksStr, 1 /*DT_UNICODE*/);
+            AkelPad.MemFree(lpBookmarksStr);
+          }
+        }
+        AkelPad.MemFree(lpBookmarksLen);
+      }
+      return pBookmarksStr;
+    }
+
+Call("LineBoard::Main", 13, WINDOW, DOCUMENT, "BOOKMARK")
+  Parameters:
+    13
+      Set bookmarks.
+    WINDOW
+      Edit window handle.
+    DOCUMENT
+      Edit document handle.
+    "BOOKMARK"
+      String with bookmarks numbers separated by commas. For example: "10,14,20".
+
+Call("LineBoard::Main", 14, WINDOW, DOCUMENT)
+  Parameters:
+    14
+      Delete all bookmarks.
+    WINDOW
+      Optional parameter. Edit window handle.
+    DOCUMENT
+      Optional parameter. Edit document handle.
+
+Call("LineBoard::Main", 15, WINDOW, DOCUMENT)
+  Parameters:
+    15
+      Set bookmark on current line or toggle bookmark if no hotkey set for delete bookmark.
+    WINDOW
+      Optional parameter. Edit window handle.
+    DOCUMENT
+      Optional parameter. Edit document handle.
+
+Call("LineBoard::Main", 16, WINDOW, DOCUMENT)
+  Parameters:
+    16
+      Delete bookmark from current line.
+    WINDOW
+      Optional parameter. Edit window handle.
+    DOCUMENT
+      Optional parameter. Edit document handle.
+
+Call("LineBoard::Main", 17, WINDOW, DOCUMENT)
+  Parameters:
+    17
+      Show bookmarks menu.
+    WINDOW
+      Optional parameter. Edit window handle.
+    DOCUMENT
+      Optional parameter. Edit document handle.
+
+Call("LineBoard::Main", 18, WINDOW, DOCUMENT)
+  Parameters:
+    18
+      Go to next bookmark.
+    WINDOW
+      Optional parameter. Edit window handle.
+    DOCUMENT
+      Optional parameter. Edit document handle.
+
+Call("LineBoard::Main", 19, WINDOW, DOCUMENT)
+  Parameters:
+    19
+      Go to previous bookmark.
+    WINDOW
+      Optional parameter. Edit window handle.
+    DOCUMENT
+      Optional parameter. Edit document handle.

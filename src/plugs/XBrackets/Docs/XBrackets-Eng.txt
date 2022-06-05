@@ -1,0 +1,516 @@
+-----------------------------------------------------------
+XBrackets plugin for AkelPad text editor
+-----------------------------------------------------------
+
+This plugin allows to:
+1) autocomplete brackets ([{""}]) i.e. it inserts
+   corresponding right bracket when the left bracket
+   is typed.
+   The plugin uses "smart" autocompletion:
+   - next character is analysed for ([{ brackets;
+   - next & previous characters are analysed for " quote.
+2) highlight active brackets i.e. it highlights a bracket
+   under the cursor and its corresponding pair bracket.
+3) go to matching pair bracket - using GoToMatchingBracket
+   or GoToNearestBracket.
+4) select a text between matching pair brackets - using
+   SelToMatchingBracket or SelToNearestBrackets.
+
+Note:
+To prevent repainting of active brackets highlighted,
+XBrackets::Main must be loaded AFTER Coder::HighLight.
+Functions "GoToMatchingBracket" and "SelToMatchingBracket",
+as well as "GoToNearestBracket" and "SelToNearestBrackets",
+require the plugin to be active - i.e. its function "Main"
+must be active. If it is not active, these functions
+activate it automatically.
+
+External call example:
+
+  var lpBuffer;
+  var a;
+  var s = "";
+
+  if ( lpBuffer = AkelPad.MemAlloc(64 * _TSIZE) )
+  {
+    var res;
+
+    res = AkelPad.Call("XBrackets::SelToMatchingBracket", 1, lpBuffer);
+    if ( res > 0 )
+    {
+      s = AkelPad.MemRead(lpBuffer, _TSTR);
+    }
+
+    AkelPad.MemFree(lpBuffer);
+  }
+
+  a = s.split(" ");
+  if ( a.length == 3 )
+  {
+    WScript.Echo( "pos1 = " + a[0] + "\npos2 = " + a[1] + "\nbrackets = " + a[2] );
+  }
+
+Additional options (file "AkelFiles\Plugs\XBrackets.ini"):
+  common.user_brpairs = «» ‘’ “”
+    User-defined bracket pairs which can be autocompleted and highlighted
+    by XBrackets. Note that bracket pairs which have identical opening and
+    closing symbols (such as "" or '') can be highlighted incorrectly because
+    there is no ability to definitely understand whether the caret is by the
+    opening or by the closing symbol of such bracket pair.
+    To define your own bracket pairs, follow these rules:
+    1) Bracket pairs must be separated by space (' ')
+    2) Each bracket pair must consist of 2 characters: the first character
+       defines left (opening) bracket symbol and the second character defines
+       right (closing) bracket symbol. If you define just 1 character or
+       3 or more characters as a bracket pair, this bracket pair will be
+       ignored.
+    3) You can define up to 30 bracket pairs.
+    4) Don't forget to add new closing/opening bracket character to the
+       'next_char_ok'/'prev_char_ok' set if needed.
+
+  autobrackets.next_char_ok = .,!?:;<)]}"'>/ »’”
+    Set of characters which are OK for brackets autocompletion when
+    you type an opening bracket BEFORE such character.
+    Additionally, any bracket can be autocompleted before the following
+    hard-coded characters: '\r', '\n', '\0', ' ' and '\t'.
+    You can define up to 90 characters in this set. Spaces are ignored.
+
+  autobrackets.prev_char_ok = ([{<= «‘“
+    Set of characters which are OK for brackets autocompletion when
+    you type a bracket AFTER such character. This rule is applied only
+    to those bracket pairs which have identical opening and closing
+    symbols (such as "" or '').
+    Additionally, such bracket can be autocompleted after the following
+    hard-coded characters: '\r', '\n', '\0', ' ' and '\t'.
+    You can define up to 90 characters in this set. Spaces are ignored.
+
+  autocomplete.all_autobr = 0
+    Default behaviour: characters from the 'next_char_ok' set
+    (and from the 'prev_char_ok' set depending on the bracket type)
+    are checked to permit the brackets autocompletion.
+  autocomplete.all_autobr = 1
+    Brackets can be autocompleted BEFORE any character (i.e. the
+    'next_char_ok' set is ignored). This rule additionally depends
+    on the option "Even if corresponding right bracket exists".
+  autocomplete.all_autobr = 2
+    Brackets can be autocompleted AFTER any character (i.e. the
+    'prev_char_ok' set is ignored). This rule is applied only to
+    those bracket pairs which have identical opening and closing
+    symbols (such as "" or '').
+  autocomplete.all_autobr = 3
+    Brackets can be autocompleted BEFORE and AFTER any character
+    (i.e. both 'next_char_ok' and 'prev_char_ok' sets are ignored).
+
+  autocomplete.ovr_autobr = 0
+    In Overwrite mode, right (closing) bracket is not added automatically.
+  autocomplete.ovr_autobr = 1
+    In Overwrite mode, right (closing) bracket is added as a new character
+    (not over the existing character).
+  autocomplete.ovr_autobr = 2
+    In Overwrite mode, right (closing) bracket appears instead of the
+    existing character (i.e. over that character).
+
+  autocomplete.sel_autobr = 0
+    When left (opening) bracket is typed, the selected text is disappeared
+    (replaced with the bracket).
+  autocomplete.sel_autobr = 1
+    When left (opening) bracket is typed, the selected text is enclosed with
+    the corresponding brackets pair.
+  autocomplete.sel_autobr = 2
+    When left (opening) bracket is typed, the selected text is enclosed with
+    the corresponding brackets pair, and the brackets pair become selected
+    also. If the selected text already starts and ends with the corresponding
+    brackets pair, the brackets will be removed.
+  autocomplete.sel_autobr = 3
+    When left (opening) bracket is typed, the selected text is enclosed with
+    the corresponding brackets pair, and the brackets pair is _not_ selected
+    also. If the selected text already starts and ends with the corresponding
+    brackets pair, the brackets will be removed. If the surrounding brackets
+    are not selected, they are not removed. (This mode was inspired by the
+    Sublime Text editor.)
+  autocomplete.sel_autobr = 4
+    When left (opening) bracket is typed, the selected text is enclosed with
+    the corresponding brackets pair, and the brackets pair is _not_ selected
+    also. If the selected text already starts and ends with the corresponding
+    brackets pair, the brackets will be removed. If the surrounding brackets
+    are not selected, they are also removed. Thus, type a left bracket/quote
+    to enclose the selected text with the corresponding brackets pair, and
+    type the left bracket/quote again to remove the enclosing brackets/quotes.
+    (This mode was inspired by the Sublime Text editor.)
+
+  highlight.hlt_bothbr = 1
+    When the caret is between two pair brackets, both pairs are highlighted.
+  highlight.hlt_bothbr = 0
+    When the caret is between two pair brackets, just one pair is highlighted
+    (highest priority is to the right of a closing bracket).
+
+  highlight.hlt_style = 3
+    XBrackets redraws brackets highlighted by Coder.
+    Pair brackets are highlighted using bold font.
+  highlight.hlt_style = 2
+    XBrackets redraws brackets highlighted by Coder.
+    Pair brackets are highlighted using default font.
+  highlight.hlt_style = 1
+    Pair brackets are highlighted using bold font.
+    XBrackets does not redraw brackets highlighted by Coder.
+  highlight.hlt_style = 0
+    Pair brackets are highlighted using default font.
+    XBrackets does not redraw brackets highlighted by Coder.
+
+  highlight.hlt_xmode = 7
+    This option controls what is used by XBrackets to search and highlight
+    pair brackets. It allows to disable calls to AkelEdit about the file
+    syntax as well as usage of the internal pair bracket searching algorithm.
+    This option is supposed to be used for experimental purposes.
+    The value of this option will be the sum of the following numbers which
+    are responsible for the plugin behavior:
+    1 - use the internal pair bracket/quote searching algorithm;
+    2 - use AEM_HLGETHIGHLIGHT (highlight, quotes);
+    4 - use AEM_FINDFOLD (folding blocks).
+
+  highlight.quote_detect_lines = 1
+    Number of text lines to be processed by XBrackets while searching for
+    a pair quote in both directions (when the search direction can not be
+    determined, for example:  "  " ).
+    If this value exceeds 'highlight.quote_max_lines', then it is decreased
+    to the value of 'highlight.quote_max_lines'.
+    The value of 1 means "within current line".
+    The value of 0 forbids to search for a pair quote under such conditions.
+
+  highlight.quote_max_lines = 10
+    Number of text lines to be processed by XBrackets while searching for
+    a pair quote in one certain direction (when the search direction can be
+    determined, for example:  "a b" ).
+    The value of 1 means "within current line".
+    The value of 0 forbids to search for a pair quote at all.
+
+  highlight.br_max_lines = 0
+    Number of text lines to be processed by XBrackets while searching for
+    a pair bracket.
+    The value of 0 means "unrestricted" - i.e. to the end of file.
+
+  nearestbr.goto_flags = 0
+    This option controls the behavior of the GoToNearestBracket function.
+    The value of this option will be the sum of the following numbers:
+    0 - (default) the caret goes to the nearest bracket (either left or
+        right), staying inside the brackets (either after the left bracket
+        or before the right bracket);
+    1 - the caret goes to the bracket, staying outside of the brackets
+        (either before the left bracket or after the right bracket);
+    16 - the caret always goes to the left bracket;
+    32 - the caret always goes to the right bracket.
+    When the sum of (16 + 32) is used, it is treated as 16.
+
+  nearestbr.selto_flags = 2
+    This option controls the behavior of the SelToNearestBrackets function.
+    The value of this option will be the sum of the following numbers:
+    0 - the surrounding brackets themselves are either included or not
+        included in the selection, depending on the position of the caret;
+    1 - the surrounding brackets are always included in the selection;
+    2 - repeated calls of SelToNearestBrackets widen the nearest brackets
+        selection (i.e. the selection within brackets becomes the selection
+        outside brackets, and the repeated calls widen the selection to the
+        nearest surrounding brackets).
+
+  nearestbr.max_lines = 0
+    Number of text lines to be processed by XBrackets while searching for
+    the nearest pair of brackets.
+    The value of 1 means "within current line".
+    The value of 0 means "unrestricted" - i.e. to the end of file.
+
+The plugin allows you to change the additional options without closing AkelPad.
+In three steps, in this order:
+  1a. Open the "Plugins" window (Settings-> Plugins...) and disable the
+function XBrackets::Main (if it is active).
+  1b. (alternative) Run XBrackets::Settings and double-click (with the left
+mouse button) the caption "Status: the plugin is active". As a result, the
+caption will be changed to "Status: the plugin is NOT active".
+When you deactivate the plugin it automatically saves its settings.
+  2. Open the file "XBrackets.ini" (if the settings are stored in an .ini file)
+or a registry key "HKEY_CURRENT_USER\Software\Akelsoft\AkelPad\Plugs" and
+change the required options of the XBrackets plugin.
+Don't forget to save the modified file "XBrackets.ini".
+  3. Activate the XBrackets plugin by calling its function XBrackets::Main
+or by running its function XBrackets::Settings and double-clicking (with the
+left mouse button) the caption "Status: the plugin is NOT active".
+When you activate the plugin it automatically re-reads its settings.
+
+--------
+History:
+--------
+v.7.7 (April 2021)
+ + added: nearestbr.selto_flags = 2 (widens the nearest brackets selection)
+
+v.7.6 (April 2021)
+ - fixed: when GoToNearestBracket and SelToNearestBrackets are called,
+   NearestBr_ApplyStateToRange is now checking if nLeftBrPos < nRightBrPos
+
+v.7.5 (October 2018)
+ * small corrections in GoToNearestBracket/SelToNearestBrackets
+ * 12 years of XBrackets! :)
+
+v.7.4 (September 2018)
+ + new functions: GoToNearestBracket, SelToNearestBrackets
+ + new options: nearestbr.goto_flags, nearestbr.selto_flags
+ + now each next call of SelToMatchingBracket and SelToNearestBrackets
+   switches the caret position (from the end of the selection to the
+   beginning of the selection and vice versa)
+
+v.7.3 (June 2018)
+ + new: autocomplete.sel_autobr=3 and 4
+
+v.7.2 (July 2016)
+ + option 'highlight.hlt_xmode'
+
+v.7.1 (July 2016)
+ * AkelPad 4.9.8+
+
+v.7.0 (July 2016)
+ + now the "Skip escaped brackets" option considers the file extension (in
+   the same way as the "Skip brackets after //" option does)
+
+v.6.9 (July 2016)
+ + get rid of MSVCR's stuff = smaller binary
+
+v.6.8 (December 2015)
+ * AkelPad 4.9.7+
+ + supports '\0' symbol inside of AEM_GETWORDDELIMITERS string
+
+v.6.7 (September 2015)
+ + now Go/SelToMatchingBracket automatically calls XBrackets::Main
+   if it is not already running
+
+v.6.6 (September 2015)
+ * AkelPad 4.9.5+
+
+v.6.5 (May 2015)
+ * (correction) wrapped lines support
+
+v.6.4 (April 2015)
+ + now XBrackets supports wrapped lines
+
+v.6.3 (April 2015)
+ + improved algorithm of pair quotes detection
+
+v.6.2 (April 2015)
+ - fixed: color theme change was not handled properly
+ + several improvements/fixes
+ + new option: Treat " " as brackets
+ + several improvements/fixes once again
+ + the checkboxes for the " ", ' ' and < > pairs have 3 states now:
+   [v] Autocomplete + highlight
+   [o] Highlight only
+   [ ] Off
+
+v.6.1 (March 2015)
+ + license info added (see below)
+
+v.6.0 (December 2014)
+ * AkelPad 4.9.1+
+
+v.5.9 (August 2014)
+ * (optimization) reduced number of calls of SPI_GETFONTSMOOTHING
+
+v.5.8 (June 2014)
+ - fixed: did not check if AKD_GETEDITINFO returned TRUE or FALSE
+
+v.5.7 (April 2014)
+ * AkelPad 4.8.8+
+
+v.5.6 (September 2013)
+ + fixed brackets repainting with ClearType enabled
+   (borrowed from the SpecialChar plugin, thanks to Instructor)
+ * small internal changes + 'Escaped1FileExts' added (TBD)
+
+v.5.5 (June 2013)
+ * AkelPad 4.8.4+
+
+v.5.4 (February 2013)
+ * AkelPad 4.8.1+
+ + 'highlight.br_max_lines'
+
+v.5.3 (September 2012)
+ + updates/fixes for background colour and font style
+
+v.5.2 (September 2012)
+ - fixed: background colour of highlighted bracket in selection
+ - fixed: XBrackets did not support ignored font styles of Coder::HighLight
+
+v.5.1 (July 2012)
+ * AkelPad 4.7.7+
+
+v.5.0 (May 2012)
+ * AkelPad 4.7.5+
+
+v.4.9 (February 2012)
+ * for AkelPad 4.7.3+
+
+v.4.8 (December 2011)
+ * for AkelPad 4.7.1+
+ + new: autocomplete.sel_autobr=2
+ - fixed: incorrect highlight with bracket at line-wrap position
+ + added: external call ("XBrackets::SelToMatchingBracket", 1, lpBuffer)
+ + supports internal language of AkelPad
+
+v.4.7 (November 2011)
+ * for AkelPad 4.7.0+
+
+v.4.6 (May 2011)
+ - fixed: memory allocation bug appeared in v.4.4 (in AutoBracketsFunc,
+   when calling sys_memalloc)
+
+v.4.5 (May 2011)
+ + pair quote searching algorithm improved
+ - fixed: wrong symbol might be highlighted in multi-character comment
+
+v.4.4 (May 2011)
+ * for AkelPad 4.6.0+
+ + now XBrackets works closely with Coder (if Coder is available)
+ + added: parameters 'hlt_style', 'quote_detect_lines' and 'quote_max_lines'
+ * changed: now all the parameter names have prefixes (see above)
+ + small improvements/fixes
+
+v.4.3 (March 2011)
+ + experimental algorithm for pair quote searching
+ + small improvements/fixes
+ + AkelPad x64 support
+
+v.4.2 (November 2010)
+ + several small improvements
+
+v.4.1 (November 2010)
+ * the icon updated (thanks to se7h)
+
+v.4.0 (October 2010)
+ * 4th anniversary of XBrackets :)
+ * for AkelPad 4.5.0+
+ * removed: 'hlt_bkgnd' parameter (no more needed)
+ + added: both brackets colour and the background can be set
+ + other small improvements/fixes
+ + icon added (thanks to se7h)
+
+v.3.8 (July 2010)
+ - fixed: now brackets are not auto-completed inside read-only file(s)
+ - fixed: incorrect brackets repainting in PMDI mode
+
+v.3.7 (June 2010)
+ * for AkelPad 4.4.4+
+
+v.3.6 (May 2010)
+ + SettingsDlg: RUS and UKR languages added
+
+v.3.5 (February 2010)
+ + with 'hlt_bkgnd' enabled, highlight color is mixed with selection color
+
+v.3.4 (February 2010)
+ + added: parameter 'hlt_bkgnd'
+ - fixed: highlight might not work after XBrackets::Main has been restarted
+
+v.3.3 (February 2010)
+ * for AkelPad 3.7.4+/4.4.0+
+
+v.3.2 (November 2009)
+ + changed: now 'sel_autobr = 1' replaces the whole selected text
+
+v.3.1 (November 2009)
+ + added: parameter 'all_autobr'
+
+v.3.0 (October 2009)
+ * 3rd anniversary of XBrackets :)
+ + improved: you can "overtype" the closing bracket added automatically
+ + added: parameters 'ovr_autobr', 'sel_autobr', 'hlt_bothbr'
+ + added: parameter 'user_brpairs' (user-defined bracket pairs!)
+ + added: parameters 'next_char_ok' and 'prev_char_ok'
+ + plugin's documentation updated
+
+v.2.8 (August 2009)
+ * for AkelPad 3.7.3+/4.3.0+
+
+v.2.7 (March 2009)
+ * for AkelPad 3.7.0+/4.2.0+
+
+v.2.6 (March 2009)
+ + new function: SelToMatchingBracket
+ - fixed: splitted windows support in AkelPad 4.1.6
+
+v.2.5 (February 2009)
+ + now you can specify file types to skip brackets after //
+ + better AkelEdit support
+ + other small improvements/fixes
+
+v.2.4 (December 2008)
+ + now you can "overtype" the closing bracket added automatically
+ + new option: Skip escaped bracket characters (after '\')
+
+v.2.3 (August 2008)
+ + several issues fixed
+
+v.2.2 (August 2008)
+ * for AkelPad 3.6.0+/4.0.1+
+ + now GoToMatchingBracket does not require brackets to be highlighted
+ + several issues fixed
+
+v.2.1 (August 2008)
+ + new function: GoToMatchingBracket
+ + small optimizations
+
+v.2.0 (July 2008)
+ * for AkelPad 3.6.0+
+
+v.1.9 (April 2008)
+ * the plugin's name has been changed to XBrackets
+ + several small improvements
+
+v.1.8 (March 2008)
+ - Fixed: crash when AkelPad 3.5.0 exits
+
+v.1.7 (January 2008)
+ + (optional) autocomplete ' '
+ + (optional) autocomplete and highlight < />
+
+v.1.6 (November 2007)
+ + Compatibility with AkelPad 3.4.2+
+
+v.1.5 (September 2007)
+ * for AkelPad 3.4.0+
+ - Fixed: commented brackets (C/C++/Pascal) were processed incorrectly
+
+v.1.4 (August 2007)
+ * for AkelPad 3.3.0+
+ - Fixed: highlighted brackets could mark the LineBoard panel
+ - Fixed: some internal variables were initialized incorrectly
+
+v.1.3 (July 2007)
+ * for AkelPad 3.3.0+
+ + brackets are not highlighted after // inside C/C++/Pascal files
+ + calling Settings dialog does not activate the plugin (AkelBrackets::Main)
+ + the plugin can be activated/deactivated from Settings dialog
+
+v.1.2 (March 2007)
+ * for AkelPad 3.3.0+
+ - edit-control's formatting rectangle was determined incorrectly
+ + (option) autocomplete brackets even if corresponding right bracket exists
+ + size of dll-file is reduced (using Build.cmd)
+
+v.1.1 (Feb 2007)
+ * for AkelPad 3.2.1+
+ + highlight active brackets
+ + settings dialog
+
+v.1.0 (Oct 2006)
+ * initial version
+ * for AkelPad 3.1.2+
+ + autocomplete brackets
+
+
+The author expresses his thanks to Aleksander Shengalts
+aka Instructor for his help in creation and testing
+of this plugin.
+-----------------------------------------------------------
+The icon by se7h.
+-----------------------------------------------------------
+(C) Oct 2006 - Apr 2021, Vitaliy Dovgan aka DV
+          dvv81 <at> ukr <dot> net
+
+This plugin is freeware (free for both personal and commercial usage);
+it is distributed under the same license as AkelPad.
