@@ -1,4 +1,4 @@
-﻿/**
+/**
  *		SpellChecker for AkelPad
  *		Panych Y.W. aka FeyFre (c) 2010-2013 (panych.y@gmail.com)
  *

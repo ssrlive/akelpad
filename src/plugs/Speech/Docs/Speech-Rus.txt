@@ -1,4 +1,4 @@
-﻿/**                                                             
+/**                                                             
  *		Speech for AkelPad                                      
  *		Panych Y.W. aka FeyFre (c) 2010-2011 (panych.y@gmail.com)    
  *                                                              
