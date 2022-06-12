@@ -3,6 +3,7 @@ x64/
 Release/
 Debug/
 AkelFiles/Plugs/Coder/Cache
+.vs/
 
 *.obj
 *.aps

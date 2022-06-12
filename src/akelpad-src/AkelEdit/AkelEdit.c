@@ -137,7 +137,7 @@ AKELEDIT *lpAkelEditPrev=NULL;
 AKELEDIT *lpAkelEditDrag=NULL;
 UINT cfAkelEditColumnSel=0;
 UINT cfAkelEditText=0;
-HANDLE hAkelEditMsimg32=NULL;
+HMODULE hAkelEditMsimg32=NULL;
 BOOL bAkelEditMsimg32Free=FALSE;
 BOOL (WINAPI *AkelEditAlphaBlendPtr)(HDC, int, int, int, int, HDC, int, int, int, int, BLENDFUNCTION)=NULL;
 
