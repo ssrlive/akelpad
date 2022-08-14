@@ -148,11 +148,12 @@
 #define COMMANDLINE_SIZE 32768
 
 //DestroyDock type
-#define DKT_DEFAULT        0x0
-#define DKT_NOUNLOAD       0x1
-#define DKT_ONMAINFINISH   0x2
-#define DKT_KEEPAUTOLOAD   0x4
-#define DKT_WAITTHREAD     0x8
+#define DKT_DEFAULT        0x00
+#define DKT_NOUNLOAD       0x01
+#define DKT_ONMAINFINISH   0x02
+#define DKT_KEEPAUTOLOAD   0x04
+#define DKT_WAITTHREAD     0x08
+#define DKT_POSTMESSAGE    0x10
 
 //dwWatchScrollEnd
 #define WSE_NO     0
@@ -749,7 +750,7 @@ void __declspec(dllexport) Output(PLUGINDATA *pd)
     }
     else if (nAction == DLLA_LOGOUTPUT_CLOSEPANEL)
     {
-      DestroyDock(hWndDockDlg, DKT_KEEPAUTOLOAD);
+      DestroyDock(hWndDockDlg, DKT_KEEPAUTOLOAD|DKT_POSTMESSAGE);
     }
 
     //If plugin already loaded, stay in memory and don't change active status
@@ -759,7 +760,7 @@ void __declspec(dllexport) Output(PLUGINDATA *pd)
 
   if (nInitOutput)
   {
-    DestroyDock(hWndDockDlg, DKT_KEEPAUTOLOAD);
+    DestroyDock(hWndDockDlg, DKT_KEEPAUTOLOAD|DKT_POSTMESSAGE);
 
     //If any function still loaded, stay in memory and show as non-active
     if (nInitMain) pd->nUnload=UD_NONUNLOAD_NONACTIVE;
@@ -852,7 +853,10 @@ void CreateDock(HWND *hWndDock, DOCK **dkDock, BOOL bShow)
 
 void DestroyDock(HWND hWndDock, DWORD dwType)
 {
-  SendMessage(hWndDock, WM_COMMAND, IDCANCEL, dwType);
+  if (dwType & DKT_POSTMESSAGE)
+    PostMessage(hWndDock, WM_COMMAND, IDCANCEL, dwType);
+  else
+    SendMessage(hWndDock, WM_COMMAND, IDCANCEL, dwType);
 }
 
 void SetEditWindowSettings()
@@ -2271,8 +2275,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
     {
       if ((oe->dwOutputFlags & OUTF_CLOSENOERROR) && oe->dwExitCode == 0)
       {
-        //DestroyDock
-        PostMessage(hWndDockDlg, WM_COMMAND, IDCANCEL, DKT_KEEPAUTOLOAD|DKT_WAITTHREAD);
+        DestroyDock(hWndDockDlg, DKT_KEEPAUTOLOAD|DKT_WAITTHREAD|DKT_POSTMESSAGE);
       }
       else PostMessage(hWndDockDlg, AKDLL_EXECSTOP, 0, 0);
     }
