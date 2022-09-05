@@ -5,7 +5,7 @@
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 5,4,0,0
+ FILEVERSION 5,5,0,0
  PRODUCTVERSION 0,0,0,0
  FILEFLAGSMASK 0x0L
 #ifdef _DEBUG
@@ -23,7 +23,7 @@ BEGIN
         BEGIN
             VALUE "FileDescription", RC_VERSIONDESCRIPTION "\0"
             VALUE "FileVersion", "0, 0, 0, 0\0"
-            VALUE "LegalCopyright", "© 2012-2019 Shengalts Aleksander aka Instructor\0"
+            VALUE "LegalCopyright", "Â© 2012-2022 Shengalts Aleksander aka Instructor\0"
             VALUE "OriginalFilename", "\0"
             VALUE "ProductName", "\0"
             VALUE "ProductVersion", "0, 0, 0, 0\0"
