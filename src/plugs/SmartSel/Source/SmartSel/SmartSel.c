@@ -1102,11 +1102,11 @@ BOOL OnEditBackspaceKeyDown(HWND hEdit, LPARAM lParam)
                 if (nPrevLineSpaces > nLineSpaces)
                 {
                   //In:
-                  //---->---->·123
+                  //---->---->Â·123
                   //---->---->---->---->|456
                   //Out:
-                  //---->---->·123
-                  //---->---->·|456
+                  //---->---->Â·123
+                  //---->---->Â·|456
                   if ( bufReserve(&g_TextBuf, (nPrevLineSpaces - nLineSpaces + 1) * sizeof(wchar_t)) )
                   {
                     wchar_t *wpIndentMax;
