@@ -687,7 +687,9 @@ EXTERN_C int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPTSTR lpCmd
     OSVERSIONINFO ovi;
 
     ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
+#pragma warning(disable: 4996)
     GetVersionEx(&ovi);
+#pragma warning(default: 4996)
     if (ovi.dwPlatformId == VER_PLATFORM_WIN32_NT)
     {
       if (ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0)

@@ -86,7 +86,7 @@
 
 
 //Include AEC functions
-#define AEC_FUNCTIONS
+//#define AEC_FUNCTIONS
 #include "AkelEdit.h"
 
 //Include method functions
