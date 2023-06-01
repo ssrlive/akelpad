@@ -4474,7 +4474,7 @@ BOOL IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape)
   return FALSE;
 }
 
-FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECHARINDEX *ciChar, DWORD *dwFoldStop)
+FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, DWORD *dwFoldStop)
 {
   FOLDINFOHANDLE *lpFoldInfoHandle;
   FOLDINFO *lpFoldInfo;
@@ -4529,6 +4529,9 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, AECH
 
       if (lpFoldInfo=IsFoldStart(lpFoldStart, ft, ciChar))
       {
+        //Is already found empty fold start?
+        if (lpLevel && lpLevel->pfd->lpFoldInfo == lpFoldInfo && AEC_IndexCompare(&ft->crFound.ciMin, ciChar) <= 0)
+          continue;
         *dwFoldStop=IFE_FOLDSTART;
         return lpFoldInfo;
       }
@@ -4567,7 +4570,7 @@ BOOL FoldAllowed(LEVEL *lpLevel, int nParentID, int nFoldRuleID)
   return TRUE;
 }
 
-FOLDINFO* IsFoldStart(FOLDSTART *lpFoldStart, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
+FOLDINFO* IsFoldStart(FOLDSTART *lpFoldStart, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
   INT_PTR nMatchLen;
   BOOL bMatch;
@@ -4603,7 +4606,7 @@ FOLDINFO* IsFoldStart(FOLDSTART *lpFoldStart, AEFINDTEXTW *ft, AECHARINDEX *ciCh
   return NULL;
 }
 
-FOLDINFO* IsFoldEnd(FOLDINFO *lpFoldInfo, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
+FOLDINFO* IsFoldEnd(FOLDINFO *lpFoldInfo, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
   INT_PTR nMatchLen;
   BOOL bMatch;
@@ -4634,7 +4637,7 @@ FOLDINFO* IsFoldEnd(FOLDINFO *lpFoldInfo, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
   return NULL;
 }
 
-SKIPINFO* IsSkipStart(SKIPSTART *lpSkipStart, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
+SKIPINFO* IsSkipStart(SKIPSTART *lpSkipStart, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
   INT_PTR nMatchLen;
   BOOL bMatch;
@@ -4670,7 +4673,7 @@ SKIPINFO* IsSkipStart(SKIPSTART *lpSkipStart, AEFINDTEXTW *ft, AECHARINDEX *ciCh
   return NULL;
 }
 
-SKIPINFO* IsSkipEnd(SKIPINFO *lpSkipInfo, AEFINDTEXTW *ft, AECHARINDEX *ciChar)
+SKIPINFO* IsSkipEnd(SKIPINFO *lpSkipInfo, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
   INT_PTR nMatchLen;
   BOOL bMatch;
@@ -4939,7 +4942,7 @@ BOOL CheckFoldFlags(FOLDINFO *lpFoldInfo, AECHARRANGE *crFound, DWORD dwFoldStop
   return TRUE;
 }
 
-BOOL CheckSkipFlags(SKIPINFO *lpSkipInfo, AECHARRANGE *crFound, AECHARINDEX *ciChar, DWORD dwFoldStop)
+BOOL CheckSkipFlags(SKIPINFO *lpSkipInfo, AECHARRANGE *crFound, const AECHARINDEX *ciChar, DWORD dwFoldStop)
 {
   if (dwFoldStop & IFE_FOLDSTART)
   {
