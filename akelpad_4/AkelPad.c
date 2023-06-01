@@ -5903,7 +5903,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (!lpFrameCurrent->ei.bModified || (moCur.bSilentCloseEmptyMDI && !lpFrameCurrent->ei.wszFile[0] && !GetTextLength(lpFrameCurrent->ei.hWndEdit)))
         dwPrompt|=PROMPT_NONE;
 
-      if (!SaveChanged(dwPrompt))
+      if (!CloseDocument(dwPrompt))
       {
         nMainOnFinish=MOF_NONE;
         return bEndSession?0:1;
