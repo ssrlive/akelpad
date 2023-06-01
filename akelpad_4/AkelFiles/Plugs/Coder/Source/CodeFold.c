@@ -2652,7 +2652,7 @@ SKIPSTART* StackInsertSkipStart(HSTACK *hSkipStartStack, SKIPINFO *lpSkipInfo, w
         if (nSkipStartLen && !PatCompile(&lpSkipStart->sregStart, wpSkipStart, wpSkipStart + nSkipStartLen))
         {
           lpSkipStart->sregStart.first->dwFlags&=~REGF_ROOTANY;
-          lpSkipStart->nSkipStartLen=(int)lpSkipInfo->sregEnd.first->nGroupLen;
+          lpSkipStart->nSkipStartLen=(int)lpSkipStart->sregStart.first->nGroupLen;
         }
         else
         {
