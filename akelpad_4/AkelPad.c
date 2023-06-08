@@ -959,13 +959,15 @@ void _WinMain()
   moInit.rcMainWindowRestored.bottom=CW_USEDEFAULT;
   moInit.dwMdiStyle=WS_MAXIMIZE;
 
+  //Command line
+  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
+  if (wpCmdLine)
+    ParseCmdLine(&wpCmdLine, PCL_INI);
+
   //Read only few options
   hReadOptions=ReadOptions(&moInit, &fdInit, PCL_ONLOAD, NULL);
   xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));
   nMDI=moInit.nMDI;
-
-  //Command line
-  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
 
   //Parse commmand line on load
   if (wpCmdLine)
@@ -2526,6 +2528,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return xstrcpynA((void *)lParam, szExeFile, MAX_PATH);
           case MI_AKELEXEW:
             return xstrcpynW((void *)lParam, wszExeFile, MAX_PATH);
+          case MI_AKELINIA:
+            return WideCharToMultiByte(CP_ACP, 0, wszAkelPadIni, -1, (void *)lParam, MAX_PATH, NULL, NULL) - 1;
+          case MI_AKELINIW:
+            return xstrcpynW((void *)lParam, wszAkelPadIni, MAX_PATH);
           case MI_X64:
           {
             #ifdef _WIN64
