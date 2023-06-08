@@ -263,6 +263,8 @@
 #define MI_ONFINISH                  91   //Return: see MOF_* defines.
 #define MI_AKELEXEA                  95   //Return: copied chars. (char *)lParam - buffer that receives AkelPad executable string.
 #define MI_AKELEXEW                  96   //Return: copied chars. (wchar_t *)lParam - buffer that receives AkelPad executable string.
+#define MI_AKELINIA                  97   //Return: copied chars. (char *)lParam - buffer that receives AkelPad ini file.
+#define MI_AKELINIW                  98   //Return: copied chars. (wchar_t *)lParam - buffer that receives AkelPad ini file.
 //Compile
 #define MI_X64                       101  //Return: TRUE - x64 version, FALSE - x86 version.
 #define MI_AKELEDITSTATICBUILD       102  //Return: TRUE - AkelEdit is compiled statically, FALSE - AkelEdit is compiled as standalone library.

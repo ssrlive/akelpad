@@ -1,7 +1,7 @@
 /******************************************************************
  *                  RegExp functions header v2.5                  *
  *                                                                *
- * 2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2020 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *                                                                *
  * RegExpFunc.h header uses functions:                            *
@@ -1013,7 +1013,7 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
     }
     ++wpPat;
   }
-  if (wpClassStart > wpClassEnd)
+  if (wpClassStart && wpClassStart >= wpClassEnd)
   {
     wpPat=wpClassStart;
     goto Error;
@@ -1160,9 +1160,9 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
       if (nPrevStrLen) goto EndLoopAfterNegativeFixed;
     }
     if (!lpREGroupItem->nMinMatch &&
-        //str - "123", find "(?>\d+?)3"
-        !(lpREGroupItem->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE)))
-    {
+         //str - "123", find "(?>\d+?)3"
+        !(lpREGroupItem->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE|REGF_GREEDY)))
+   {
       nPrevStrLen=-1;
       lpREGroupItem->wpStrStart=wpStr;
       lpREGroupItem->wpStrEnd=wpStr;
@@ -1334,6 +1334,8 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
             {
               if (lpREGroupNext->dwFlags & REGF_OR)
                 goto NextOR;
+              if (!lpREGroupNext->nMinMatch)
+                goto NextGroup;
               goto EndLoop;
             }
             if (lpREGroupNext->dwFlags & REGF_OR)
@@ -2235,7 +2237,7 @@ REGROUP* PatNextGroupForExec(REGROUP *lpREGroupItem)
     //nSelfExec
     if (lpREGroupNext->parent)
     {
-      if (lpREGroupNext->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE))
+      if (lpREGroupNext->dwFlags & (REGF_ATOMIC|REGF_POSSESSIVE|REGF_POSITIVEFORWARD|REGF_NEGATIVEFORWARD|REGF_POSITIVEBACKWARD|REGF_NEGATIVEBACKWARD))
         return NULL;
 
       //str - "dac", find "(a|d)+"
