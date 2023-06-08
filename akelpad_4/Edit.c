@@ -19794,6 +19794,17 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType)
         bIgnoreNextArg=FALSE;
         continue;
       }
+      if (nType == PCL_INI)
+      {
+        if (!xstrcmpinW(L"/Ini(", wszCmdArg, (UINT_PTR)-1))
+        {
+          if (GetCommandLineArg(wszCmdArg + 5, wbuf, MAX_PATH, NULL, FALSE))
+            TranslateFileString(wbuf, wszAkelPadIni, MAX_PATH);
+          wpCmdLine=wpCmdLineNext;
+        }
+        goto End;
+      }
+
       if (wszCmdArg[0] == L'/')
       {
         //On load
@@ -22167,6 +22178,11 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
           if (wszBuffer) *wpTarget=L'%';
           ++wpTarget;
         }
+        else if (*wpSource == L'a' || *wpSource == L'A')
+        {
+          ++wpSource;
+          wpTarget+=xstrcpynW(wszBuffer?wpTarget:NULL, wpExeDir, wpTargetMax - wpTarget) - !wszBuffer;
+        }
         else if (*wpSource == L'f' || *wpSource == L'F')
         {
           ++wpSource;
@@ -22176,11 +22192,6 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
         {
           ++wpSource;
           if (*wpFile) wpTarget+=GetFileDir(wpFile, -1, wszBuffer?wpTarget:NULL, (int)(wpTargetMax - wpTarget)) - !wszBuffer;
-        }
-        else if (*wpSource == L'a' || *wpSource == L'A')
-        {
-          ++wpSource;
-          wpTarget+=xstrcpynW(wszBuffer?wpTarget:NULL, wpExeDir, wpTargetMax - wpTarget) - !wszBuffer;
         }
       }
       else

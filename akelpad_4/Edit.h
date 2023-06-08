@@ -106,9 +106,10 @@
 #define EDIT_BKIMAGEALPHA          128
 
 //ParseCmdLine flags
-#define PCL_ONLOAD          0
-#define PCL_ONSHOW          1
-#define PCL_ONMESSAGE       2
+#define PCL_INI              0
+#define PCL_ONLOAD           1
+#define PCL_ONSHOW           2
+#define PCL_ONMESSAGE        3
 
 //Command line variable flags
 #define CLVF_SYSTEM          0x1
