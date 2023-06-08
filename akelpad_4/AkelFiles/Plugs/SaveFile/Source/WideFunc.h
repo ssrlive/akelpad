@@ -1,7 +1,7 @@
 /******************************************************************
- *                  Wide functions header v3.2                    *
+ *                  Wide functions header v3.3                    *
  *                                                                *
- * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *  Header provide functions that can be successfully called in   *
  *        all versions of Windows including Win95/98/Me.          *
@@ -20,6 +20,7 @@
 #include <commdlg.h>
 #include <shlobj.h>
 #include <stddef.h>
+#include <TlHelp32.h>
 
 #ifndef _WIDEFUNC_H_
 #define _WIDEFUNC_H_
@@ -112,6 +113,10 @@ int GetDateFormatWide(LCID Locale, DWORD dwFlags, CONST SYSTEMTIME *lpDate, cons
 int GetTimeFormatWide(LCID Locale, DWORD dwFlags, CONST SYSTEMTIME *lpTime, const wchar_t *wpFormat, wchar_t *wszTimeStr, int cchTime);
 BOOL GetCPInfoExWide(UINT CodePage, DWORD dwFlags, LPCPINFOEXW lpCPInfoEx);
 int GetKeyNameTextWide(LONG lParam, wchar_t *wpString, int nSize);
+
+//Process (PROCESSWIDEFUNC). Kernel32.lib.
+BOOL Process32NextWide(HANDLE hSnapshot, LPPROCESSENTRY32W lppe);
+BOOL Process32FirstWide(HANDLE hSnapshot, LPPROCESSENTRY32W lppe);
 
 //Font (FONTWIDEFUNC). Gdi32.lib.
 HFONT CreateFontIndirectWide(const LOGFONTW *lfFont);
@@ -1798,6 +1803,63 @@ int GetKeyNameTextWide(LONG lParam, wchar_t *wpString, int nSize)
 }
 #endif
 
+#if defined Process32FirstWide || defined PROCESSWIDEFUNC || defined ALLWIDEFUNC
+#define Process32FirstWide_INCLUDED
+#undef Process32FirstWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL Process32FirstWide(HANDLE hSnapshot, LPPROCESSENTRY32W lppe)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return Process32FirstW(hSnapshot, lppe);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    PROCESSENTRY32 peA;
+    BOOL bResult;
+
+    peA.dwSize=sizeof(PROCESSENTRY32);
+    if (bResult=Process32First(hSnapshot, &peA))
+    {
+      xmemcpy(lppe, &peA, offsetof(PROCESSENTRY32, szExeFile));
+      AnsiToWide(peA.szExeFile, -1, lppe->szExeFile, MAX_PATH);
+    }
+    return bResult;
+  }
+
+  WideNotInitialized();
+  return FALSE;
+}
+#endif
+
+#if defined Process32NextWide || defined PROCESSWIDEFUNC || defined ALLWIDEFUNC
+#define Process32NextWide_INCLUDED
+#undef Process32NextWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL Process32NextWide(HANDLE hSnapshot, LPPROCESSENTRY32W lppe)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return Process32NextW(hSnapshot, lppe);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    PROCESSENTRY32 peA;
+    BOOL bResult;
+
+    peA.dwSize=sizeof(PROCESSENTRY32);
+    if (bResult=Process32Next(hSnapshot, &peA))
+    {
+      xmemcpy(lppe, &peA, offsetof(PROCESSENTRY32, szExeFile));
+      AnsiToWide(peA.szExeFile, -1, lppe->szExeFile, MAX_PATH);
+    }
+    return bResult;
+  }
+
+  WideNotInitialized();
+  return FALSE;
+}
+#endif
 
 //// Font
 #if defined CreateFontIndirectWide || defined FONTWIDEFUNC || defined ALLWIDEFUNC

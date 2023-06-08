@@ -1802,6 +1802,8 @@ typedef struct {
 #define AEM_GETCHARCOLORS         (WM_USER + 2242)
 #define AEM_SCROLLCARETOPTIONS    (WM_USER + 2243)
 #define AEM_FIXEDCHARWIDTH        (WM_USER + 2244)
+#define AEM_GETSCROLLSPEED        (WM_USER + 2245)
+#define AEM_SETSCROLLSPEED        (WM_USER + 2246)
 
 //Draw
 #define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
@@ -5136,6 +5138,36 @@ Remarks
 
 Example:
  SendMessage(hWndEdit, AEM_FIXEDCHARWIDTH, (WPARAM)-AECS_MAXWIDTH, 0);
+
+
+AEM_GETSCROLLSPEED
+___________________
+
+Retrieve MButton scroll speed in percentage.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ MButton scroll speed.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETSCROLLSPEED, 0, 0);
+
+
+AEM_SETSCROLLSPEED
+___________________
+
+Set MButton scroll speed.
+
+(DWORD)wParam == MButton scroll speed in percentage (default is 10).
+lParam        == not used.
+
+Return Value
+ Zero.
+
+Example:
+ SendMessage(hWndEdit, AEM_SETSCROLLSPEED, 50, 0);
 
 
 AEM_SHOWSCROLLBAR
