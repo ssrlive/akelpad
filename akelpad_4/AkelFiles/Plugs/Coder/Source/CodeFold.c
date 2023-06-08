@@ -4530,7 +4530,7 @@ FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, cons
       if (lpFoldInfo=IsFoldStart(lpFoldStart, ft, ciChar))
       {
         //Is already found empty fold start?
-        if (lpLevel && lpLevel->pfd->lpFoldInfo == lpFoldInfo && AEC_IndexCompare(&ft->crFound.ciMin, ciChar) <= 0)
+        if (lpLevel && lpLevel->pfd->lpFoldInfo == lpFoldInfo && AEC_IndexCompare(&ft->crFound.ciMax, ciChar) <= 0)
           continue;
         *dwFoldStop=IFE_FOLDSTART;
         return lpFoldInfo;
