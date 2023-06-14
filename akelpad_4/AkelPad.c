@@ -98,6 +98,7 @@
   #define UTF8toUTF16_INCLUDED
   #define UTF16toUTF8_INCLUDED
 #endif
+#define xstrcmpinA
 #define xarrlenA
 #define xstrcpyA
 #define xstrstrW
@@ -319,6 +320,7 @@ int nLastFunctionIndex;
 //INI
 INIFILE hAkelPadIni={0};
 wchar_t wszAkelPadIni[MAX_PATH];
+BOOL bAkelPadIniChanged=FALSE;
 
 //Main settings
 HANDLE hReadOptions;
@@ -959,10 +961,15 @@ void _WinMain()
   moInit.rcMainWindowRestored.bottom=CW_USEDEFAULT;
   moInit.dwMdiStyle=WS_MAXIMIZE;
 
-  //Command line
-  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
-  if (wpCmdLine)
-    ParseCmdLine(&wpCmdLine, PCL_INI);
+  //Ini file
+  if (bOldWindows ? !xstrcmpinA("/Ini(", (char *)mc.pCmdLine, (UINT_PTR)-1) :
+                    !xstrcmpinW(L"/Ini(", (wchar_t *)mc.pCmdLine, (UINT_PTR)-1))
+  {
+    wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, NULL, NULL);
+    if (wpCmdLine)
+      ParseCmdLine(&wpCmdLine, PCL_INI);
+    bAkelPadIniChanged=TRUE;
+  }
 
   //Read only few options
   hReadOptions=ReadOptions(&moInit, &fdInit, PCL_ONLOAD, NULL);
@@ -970,6 +977,7 @@ void _WinMain()
   nMDI=moInit.nMDI;
 
   //Parse commmand line on load
+  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
   if (wpCmdLine)
     nParseCmdLineOnLoad=ParseCmdLine(&wpCmdLine, PCL_ONLOAD);
 
