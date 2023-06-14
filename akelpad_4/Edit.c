@@ -108,6 +108,7 @@ extern int nLastFunctionIndex;
 //INI
 extern INIFILE hAkelPadIni;
 extern wchar_t wszAkelPadIni[MAX_PATH];
+extern BOOL bAkelPadIniChanged;
 
 //Main settings
 extern HANDLE hReadOptions;
@@ -1439,15 +1440,17 @@ HWND DoFileNewWindow(DWORD dwAddFlags)
   PROCESS_INFORMATION pi;
   HWND hWndFriend=0;
 
-  if (!GetModuleFileNameWide(hInstance, wbuf, MAX_PATH))
-    return 0;
+  if (bAkelPadIniChanged)
+    xprintfW(wbuf, L"\"%s\" /Ini(\"%s\")", wszExeFile, wszAkelPadIni);
+  else
+    xprintfW(wbuf, L"\"%s\"", wszExeFile);
 
   xmemset(&si, 0, sizeof(STARTUPINFOW));
   si.cb=sizeof(STARTUPINFOW);
   si.dwFlags=STARTF_USESHOWWINDOW|dwAddFlags;
   si.wShowWindow=SW_SHOWNORMAL;
 
-  if (CreateProcessWide(wbuf, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+  if (CreateProcessWide(NULL, wbuf, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
   {
     WaitForInputIdle(pi.hProcess, INFINITE);
     EnumThreadWindows(pi.dwThreadId, EnumThreadWindowsProc, (LPARAM)&hWndFriend);
