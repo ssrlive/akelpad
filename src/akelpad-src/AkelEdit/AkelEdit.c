@@ -290,7 +290,9 @@ void AE_RegisterClassCommon(HINSTANCE hInstance)
     OSVERSIONINFO ovi;
 
     ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
+#pragma warning(disable: 4996)
     GetVersionEx(&ovi);
+#pragma warning(default: 4996)
     if (ovi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
       bAkelEditWindows9x=TRUE;
     else

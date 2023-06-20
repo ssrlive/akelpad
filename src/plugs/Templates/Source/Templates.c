@@ -447,9 +447,9 @@ static void CALLCONV FillTreeCtrl(HWND hTreeCtrl, LPCWSTR szPath, HTREEITEM hRoo
 					tvi.item.iSelectedImage = sfis.iIcon;
 					tvi.item.mask = TVIF_TEXT|TVIF_PARAM|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
 					hNode = TreeView_InsertItem(hTreeCtrl,&tvi);
-					//! Чт?бы не "оптимизировало" ?вызо?memcpy пришлось установить опци?
-					//! компилятора "Inline Function Expansion" ?/Ob1
-					//! На значение по-умолчани?"Default" ?Win32 вс?нормальн? ?x64 - вылази?memcpy
+					//! Р§С‚?Р±С‹ РЅРµ "РѕРїС‚РёРјРёР·РёСЂРѕРІР°Р»Рѕ" ?РІС‹Р·Рѕ?memcpy РїСЂРёС€Р»РѕСЃСЊ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ РѕРїС†Рё?
+					//! РєРѕРјРїРёР»СЏС‚РѕСЂР° "Inline Function Expansion" ?/Ob1
+					//! РќР° Р·РЅР°С‡РµРЅРёРµ РїРѕ-СѓРјРѕР»С‡Р°РЅРё?"Default" ?Win32 РІСЃ?РЅРѕСЂРјР°Р»СЊРЅ? ?x64 - РІС‹Р»Р°Р·Рё?memcpy
 					xmemcpy(szChild,szPath,nPathLen*sizeof(WCHAR));
 					i = nPathLen;
 					szChild[i]=L'\\'; i++;

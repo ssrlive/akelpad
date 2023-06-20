@@ -2915,7 +2915,9 @@ __inline HICON IconExtractWide(const wchar_t *wpFile, UINT nIconIndex, int cxDes
         OSVERSIONINFO ovi;
 
         ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
+#pragma warning(disable: 4996)
         GetVersionEx(&ovi);
+#pragma warning(default: 4996)
         if (ovi.dwPlatformId == VER_PLATFORM_WIN32_NT)
         {
           if (ovi.dwMajorVersion >= 6)

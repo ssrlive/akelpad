@@ -204,7 +204,9 @@ BOOL IsWinXpOrLater()
 { 
     OSVERSIONINFO stVerInfo = { 0 }; 
     stVerInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO); 
-    GetVersionEx( & stVerInfo ); 
+#pragma warning(disable: 4996)
+    GetVersionEx( & stVerInfo );
+#pragma warning(default: 4996)
 
     return (stVerInfo.dwMajorVersion > 4 && stVerInfo.dwMinorVersion > 0); 
 } 

@@ -119,7 +119,7 @@
 //*/
 
 //Include RegExp functions
-#define RE_FUNCTIONS
+//#define RE_FUNCTIONS
 #include "RegExpFunc.h"
 
 

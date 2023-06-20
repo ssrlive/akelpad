@@ -108,11 +108,13 @@ STDMETHODIMP CAppShellExt::QueryContextMenu(HMENU hmenu, UINT indexMenu, UINT id
     SP_MENU_INFO stMenuInfo = { 0 }; 
 
     OSVERSIONINFOEX osvi = { sizeof(osvi) };
+#pragma warning(disable: 4996)
     if( !GetVersionEx ((OSVERSIONINFO *) &osvi)) {
         // If OSVERSIONINFOEX doesn't work, try OSVERSIONINFO.
         osvi.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
         GetVersionEx ( (OSVERSIONINFO *) &osvi);
     }
+#pragma warning(default: 4996)
 
     BOOL bVistaOrLater = FALSE;
     if (osvi.dwMajorVersion >= 6) {
