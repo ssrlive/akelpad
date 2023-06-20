@@ -3524,6 +3524,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     {
                       lpSkipInfo->sregEnd.dwOptions=REO_MULTILINE|(dwFlags & FIF_MATCHCASE?REO_MATCHCASE:0);
                       lpSkipInfo->sregEnd.ref100=&lpSkipInfo->lpSkipStart->sregStart;
+                      lpSkipInfo->sregEnd.ciMaxRange=RegExpGlobal_ciMaxStr;
+
                       if (nSkipEndLen && !PatCompile(&lpSkipInfo->sregEnd, wpSkipEnd, wpSkipEnd + nSkipEndLen))
                       {
                         lpSkipInfo->sregEnd.first->dwFlags&=~REGF_ROOTANY;
@@ -3711,6 +3713,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                     {
                       lpFoldInfo->sregEnd.dwOptions=REO_MULTILINE|(dwFlags & FIF_MATCHCASE?REO_MATCHCASE:0);
                       lpFoldInfo->sregEnd.ref100=&lpFoldInfo->lpFoldStart->sregStart;
+                      lpFoldInfo->sregEnd.ciMaxRange=RegExpGlobal_ciMaxStr;
+
                       if (nFoldEndLen && !PatCompile(&lpFoldInfo->sregEnd, wpFoldEnd, wpFoldEnd + nFoldEndLen))
                       {
                         lpFoldInfo->sregEnd.first->dwFlags&=~REGF_ROOTANY;

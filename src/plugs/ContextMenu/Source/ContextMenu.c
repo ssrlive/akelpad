@@ -6806,12 +6806,12 @@ UNSET(32)\r";
     //Default tabs menu
     if (nStringID == STRID_DEFAULTTAB)
       return L"\
-\"Clone\" Command(4322)\r\
-\"Copy path\" Command(4323)\r\
-SEPARATOR1\r\
 \"Close\" Command(4318)\r\
 \"Close all\" Command(4319)\r\
 \"Close all but active\" Command(4320)\r\
+SEPARATOR1\r\
+\"Clone\" Command(4322)\r\
+\"Copy path\" Command(4323)\r\
 SEPARATOR1\r\
 SET(4)\r\
     #Only for MDI\r\
