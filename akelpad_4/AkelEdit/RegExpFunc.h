@@ -3599,7 +3599,7 @@ INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t *wszTarg
   AECHARINDEX ciCount;
   wchar_t *wpTarget=wszTarget;
 
-  if (!wpTargetMax) wpTargetMax=(wchar_t *)-1;
+  if (!wpTargetMax) wpTargetMax=(wchar_t *)(INT_PTR)-1;
 
   for (ciCount=*ciStart; AEC_IndexCompare(&ciCount, ciEnd) < 0 && wpTarget < wpTargetMax; AE_PatNextChar(&ciCount))
   {
