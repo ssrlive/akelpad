@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 2.0
+// Version: 2.1
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -999,6 +999,7 @@ function SearchReplace()
   var pSelText;
   var pResult;
   var dwOptions;
+  var bClearEdit=false;
   var nInitialSelStart;
   var nInitialSelEnd;
   var nSelStart;
@@ -1239,7 +1240,6 @@ function SearchReplace()
         var nTextCount=0;
         var lpMemText;
         var bMainDisable;
-        var bClearEdit=false;
 
         //Open output window
         if (!hWndOutput)
