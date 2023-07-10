@@ -22,23 +22,23 @@
 //   With: var n = parseInt($0); return n >= 20 ? 20 : ++n;
 //
 //
-// Description(1049): Ïîèñê/çàìåíà ñ èñïîëüçîâàíèåì ðåãóëÿðíûõ âûðàæåíèé.
+// Description(1049): ÐŸÐ¾Ð¸ÑÐº/Ð·Ð°Ð¼ÐµÐ½Ð° Ñ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ð½Ð¸ÐµÐ¼ Ñ€ÐµÐ³ÑƒÐ»ÑÑ€Ð½Ñ‹Ñ… Ð²Ñ‹Ñ€Ð°Ð¶ÐµÐ½Ð¸Ð¹.
 //
-// Àðãóìåíòû:
-// -ShowCountOfChanges=false  -Âûäàâàòü êîëè÷åñòâî çàìåí (ïî óìîë÷àíèþ true).
-// -SearchStrings=10          -Ìàêñèìàëüíîå ÷èñëî ñòðîê ïîèñêà (ïî óìîë÷àíèþ 10).
-// -DefButtonID=1016          -Èäåíòèôèêàòîð êíîïêè ïî óìîë÷àíèþ. Ñì. îïèñàíèå IDC_* íèæå (ïî óìîë÷àíèþ 1016).
-// -Template="Èìÿ"            -Øàáëîí, èñïîëüçóþùèéñÿ ïðè îòêðûòèè äèàëîãà (ïî óìîë÷àíèþ "").
+// ÐÑ€Ð³ÑƒÐ¼ÐµÐ½Ñ‚Ñ‹:
+// -ShowCountOfChanges=false  -Ð’Ñ‹Ð´Ð°Ð²Ð°Ñ‚ÑŒ ÐºÐ¾Ð»Ð¸Ñ‡ÐµÑÑ‚Ð²Ð¾ Ð·Ð°Ð¼ÐµÐ½ (Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ true).
+// -SearchStrings=10          -ÐœÐ°ÐºÑÐ¸Ð¼Ð°Ð»ÑŒÐ½Ð¾Ðµ Ñ‡Ð¸ÑÐ»Ð¾ ÑÑ‚Ñ€Ð¾Ðº Ð¿Ð¾Ð¸ÑÐºÐ° (Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ 10).
+// -DefButtonID=1016          -Ð˜Ð´ÐµÐ½Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¾Ñ€ ÐºÐ½Ð¾Ð¿ÐºÐ¸ Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ. Ð¡Ð¼. Ð¾Ð¿Ð¸ÑÐ°Ð½Ð¸Ðµ IDC_* Ð½Ð¸Ð¶Ðµ (Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ 1016).
+// -Template="Ð˜Ð¼Ñ"            -Ð¨Ð°Ð±Ð»Ð¾Ð½, Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÑŽÑ‰Ð¸Ð¹ÑÑ Ð¿Ñ€Ð¸ Ð¾Ñ‚ÐºÑ€Ñ‹Ñ‚Ð¸Ð¸ Ð´Ð¸Ð°Ð»Ð¾Ð³Ð° (Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ "").
 //
-// Ïðèìåíåíèå:
+// ÐŸÑ€Ð¸Ð¼ÐµÐ½ÐµÐ½Ð¸Ðµ:
 // Call("Scripts::Main", 1, "SearchReplace.js", `-DefButtonID=1019 /*IDC_REPLACEALL_BUTTON*/`)
 //
-// Ïðèìåð îïöèè "Çàìåíÿòü íà ôóíêöèþ":
-//   ×òî: \d+
-//   ×åì: parseInt($0) + 1;
-// èëè
-//   ×òî: \d+
-//   ×åì: var n = parseInt($0); return n >= 20 ? 20 : ++n;
+// ÐŸÑ€Ð¸Ð¼ÐµÑ€ Ð¾Ð¿Ñ†Ð¸Ð¸ "Ð—Ð°Ð¼ÐµÐ½ÑÑ‚ÑŒ Ð½Ð° Ñ„ÑƒÐ½ÐºÑ†Ð¸ÑŽ":
+//   Ð§Ñ‚Ð¾: \d+
+//   Ð§ÐµÐ¼: parseInt($0) + 1;
+// Ð¸Ð»Ð¸
+//   Ð§Ñ‚Ð¾: \d+
+//   Ð§ÐµÐ¼: var n = parseInt($0); return n >= 20 ? 20 : ++n;
 
 //Arguments
 var bShowCountOfChanges=AkelPad.GetArgValue("ShowCountOfChanges", true);
@@ -999,6 +999,7 @@ function SearchReplace()
   var pSelText;
   var pResult;
   var dwOptions;
+  var bClearEdit=false;
   var nInitialSelStart;
   var nInitialSelEnd;
   var nSelStart;
@@ -1239,7 +1240,6 @@ function SearchReplace()
         var nTextCount=0;
         var lpMemText;
         var bMainDisable;
-        var bClearEdit=false;
 
         //Open output window
         if (!hWndOutput)

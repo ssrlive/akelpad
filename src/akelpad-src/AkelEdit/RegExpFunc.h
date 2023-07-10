@@ -1,7 +1,7 @@
 /******************************************************************
  *                  RegExp functions header v2.5                  *
  *                                                                *
- * 2020 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2023 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *                                                                *
  * RegExpFunc.h header uses functions:                            *
@@ -3600,7 +3600,7 @@ __inline INT_PTR AE_PatStrCopy(AECHARINDEX *ciStart, AECHARINDEX *ciEnd, wchar_t
   AECHARINDEX ciCount;
   wchar_t *wpTarget=wszTarget;
 
-  if (!wpTargetMax) wpTargetMax+=0x3FFFFFFF;
+  if (!wpTargetMax) wpTargetMax=(wchar_t *)MAXUINT_PTR;
 
   for (ciCount=*ciStart; AEC_IndexCompare(&ciCount, ciEnd) < 0 && wpTarget < wpTargetMax; AE_PatNextChar(&ciCount))
   {
