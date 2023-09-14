@@ -21,6 +21,7 @@
 #define StackMoveIndex
 #define StackDelete
 #define StackClear
+#define StackCopy
 #include "StackFunc.h"
 
 //Include string functions
@@ -78,6 +79,7 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 LRESULT CALLBACK NewListBoxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int StackImportRecentFiles(STACKRECENTFILE *srfPlugin);
 void StackExportRecentFiles(STACKRECENTFILE *srfPlugin);
+void StackCopyRecentFile(STACKRECENTFILE *srfPlugin);
 RECENTFILE* StackGetRecentFile(STACKRECENTFILE *srfPlugin, int nIndex);
 int StackSortRecentFiles(STACKRECENTFILE *srfPlugin, int nUpDown);
 void StackFreeRecentFiles(STACKRECENTFILE *srfPlugin);
@@ -598,7 +600,7 @@ int StackImportRecentFiles(STACKRECENTFILE *srfPlugin)
   int nCurItem=-1;
 
   SendMessage(hMainWnd, AKD_RECENTFILES, RF_CLEAR, (LPARAM)srfPlugin);
-  SendMessage(hMainWnd, AKD_RECENTFILES, RF_READ, (LPARAM)srfPlugin);
+  StackCopyRecentFile(srfPlugin);
   if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei))
     nCurItem=(int)SendMessage(hMainWnd, AKD_RECENTFILES, RF_FINDINDEX, (LPARAM)ei.wszFile);
   return nCurItem;
@@ -616,6 +618,43 @@ void StackExportRecentFiles(STACKRECENTFILE *srfPlugin)
     srfPlugin->first=0;
     srfPlugin->last=0;
     SendMessage(hMainWnd, AKD_RECENTFILES, RF_SAVE, (LPARAM)NULL);
+  }
+}
+
+void StackCopyRecentFile(STACKRECENTFILE *srfPlugin)
+{
+  STACKRECENTFILE *srfProgram;
+  RECENTFILE *lpRecentFile;
+  STACKRECENTFILEPARAM srfParam;
+  RECENTFILEPARAM *lpRecentFileParam;
+  wchar_t *wpParam;
+  int nParamLen;
+
+  if (SendMessage(hMainWnd, AKD_RECENTFILES, RF_GET, (LPARAM)&srfProgram))
+  {
+    StackCopy((stack *)srfProgram->first, (stack *)srfProgram->last, (stack **)&srfPlugin->first, (stack **)&srfPlugin->last, sizeof(RECENTFILE));
+
+    for (lpRecentFile=srfPlugin->first; lpRecentFile; lpRecentFile=lpRecentFile->next)
+    {
+      xmemcpy(&srfParam, &lpRecentFile->lpParamsStack, sizeof(STACKRECENTFILEPARAM));
+      xmemset(&lpRecentFile->lpParamsStack, 0, sizeof(STACKRECENTFILEPARAM));
+      StackCopy((stack *)srfParam.first, (stack *)srfParam.last, (stack **)&lpRecentFile->lpParamsStack.first, (stack **)&lpRecentFile->lpParamsStack.last, sizeof(RECENTFILEPARAM));
+
+      for (lpRecentFileParam=(RECENTFILEPARAM *)lpRecentFile->lpParamsStack.first; lpRecentFileParam; lpRecentFileParam=lpRecentFileParam->next)
+      {
+        lpRecentFileParam->file=lpRecentFile;
+
+        nParamLen=(int)xstrlenW(lpRecentFileParam->pParamName) + 1;
+        if (wpParam=(wchar_t *)GlobalAlloc(GPTR, nParamLen * sizeof(wchar_t)))
+          xstrcpynW(wpParam, lpRecentFileParam->pParamName, nParamLen);
+        lpRecentFileParam->pParamName=wpParam;
+
+        nParamLen=(int)xstrlenW(lpRecentFileParam->pParamValue) + 1;
+        if (wpParam=(wchar_t *)GlobalAlloc(GPTR, nParamLen * sizeof(wchar_t)))
+          xstrcpynW(wpParam, lpRecentFileParam->pParamValue, nParamLen);
+        lpRecentFileParam->pParamValue=wpParam;
+      }
+    }
   }
 }
 
