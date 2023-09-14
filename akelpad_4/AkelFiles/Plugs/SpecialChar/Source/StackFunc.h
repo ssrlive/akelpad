@@ -1,7 +1,7 @@
 /*****************************************************************
- *              Stack functions header v3.4                      *
+ *              Stack functions header v3.5                      *
  *                                                               *
- * 2013 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2023 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Linear functions:                                              *
@@ -1440,6 +1440,7 @@ void StackReverseRange(stack **first, stack **last, stack *rangemin, stack *rang
  *         2 on memory allocating error
  *Note:
  *  StackCopy uses StackInsertAfter
+ *  After copylast new elements from source will be inserted
  ********************************************************************/
 #if defined StackCopy || defined ALLSTACKFUNC
 #define StackCopy_INCLUDED
@@ -1468,6 +1469,7 @@ int StackCopy(stack *first, stack *last, stack **copyfirst, stack **copylast, in
     }
     else break;
 
+    if (tmp1 == last) break;
     tmp1=tmp1->next;
   }
   return nResult;
