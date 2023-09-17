@@ -464,6 +464,30 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Resources\Open.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Resources\Delete.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Resources\DeleteOld.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Resources\Down.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Resources\Up.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Resources\Sort.ico"
+				>
+			</File>
+			<File
 				RelativePath="Resources\RecentFiles.rc"
 				>
 				<FileConfiguration

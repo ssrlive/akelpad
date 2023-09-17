@@ -453,6 +453,13 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         int *lpSelItems;
         int nSelCount;
         int i;
+        BOOL bShift=FALSE;
+
+        if (!nMDI)
+        {
+          if (GetKeyState(VK_SHIFT) < 0)
+            bShift=TRUE;
+        }
 
         if (nSelCount=GetListBoxSelItems(hWndItemsList, &lpSelItems))
         {
@@ -464,17 +471,29 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
           {
             if (lpElement=StackGetRecentFile(&hRecentFilesStack, lpSelItems[i] + 1))
             {
-              od.pFile=lpElement->wszFile;
-              od.pWorkDir=NULL;
-              od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
-              od.nCodePage=0;
-              od.bBOM=0;
-              od.hDoc=NULL;
-              SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
+              if (!nMDI && bShift)
+              {
+                PARSECMDLINESENDW pcls;
+               
+                pcls.pCmdLine=lpElement->wszFile;
+                pcls.pWorkDir=NULL;
+                pcls.dwFlags=PCLF_OPENINNEWWINDOW;
+                SendMessage(hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pcls);
+              }
+              else
+              {
+                od.pFile=lpElement->wszFile;
+                od.pWorkDir=NULL;
+                od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
+                od.nCodePage=0;
+                od.bBOM=0;
+                od.hDoc=NULL;
+                SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
+              }
             }
             else break;
 
-            if (nMDI == WMD_SDI) break;
+            if (!nMDI && !bShift) break;
           }
           FreeListBoxSelItems(&lpSelItems);
         }
@@ -524,21 +543,21 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 LRESULT CALLBACK NewListBoxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == WM_GETDLGCODE)
-  {
-    MSG *msg=(MSG *)lParam;
-
-    if (msg)
-    {
-      if (msg->message == WM_KEYDOWN)
-      {
-        if (msg->wParam == VK_RETURN)
-        {
-          return DLGC_WANTALLKEYS;
-        }
-      }
-    }
-  }
+  //if (uMsg == WM_GETDLGCODE)
+  //{
+  //  MSG *msg=(MSG *)lParam;
+  //
+  //  if (msg)
+  //  {
+  //    if (msg->message == WM_KEYDOWN)
+  //    {
+  //      if (msg->wParam == VK_RETURN)
+  //      {
+  //        return DLGC_WANTALLKEYS;
+  //      }
+  //    }
+  //  }
+  //}
 
   if (uMsg == WM_KEYDOWN ||
       uMsg == WM_SYSKEYDOWN)
@@ -554,15 +573,15 @@ LRESULT CALLBACK NewListBoxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (GetKeyState(VK_CONTROL) < 0)
       bControl=TRUE;
 
-    if (wParam == VK_RETURN)
-    {
-      if (!bAlt && !bShift && !bControl)
-      {
-        PostMessage(GetParent(hWnd), WM_COMMAND, IDC_ITEM_OPEN, 0);
-        return TRUE;
-      }
-    }
-    else if (wParam == VK_DELETE)
+    //if (wParam == VK_RETURN)
+    //{
+    //  if (!bAlt && !bShift && !bControl)
+    //  {
+    //    PostMessage(GetParent(hWnd), WM_COMMAND, IDC_ITEM_OPEN, 0);
+    //    return TRUE;
+    //  }
+    //}
+    if (wParam == VK_DELETE)
     {
       if (!bAlt && !bShift && !bControl)
       {
