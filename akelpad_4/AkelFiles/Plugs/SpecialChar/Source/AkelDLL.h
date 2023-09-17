@@ -59,14 +59,18 @@
 #define CLO_VARNOSYSTEM           0x1000  //Don't expand system variables (for example, %windir%).
 #define CLO_VARNOAKELPAD          0x2000  //Don't expand program variables %f,%d,%a. If flag set, then symbol % must be specified as is (without %%).
 
+//PARSECMDLINESENDW, PARSECMDLINEPOSTW flags
+#define PCLF_OPENINNEWWINDOW 0x0001  //Open all documents in new windows. If not set, open first document in current window and next in new windows (SDI).
+
 //AKD_PARSECMDLINE return value
-#define PCLE_SUCCESS     0  //Success.
-#define PCLE_QUIT        1  //Stop parsing command line parameters and close program.
-#define PCLE_END         2  //Stop parsing command line parameters.
-#define PCLE_ONLOAD      3  //Done parsing command line parameters on program load (used internally).
-#define PCLE_WINDOWEXIST 4  //File already opened in SDI mode.
-#define PCLE_OPENERROR   5  //Error occurred during file opening.
-#define PCLE_SAVEERROR   6  //Error occurred during file saving.
+#define PCLE_SUCCESS        0  //Success.
+#define PCLE_QUIT           1  //Stop parsing command line parameters and close program.
+#define PCLE_END            2  //Stop parsing command line parameters.
+#define PCLE_ONLOAD         3  //Done parsing command line parameters on program load (used internally).
+#define PCLE_PASS           4  //Stop parsing command line parameters, pass the rest of the command line to the new process (SDI).
+#define PCLE_OPENERROR      5  //Error occurred during file opening.
+#define PCLE_SAVEERROR      6  //Error occurred during file saving.
+#define PCLE_WRONGFILEPLACE 7  //File to open located in "CmdLineBegin" or "CmdLineEnd" (SDI).
 
 #ifndef _METHODFUNC_H_
   //External parameters
@@ -187,10 +191,10 @@
 #define RF_SET             2  //Set recent files number.
                               //(int)lParam is maximum number of recent files.
                               //Return value is zero.
-#define RF_READ            3  //Read recent files from registry.
+#define RF_READ            3  //Read recent files from registry or ini.
                               //(STACKRECENTFILE *)lParam is a pointer to a STACKRECENTFILE structure, can be NULL.
                               //Return value is number of records read.
-#define RF_SAVE            4  //Save recent files to registry.
+#define RF_SAVE            4  //Save recent files to registry or ini.
                               //(STACKRECENTFILE *)lParam is a pointer to a STACKRECENTFILE structure, can be NULL.
                               //Return value is zero.
 #define RF_CLEAR           5  //Clear recent files stack. Use RF_SAVE to save result.
@@ -222,6 +226,9 @@
                               //Return value is a pointer to a real RECENTFILEPARAM structure or NULL if error.
 #define RF_DELETEPARAM     23 //Delete recent file parameter.
                               //(RECENTFILEPARAM *)lParam a pointer to a real RECENTFILEPARAM structure.
+                              //Return value is zero.
+#define RF_FRAMESAVE       31 //Save frame data in STACKRECENTFILE for MDI and in registry or ini for SDI.
+                              //(FRAMEDATA *)lParam a pointer to a real FRAMEDATA structure.
                               //Return value is zero.
 
 //AKD_SEARCHHISTORY flags
@@ -1705,7 +1712,8 @@ typedef struct {
 
 typedef struct {
   const wchar_t *pCmdLine; //Command line string. On return contain pointer to a unprocessed string.
-  const wchar_t *pWorkDir; //Command line string.
+  const wchar_t *pWorkDir; //Command line string. Can be NULL.
+  DWORD dwFlags;           //See PCLF_* defines.
 } PARSECMDLINESENDW;
 
 typedef struct {
@@ -1715,7 +1723,7 @@ typedef struct {
   int nCmdLineLen;                     //Command line length, not including the terminating null character.
   wchar_t szWorkDir[MAX_PATH];         //Working directory string.
   int nWorkDirLen;                     //Working directory length, not including the terminating null character.
-  BOOL bQuitAsEnd;                     //Internal variable - "/quit" stops parsing command line parameters, but not closes program.
+  DWORD dwFlags;                       //See PCLF_* defines.
 } PARSECMDLINEPOSTW;
 
 #ifndef _METHODFUNC_H_
@@ -3106,6 +3114,7 @@ Example:
 
  pcls.pCmdLine=L"/p \"C:\\MyFile.txt\"";
  pcls.pWorkDir=L"";
+ pcls.dwFlags=0;
  SendMessage(pd->hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pcls);
 
 
@@ -5769,6 +5778,7 @@ Example (Unicode):
    pclp->bPostMessage=TRUE;
    pclp->nCmdLineLen=lstrcpynW(pclp->szCmdLine, wpCmdLine, COMMANDLINE_SIZE);
    pclp->nWorkDirLen=GetCurrentDirectoryWide(MAX_PATH, pclp->szWorkDir);
+   pclp->dwFlags=0;
 
    cds.dwData=CD_PARSECMDLINEW;
    cds.cbData=sizeof(PARSECMDLINEPOSTW);
