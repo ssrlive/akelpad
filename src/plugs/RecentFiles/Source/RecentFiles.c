@@ -21,6 +21,7 @@
 #define StackMoveIndex
 #define StackDelete
 #define StackClear
+#define StackCopy
 #include "StackFunc.h"
 
 //Include string functions
@@ -79,6 +80,7 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 LRESULT CALLBACK NewListBoxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int StackImportRecentFiles(STACKRECENTFILE *srfPlugin);
 void StackExportRecentFiles(STACKRECENTFILE *srfPlugin);
+void StackCopyRecentFile(STACKRECENTFILE* srfPlugin);
 RECENTFILE* StackGetRecentFile(STACKRECENTFILE *srfPlugin, int nIndex);
 int StackSortRecentFiles(STACKRECENTFILE *srfPlugin, int nUpDown);
 void StackFreeRecentFiles(STACKRECENTFILE *srfPlugin);
@@ -452,6 +454,13 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         int *lpSelItems;
         int nSelCount;
         int i;
+        BOOL bShift = FALSE;
+
+        if (!nMDI)
+        {
+          if (GetKeyState(VK_SHIFT) < 0)
+            bShift = TRUE;
+        }
 
         if (nSelCount=GetListBoxSelItems(hWndItemsList, &lpSelItems))
         {
@@ -463,17 +472,29 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
           {
             if (lpElement=StackGetRecentFile(&hRecentFilesStack, lpSelItems[i] + 1))
             {
-              od.pFile=lpElement->wszFile;
-              od.pWorkDir=NULL;
-              od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
-              od.nCodePage=0;
-              od.bBOM=0;
-              od.hDoc=NULL;
-              SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
+              if (!nMDI && bShift)
+              {
+                PARSECMDLINESENDW pcls;
+
+                pcls.pCmdLine=lpElement->wszFile;
+                pcls.pWorkDir=NULL;
+                pcls.dwFlags=PCLF_OPENINNEWWINDOW;
+                SendMessage(hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pcls);
+              }
+              else
+              {
+                od.pFile=lpElement->wszFile;
+                od.pWorkDir=NULL;
+                od.dwFlags=OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE;
+                od.nCodePage=0;
+                od.bBOM=0;
+                od.hDoc=NULL;
+                SendMessage(hMainWnd, AKD_OPENDOCUMENTW, (WPARAM)NULL, (LPARAM)&od);
+              }
             }
             else break;
 
-            if (nMDI == WMD_SDI) break;
+            if (!nMDI && !bShift) break;
           }
           FreeListBoxSelItems(&lpSelItems);
         }
@@ -523,21 +544,21 @@ BOOL CALLBACK RecentFilesListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 LRESULT CALLBACK NewListBoxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == WM_GETDLGCODE)
-  {
-    MSG *msg=(MSG *)lParam;
-
-    if (msg)
-    {
-      if (msg->message == WM_KEYDOWN)
-      {
-        if (msg->wParam == VK_RETURN)
-        {
-          return DLGC_WANTALLKEYS;
-        }
-      }
-    }
-  }
+  //if (uMsg == WM_GETDLGCODE)
+  //{
+  //  MSG *msg=(MSG *)lParam;
+  //
+  //  if (msg)
+  //  {
+  //    if (msg->message == WM_KEYDOWN)
+  //    {
+  //      if (msg->wParam == VK_RETURN)
+  //      {
+  //        return DLGC_WANTALLKEYS;
+  //      }
+  //    }
+  //  }
+  //}
 
   if (uMsg == WM_KEYDOWN ||
       uMsg == WM_SYSKEYDOWN)
@@ -553,15 +574,15 @@ LRESULT CALLBACK NewListBoxProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (GetKeyState(VK_CONTROL) < 0)
       bControl=TRUE;
 
-    if (wParam == VK_RETURN)
-    {
-      if (!bAlt && !bShift && !bControl)
-      {
-        PostMessage(GetParent(hWnd), WM_COMMAND, IDC_ITEM_OPEN, 0);
-        return TRUE;
-      }
-    }
-    else if (wParam == VK_DELETE)
+    //if (wParam == VK_RETURN)
+    //{
+    //  if (!bAlt && !bShift && !bControl)
+    //  {
+    //    PostMessage(GetParent(hWnd), WM_COMMAND, IDC_ITEM_OPEN, 0);
+    //    return TRUE;
+    //  }
+    //}
+    if (wParam == VK_DELETE)
     {
       if (!bAlt && !bShift && !bControl)
       {
@@ -599,7 +620,7 @@ int StackImportRecentFiles(STACKRECENTFILE *srfPlugin)
   int nCurItem=-1;
 
   SendMessage(hMainWnd, AKD_RECENTFILES, RF_CLEAR, (LPARAM)srfPlugin);
-  SendMessage(hMainWnd, AKD_RECENTFILES, RF_READ, (LPARAM)srfPlugin);
+  StackCopyRecentFile(srfPlugin);
   if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei))
     nCurItem=(int)SendMessage(hMainWnd, AKD_RECENTFILES, RF_FINDINDEX, (LPARAM)ei.wszFile);
   return nCurItem;
@@ -617,6 +638,43 @@ void StackExportRecentFiles(STACKRECENTFILE *srfPlugin)
     srfPlugin->first=0;
     srfPlugin->last=0;
     SendMessage(hMainWnd, AKD_RECENTFILES, RF_SAVE, (LPARAM)NULL);
+  }
+}
+
+void StackCopyRecentFile(STACKRECENTFILE *srfPlugin)
+{
+  STACKRECENTFILE *srfProgram;
+  RECENTFILE *lpRecentFile;
+  STACKRECENTFILEPARAM srfParam;
+  RECENTFILEPARAM *lpRecentFileParam;
+  wchar_t *wpParam;
+  int nParamLen;
+
+  if (SendMessage(hMainWnd, AKD_RECENTFILES, RF_GET, (LPARAM)&srfProgram))
+  {
+    StackCopy((stack *)srfProgram->first, (stack *)srfProgram->last, (stack **)&srfPlugin->first, (stack **)&srfPlugin->last, sizeof(RECENTFILE));
+
+    for (lpRecentFile=srfPlugin->first; lpRecentFile; lpRecentFile=lpRecentFile->next)
+    {
+      xmemcpy(&srfParam, &lpRecentFile->lpParamsStack, sizeof(STACKRECENTFILEPARAM));
+      xmemset(&lpRecentFile->lpParamsStack, 0, sizeof(STACKRECENTFILEPARAM));
+      StackCopy((stack *)srfParam.first, (stack *)srfParam.last, (stack **)&lpRecentFile->lpParamsStack.first, (stack **)&lpRecentFile->lpParamsStack.last, sizeof(RECENTFILEPARAM));
+
+      for (lpRecentFileParam=(RECENTFILEPARAM *)lpRecentFile->lpParamsStack.first; lpRecentFileParam; lpRecentFileParam=lpRecentFileParam->next)
+      {
+        lpRecentFileParam->file=lpRecentFile;
+
+        nParamLen=(int)xstrlenW(lpRecentFileParam->pParamName) + 1;
+        if (wpParam=(wchar_t *)GlobalAlloc(GPTR, nParamLen * sizeof(wchar_t)))
+          xstrcpynW(wpParam, lpRecentFileParam->pParamName, nParamLen);
+        lpRecentFileParam->pParamName=wpParam;
+
+        nParamLen=(int)xstrlenW(lpRecentFileParam->pParamValue) + 1;
+        if (wpParam=(wchar_t *)GlobalAlloc(GPTR, nParamLen * sizeof(wchar_t)))
+          xstrcpynW(wpParam, lpRecentFileParam->pParamValue, nParamLen);
+        lpRecentFileParam->pParamValue=wpParam;
+      }
+    }
   }
 }
 

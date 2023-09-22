@@ -283,12 +283,10 @@ int nCmdLineBeginLen=0;
 wchar_t *wpCmdLineEnd=NULL;
 int nCmdLineEndLen=0;
 BOOL bCmdLineChanged=FALSE;
-const wchar_t *wpCmdLine=NULL;
+const wchar_t *wpCmdLineDo=NULL;
 wchar_t *wpCmdParamsStart=NULL;
 wchar_t *wpCmdParamsEnd=NULL;
 DWORD dwCmdLineOptions=0;
-BOOL bCmdLineQuitAsEnd=FALSE;
-int nParseCmdLineOnLoad=0;
 
 //Language
 HMODULE hLangModule;
@@ -672,6 +670,7 @@ EXTERN_C int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPTSTR lpCmd
   int nMinor;
   int nRelease;
   int nBuild;
+  int nParseCmdLineOnLoad=0;
 
   //Process
   hHeap=GetProcessHeap();
@@ -971,9 +970,9 @@ EXTERN_C int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPTSTR lpCmd
   if (bOldWindows ? !xstrcmpinA("/Ini(", (char *)mc.pCmdLine, (UINT_PTR)-1) :
                     !xstrcmpinW(L"/Ini(", (wchar_t *)mc.pCmdLine, (UINT_PTR)-1))
   {
-    wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, NULL, NULL);
-    if (wpCmdLine)
-      ParseCmdLine(&wpCmdLine, PCL_INI);
+    wpCmdLineDo=GetCommandLineParamsWide(mc.pCmdLine, NULL, NULL);
+    if (wpCmdLineDo)
+      ParseCmdLine(&wpCmdLineDo, PCL_INI, 0);
     bAkelPadIniChanged=TRUE;
   }
 
@@ -983,9 +982,9 @@ EXTERN_C int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPTSTR lpCmd
   nMDI=moInit.nMDI;
 
   //Parse commmand line on load
-  wpCmdLine=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
-  if (wpCmdLine)
-    nParseCmdLineOnLoad=ParseCmdLine(&wpCmdLine, PCL_ONLOAD);
+  wpCmdLineDo=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
+  if (wpCmdLineDo)
+    nParseCmdLineOnLoad=ParseCmdLine(&wpCmdLineDo, PCL_ONLOAD, 0);
 
   //Mutex
   #ifndef AKELPAD_DLLBUILD
@@ -1022,18 +1021,18 @@ EXTERN_C int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPTSTR lpCmd
 
         //Send command line parameters without CmdLineBegin and CmdLineEnd
         *wpCmdParamsEnd=L'\0';
-        SendCmdLine(hWndFriend, wpCmdParamsStart, TRUE, TRUE);
+        SendCmdLineToProcess(hWndFriend, wpCmdParamsStart, TRUE, 0);
         goto Quit;
       }
     }
   #endif
 
-  if (wpCmdLine)
+  if (wpCmdLineDo)
   {
     if (nParseCmdLineOnLoad == PCLE_QUIT)
       goto Quit;
     else if (nParseCmdLineOnLoad != PCLE_ONLOAD)
-      wpCmdLine=NULL;
+      wpCmdLineDo=NULL;
   }
 
   //Read all options
@@ -1949,11 +1948,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SendMessage(hMainWnd, AKDN_MAIN_ONSTART_SHOW, 0, 0);
 
         //Parse commmand line on show
-        if (wpCmdLine)
+        if (wpCmdLineDo)
         {
-          int nResult=ParseCmdLine(&wpCmdLine, PCL_ONSHOW);
+          int nResult=ParseCmdLine(&wpCmdLineDo, PCL_ONSHOW, 0);
 
-          wpCmdLine=NULL;
+          wpCmdLineDo=NULL;
           if (nResult == PCLE_QUIT)
             PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         }
@@ -2011,12 +2010,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (pcls->pWorkDir && *pcls->pWorkDir)
           SetCurrentDirectoryWide(pcls->pWorkDir);
-        nResult=ParseCmdLine(&pcls->pCmdLine, PCL_ONMESSAGE);
+        nResult=ParseCmdLine(&pcls->pCmdLine, PCL_ONMESSAGE, pcls->dwFlags);
         if (pcls->pWorkDir && *pcls->pWorkDir)
           SetCurrentDirectoryWide(wszExeDir);
-        if (!bCmdLineQuitAsEnd && nResult == PCLE_QUIT)
+        if (nResult == PCLE_QUIT)
           PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
-        bCmdLineQuitAsEnd=FALSE;
 
         return nResult;
       }
@@ -3698,6 +3696,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           StackRecentFileParamDelete(rfp);
         }
+        else if (wParam == RF_FRAMESAVE)
+        {
+          FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
+
+          if (!lpFrame) lpFrame=lpFrameCurrent;
+          RecentFilesFrameSave(lpFrame);
+        }
         return 0;
       }
       case AKD_SEARCHHISTORY:
@@ -4580,8 +4585,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //In this place: working directory string in size (pclp->nWorkDirLen + 1) * sizeof(wchar_t).
         pmpcl->pcls.pWorkDir=(wchar_t *)((unsigned char *)pmpcl->pcls.pCmdLine + (pclp->nCmdLineLen + 1) * sizeof(wchar_t));
         xstrcpynW((wchar_t *)pmpcl->pcls.pWorkDir, pclp->szWorkDir, pclp->nWorkDirLen + 1);
+
+        pmpcl->pcls.dwFlags=pclp->dwFlags;
       }
-      bCmdLineQuitAsEnd=pclp->bQuitAsEnd;
 
       if (pclp->bPostMessage)
       {
@@ -4792,7 +4798,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings, FALSE);
         }
-        return (LRESULT)DoFileNewWindow(0);
+        return (LRESULT)DoFileNewWindow(0, NULL);
       }
       case IDM_FILE_OPEN:
       {
@@ -5772,16 +5778,29 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else
       {
         int nOpen=EOD_SUCCESS;
+        BOOL bShift=FALSE;
 
-        if (nMDI || SaveChanged(0))
+        if (!nMDI)
+        {
+          if (GetKeyState(VK_SHIFT) < 0)
+            bShift=TRUE;
+        }
+
+        if (nMDI || bShift || SaveChanged(0))
         {
           RECENTFILE *lpRecentFile;
           wchar_t *wpFile=API_AllocWide(MAX_PATH);
+          const wchar_t *wpCmdLine;
 
           if (lpRecentFile=RecentFilesFindByIndex(wCommand - IDM_RECENT_FILES - 1))
           {
             xstrcpynW(wpFile, lpRecentFile->wszFile, MAX_PATH);
-            nOpen=OpenDocument(NULL, NULL, wpFile, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE, 0, FALSE);
+            if (!nMDI && bShift)
+            {
+              wpCmdLine=wpFile;
+              nOpen=ParseCmdLine(&wpCmdLine, PCL_ONMENU, PCLF_OPENINNEWWINDOW);
+            }
+            else nOpen=OpenDocument(NULL, NULL, wpFile, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE, 0, FALSE);
           }
           API_FreeWide(wpFile);
         }
@@ -5928,7 +5947,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nMainOnFinish=MOF_NONE;
         return bEndSession?0:1;
       }
-      RecentFilesFrameUpdate(lpFrameCurrent);
     }
     else
     {
@@ -5936,7 +5954,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (lpFrameCurrent->hWndEditParent)
       {
-        RecentFilesFrameUpdate(lpFrameCurrent);
+        RecentFilesFrameSave(lpFrameCurrent);
         bFirstTabOnFinish=TRUE;
       }
 
@@ -7032,7 +7050,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         //Ask if document unsaved
         if (!SaveChanged(dwPrompt)) return TRUE;
-        RecentFilesFrameUpdate(lpFrame);
+        RecentFilesFrameSave(lpFrame);
 
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
         {

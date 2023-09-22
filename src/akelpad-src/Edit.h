@@ -110,6 +110,8 @@
 #define PCL_ONLOAD           1
 #define PCL_ONSHOW           2
 #define PCL_ONMESSAGE        3
+#define PCL_ONCALL           4
+#define PCL_ONMENU           5
 
 //Command line variable flags
 #define CLVF_SYSTEM          0x1
@@ -265,7 +267,7 @@
 #define REW_NOREDRAW  0x00000002
 
 //STARTUPINFO flags
-#define STARTF_NOMUTEX  0x00001000
+#define STARTF_NOMUTEX  0x10000000
 
 //Main option type
 #define MOT_DWORD       0x01  //32-bit number.
@@ -758,7 +760,7 @@ void SplitVisUpdate(FRAMEDATA *lpFrame);
 
 BOOL DoFileNew();
 BOOL CloseDocument(DWORD dwPrompt);
-HWND DoFileNewWindow(DWORD dwAddFlags);
+HWND DoFileNewWindow(DWORD dwAddFlags, const wchar_t *wpParams);
 BOOL CALLBACK EnumThreadWindowsProc(HWND hWnd, LPARAM lParam);
 BOOL DoFileOpen();
 int DoFileReopenAs(DWORD dwFlags, int nCodePage, BOOL bBOM);
@@ -970,7 +972,7 @@ int RecentFilesDeleteOld(STACKRECENTFILE *hStack);
 int RecentFilesRead(MAINOPTIONS *mo, STACKRECENTFILE *hStack);
 void RecentFilesParseData(STACKRECENTFILE *hStack, const wchar_t *wszData);
 BOOL RecentFilesSave(STACKRECENTFILE *hStack, int nSaveSettings);
-void RecentFilesFrameUpdate(FRAMEDATA *lpFrame);
+void RecentFilesFrameSave(FRAMEDATA *lpFrame);
 void RecentFilesMenu();
 RECENTFILEPARAM* StackRecentFileParamAdd(RECENTFILE *lpRecentFile);
 RECENTFILEPARAM* StackRecentFileParamGetByName(RECENTFILE *lpRecentFile, const wchar_t *wpParamName);
@@ -1152,8 +1154,8 @@ wchar_t* GetCommandLineParamsWide(const unsigned char *pCmdParams, wchar_t **wpp
 char* GetCommandLineParamsA();
 wchar_t* GetCommandLineParamsW();
 int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg, BOOL bParseAsNotepad);
-int ParseCmdLine(const wchar_t **wppCmdLine, int nType);
-void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, BOOL bQuitAsEnd);
+int ParseCmdLine(const wchar_t **wppCmdLine, int nType, DWORD dwFlags);
+void SendCmdLineToProcess(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost, DWORD dwFlags);
 void MethodExpandParameters(STACKEXTPARAM *hParamStack, const EXPPARAM *ep);
 int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink);
 INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput, DWORD *lpdwCaret);
