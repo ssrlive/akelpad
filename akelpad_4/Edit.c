@@ -12527,6 +12527,7 @@ BOOL RecentFilesSave(STACKRECENTFILE *hStack, int nSaveSettings)
 
 void RecentFilesFrameSave(FRAMEDATA *lpFrame)
 {
+  STACKRECENTFILEPARAM srfp={0};
   RECENTFILE *lpRecentFile;
   CHARRANGE64 cr;
   BOOL bSwitch=FALSE;
@@ -12536,7 +12537,15 @@ void RecentFilesFrameSave(FRAMEDATA *lpFrame)
     if (!nMainOnFinish || !nMDI || xstrcmpiW(fdDefault.wszFile, lpFrame->wszFile))
     {
       if (!nMDI)
+      {
+        //Remember current file params before RecentFilesRead erase them
+        if (lpRecentFile=RecentFilesFindByName(lpFrame->wszFile, NULL))
+        {
+          xmemcpy(&srfp, &lpRecentFile->lpParamsStack, sizeof(STACKRECENTFILEPARAM));
+          xmemset(&lpRecentFile->lpParamsStack, 0, sizeof(STACKRECENTFILEPARAM));
+        }
         RecentFilesRead(&moCur, &hRecentFilesStack);
+      }
 
       //Get selection
       SendToDoc(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
@@ -12560,6 +12569,10 @@ void RecentFilesFrameSave(FRAMEDATA *lpFrame)
         lpRecentFile->nCodePage=lpFrame->ei.nCodePage;
         lpRecentFile->cpMin=bSwitch?cr.cpMax:cr.cpMin;
         lpRecentFile->cpMax=bSwitch?cr.cpMin:cr.cpMax;
+
+        //Restore current file params
+        if (srfp.first)
+          xmemcpy(&lpRecentFile->lpParamsStack, &srfp, sizeof(STACKRECENTFILEPARAM));
       }
       if (!nMDI && moCur.nRecentFiles)
         RecentFilesSave(&hRecentFilesStack, moCur.nSaveHistory);
@@ -20001,7 +20014,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType, DWORD dwFlags)
               if (nType == PCL_ONSHOW)
                 *wpCmdParamsEnd=L'\0';
               SendCmdLineToProcess(hWndFriend, wpCmdLine, TRUE, 0);
-              if (nType == PCL_ONSHOW)
+              if (nType == PCL_ONLOAD || nType == PCL_ONSHOW)
                 nResult=PCLE_QUIT;
               else
                 nResult=PCLE_PASS;
