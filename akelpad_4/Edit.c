@@ -4040,7 +4040,7 @@ HANDLE ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nType, HANDLE hHandle)
   //Read search history
   SearchRead(mo);
 
-  //Read search history
+  //Read recent files
   RecentFilesRead(mo, &hRecentFilesStack);
   bMenuRecentFiles=TRUE;
 
@@ -20011,10 +20011,10 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType, DWORD dwFlags)
               ActivateWindow(hWndFriend);
               SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
               //Send command line parameters without CmdLineEnd
-              if (nType == PCL_ONSHOW)
+              if (nType == PCL_ONLOAD)
                 *wpCmdParamsEnd=L'\0';
               SendCmdLineToProcess(hWndFriend, wpCmdLine, TRUE, 0);
-              if (nType == PCL_ONLOAD || nType == PCL_ONSHOW)
+              if (nType == PCL_ONLOAD)
                 nResult=PCLE_QUIT;
               else
                 nResult=PCLE_PASS;
@@ -20029,6 +20029,11 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType, DWORD dwFlags)
           goto End;
         }
 
+        //Save position before load the same document
+        if ((hWndFriend=FindWindowExWide(NULL, NULL, APP_SDI_CLASSW, wszCmdArg)) &&
+            (hWndFriend=GetParent(hWndFriend)))
+          SendMessage(hWndFriend, AKD_RECENTFILES, RF_FRAMESAVE, (LPARAM)NULL);
+
         if (!bOpenInNewWindow)
         {
           if (!SaveChanged(0))
@@ -20036,6 +20041,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType, DWORD dwFlags)
             nResult=PCLE_SAVEERROR;
             goto End;
           }
+          if (hWndFriend) RecentFilesRead(&moCur, &hRecentFilesStack);
           nOpen=OpenDocument(NULL, NULL, wszCmdArg, OD_ADT_BINARYERROR|OD_ADT_REGCODEPAGE|(*wpCmdLineNext?OD_MULTIFILE:0), 0, FALSE);
           if (nOpen != EOD_SUCCESS && nOpen != EOD_MSGNOCREATE && nOpen != EOD_MSGNOBINARY && nOpen != EOD_WINDOWEXIST)
           {
@@ -20045,10 +20051,6 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType, DWORD dwFlags)
           bOpenInNewWindow=TRUE;
           continue;
         }
-        //Save position before load the same document
-        if ((hWndFriend=FindWindowExWide(NULL, NULL, APP_SDI_CLASSW, wszCmdArg)) &&
-            (hWndFriend=GetParent(hWndFriend)))
-          SendMessage(hWndFriend, AKD_RECENTFILES, RF_FRAMESAVE, (LPARAM)NULL);
 
         //Send command line parameters without CmdLineEnd
         if (nType == PCL_ONSHOW)
