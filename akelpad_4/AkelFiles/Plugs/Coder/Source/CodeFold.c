@@ -3096,7 +3096,10 @@ FOLDWINDOW* FillLevelsStack(FOLDWINDOW *lpFoldWindow, STACKLEVEL *hLevelStack, H
                   lpParent->dwFlags|=LVLF_MULTILINE;
 
                 if ((lpFoldInfo->dwFlags & FIF_DENYFOLD) ||
-                    (!bTagMarkEnable && !(lpLevel->dwFlags & LVLF_MULTILINE)))
+                    (!bTagMarkEnable && !(lpLevel->dwFlags & LVLF_MULTILINE) &&
+                     lpFoldInfo->dwFontStyle == AEHLS_NONE &&
+                     lpFoldInfo->dwColor1 == (DWORD)-1 &&
+                     lpFoldInfo->dwColor2 == (DWORD)-1))
                 {
                   if ((lpFoldInfo->dwFlags & FIF_DENYFOLD) && lpFoldInfo->lpFoldStart->nElements > 1)
                   {
