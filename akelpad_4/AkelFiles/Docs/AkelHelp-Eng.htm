@@ -359,147 +359,6 @@
         </td>
       </tr>
       <tr>
-        <td><b>WordBreak</b></td>
-        <td>Defines how the caret on Ctrl+Left/Ctrl+Right will move. Works only if enabled "Word delimiters" in settings (WordDelimitersEnable=1). Set by the sum of members:
-          <br><li>1 - Left movement is stopped, when word start is found.
-          <br><li>2 - Left movement is stopped, when word end is found.
-          <br><li>4 - Right movement is stopped, when word start is found.
-          <br><li>8 - Right movement is stopped, when word end is found.
-          <br><li>16 - Movement is stopped, when spacing start is found. Cannot be combined with 64.
-          <br><li>32 - Movement is stopped, when spacing end is found. Cannot be combined with 128.
-          <br><li>64 - Movement is continued, when spacing start is found. Cannot be combined with 16.
-          <br><li>128 - Movement is continued, when spacing end is found. Cannot be combined with 32.
-          <br><li>256 - Movement is stopped, when new line is found.
-          <br>
-          <br>By default: 1+2+4+8+32+64=111 (AkelEdit), 1+8=9 (AkelPad).
-        </td>
-      </tr>
-      <tr>
-        <td><b>MouseOptions</b></td>
-        <td>Defines mouse settings. Set by the sum of members:
-          <br><li>1 - GUI (left click on margin selects line).
-          <br><li>2 - GUI (use RichEdit mouse selection).
-          <br><li>4 - GUI (enable mouse dragging).
-          <br><li>8 - GUI (right click moves caret).
-          <br><li>16 - Triple click and left margin click selects line without newline character(s).
-          <br><li>32 - Disable font size change using Ctrl+<i>mouse scroll wheel</i>.
-          <br><li>64 - Line selection with mouse selects all wrapped line.
-          <br><li>128 - No scrolling after middle mouse click.
-          <br><li>256 - Invert mouse horizontal wheel.
-          <br><li>512 - Invert mouse vertical wheel.
-          <br>
-          <br>By default: 1+2+4=7.
-        </td>
-      </tr>
-      <tr>
-        <td><b>SingleOpenProgram</b></td>
-        <td>Option "Don't open a program twice" in MDI/PMDI mode. Set by the sum of members:
-          <br><li>1 - GUI (option is on).
-          <br><li>2 - option works only for the same exe file. Requires run as administrator (UAC).
-          <br>
-          <br>By default: 1.
-        </td>
-      </tr>
-      <tr>
-        <td><b>TabOptionsMDI</b></td>
-        <td>Defines tabs settings in MDI/PMDI mode. Set by the sum of members:
-          <br><li>1 - GUI (tabs are hidden).
-          <br><li>2 - GUI (tabs shown at top of edit window).
-          <br><li>4 - GUI (tabs shown at bottom of edit window).
-          <br><li>256 - GUI (standard tab style).
-          <br><li>512 - GUI (button tab style).
-          <br><li>1024 - GUI (flat button tab style).
-          <br><li>65536 - GUI (hotkeys transfer focus as <i>next-prev</i>).
-          <br><li>131072 - GUI (hotkeys transfer focus as <i>right-left</i>).
-          <br><li>524288 - create tabs after the current one.
-          <br><li>1048576 - disable new tab creation using left button double click on the tab bar.
-          <br><li>2097152 - disable new tab creation using middle button click on the tab bar.
-          <br><li>4194304 - disable close tab using left button double click on the tab.
-          <br><li>8388608 - disable close tab using middle button click on the tab.
-          <br><li>268435456 - close modified tabs first on exit.
-          <br>
-          <br>By default: 2+256+131072=131330.
-        </td>
-      </tr>
-      <tr>
-        <td><b>TabNameFind</b></td>
-        <td>Defines <a href=#ch7>regular expression</a> search pattern for tab name in MDI/PMDI mode. If pattern not found, file name displayed without changes. Used with TabNameRep.
-          <br>
-          <br>By default: "".
-        </td>
-      </tr>
-      <tr>
-        <td><b>TabNameRep</b></td>
-        <td>Defines <a href=#ch7>regular expression</a> replace pattern for tab name in MDI/PMDI mode. Used with TabNameFind.
-          <br>
-          <br>Example:
-          <br>TabNameFind=(.{20}).{3,}(?:\.([^.]*))?
-          <br>TabNameRep=\1...\2
-          <br>
-          <br>By default: "".
-        </td>
-      </tr>
-      <tr>
-        <td><b>PaintOptions</b></td>
-        <td>Defines some text draw settings. Sets by the sum of members:
-          <br><li>1 - Paint text by groups of characters (default is character by character). With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
-          <br><li>2 - Disable drawing new line selection as space character.
-          <br><li>4 - Draw newline selection to right edge of text area.
-          <br><li>8 - Hides the selection when the control loses the input focus.
-          <br><li>16 - Disable marker painting after last line.
-          <br><li>128 - Unit of vertical scrolling is line (default is pixel).
-          <br><li>256 - Show scroll bars only when needed.
-          <br><li>512 - Draw thin edit window border.
-          <br><li>1024 - Draw no edit window border.
-          <br>
-          <br>By default: 0.
-        </td>
-      </tr>
-      <tr>
-        <td><b>FixedCharWidth</b></td>
-        <td>Defines fixed character width. All symbols, including proportional fonts, will be paint in this width. Special values:
-          <br><li>-1 - font latin character average width.
-          <br><li>-4 - font space width.
-          <br><li>-6 - font latin character maximum width.
-          <br><li>0 - disable fixed width.
-          <br>
-          <br>By default: 0.
-        </td>
-      </tr>
-      <tr>
-        <td><b>MScrollSpeed</b></td>
-        <td>Scrolling speed after middle mouse click. For example, 5.
-          <br>
-          <br>By default: 0 - program defined speed.
-        </td>
-      </tr>
-      <tr>
-        <td><b>EditStyle</b></td>
-        <td>Defines some edit window creation flags. Sets by the sum of members:
-          <br><li>1 - Use process heap for Undo buffer instead of window heap. This flag required for work of AEM_DETACHUNDO and AEM_ATTACHUNDO messages, but when closing edit window the memory releasing will be slower.
-          <br>
-          <br>By default: 0.
-        </td>
-      </tr>
-      <tr>
-        <td><b>RichEditClass</b></td>
-        <td>Defines edit control class name:
-          <br><li>0 - "AkelEdit".
-          <br><li>1 - "RichEdit20".
-          <br>
-          <br>By default: 0.
-        </td>
-      </tr>
-      <tr>
-        <td><b>AkelAdminResident</b></td>
-        <td>Defines residency of "AkelAdmin.exe":
-          <br><li>0 - AkelAdmin.exe unloaded from memory. Password will be prompted each time to change protected file.
-          <br><li>1 - AkelAdmin.exe remains in memory. Password will be prompted only for the first time to change protected file.
-          <br>
-          <br>By default: 1.
-        </td>
-      </tr>
-      <tr>
         <td><b>StatusUserFormat</b></td>
         <td>Defines user status bar format:
 
@@ -619,6 +478,155 @@
           <br>"Symbol:0x%ch%[85]Font:%f%[48]Tab:%t%[38]Marker:%m%[60]Docs:%dm*/%dc"
           <br>
           <br>By default: "" - format is not defined, additional status bar section is not displayed.
+        </td>
+      </tr>
+      <tr>
+        <td><b>WordBreak</b></td>
+        <td>Defines how the caret on Ctrl+Left/Ctrl+Right will move. Works only if enabled "Word delimiters" in settings (WordDelimitersEnable=1). Set by the sum of members:
+          <br><li>1 - Left movement is stopped, when word start is found.
+          <br><li>2 - Left movement is stopped, when word end is found.
+          <br><li>4 - Right movement is stopped, when word start is found.
+          <br><li>8 - Right movement is stopped, when word end is found.
+          <br><li>16 - Movement is stopped, when spacing start is found. Cannot be combined with 64.
+          <br><li>32 - Movement is stopped, when spacing end is found. Cannot be combined with 128.
+          <br><li>64 - Movement is continued, when spacing start is found. Cannot be combined with 16.
+          <br><li>128 - Movement is continued, when spacing end is found. Cannot be combined with 32.
+          <br><li>256 - Movement is stopped, when new line is found.
+          <br>
+          <br>By default: 1+2+4+8+32+64=111 (AkelEdit), 1+8=9 (AkelPad).
+        </td>
+      </tr>
+      <tr>
+        <td><b>MouseOptions</b></td>
+        <td>Defines mouse settings. Set by the sum of members:
+          <br><li>1 - GUI (left click on margin selects line).
+          <br><li>2 - GUI (use RichEdit mouse selection).
+          <br><li>4 - GUI (enable mouse dragging).
+          <br><li>8 - GUI (right click moves caret).
+          <br><li>16 - Triple click and left margin click selects line without newline character(s).
+          <br><li>32 - Disable font size change using Ctrl+<i>mouse scroll wheel</i>.
+          <br><li>64 - Line selection with mouse selects all wrapped line.
+          <br><li>128 - No scrolling after middle mouse click.
+          <br><li>256 - Invert mouse horizontal wheel.
+          <br><li>512 - Invert mouse vertical wheel.
+          <br>
+          <br>By default: 1+2+4=7.
+        </td>
+      </tr>
+      <tr>
+        <td><b>MScrollSpeed</b></td>
+        <td>Scrolling speed after middle mouse click. For example, 5.
+          <br>
+          <br>By default: 0 - program defined speed.
+        </td>
+      </tr>
+      <tr>
+        <td><b>TabOptionsMDI</b></td>
+        <td>Defines tabs settings in MDI/PMDI mode. Set by the sum of members:
+          <br><li>1 - GUI (tabs are hidden).
+          <br><li>2 - GUI (tabs shown at top of edit window).
+          <br><li>4 - GUI (tabs shown at bottom of edit window).
+          <br><li>256 - GUI (standard tab style).
+          <br><li>512 - GUI (button tab style).
+          <br><li>1024 - GUI (flat button tab style).
+          <br><li>65536 - GUI (hotkeys transfer focus as <i>next-prev</i>).
+          <br><li>131072 - GUI (hotkeys transfer focus as <i>right-left</i>).
+          <br><li>524288 - create tabs after the current one.
+          <br><li>1048576 - disable new tab creation using left button double click on the tab bar.
+          <br><li>2097152 - disable new tab creation using middle button click on the tab bar.
+          <br><li>4194304 - disable close tab using left button double click on the tab.
+          <br><li>8388608 - disable close tab using middle button click on the tab.
+          <br><li>268435456 - close modified tabs first on exit.
+          <br>
+          <br>By default: 2+256+131072=131330.
+        </td>
+      </tr>
+      <tr>
+        <td><b>TabNameFind</b></td>
+        <td>Defines <a href=#ch7>regular expression</a> search pattern for tab name in MDI/PMDI mode. If pattern not found, file name displayed without changes. Used with TabNameRep.
+          <br>
+          <br>By default: "".
+        </td>
+      </tr>
+      <tr>
+        <td><b>TabNameRep</b></td>
+        <td>Defines <a href=#ch7>regular expression</a> replace pattern for tab name in MDI/PMDI mode. Used with TabNameFind.
+          <br>
+          <br>Example:
+          <br>TabNameFind=(.{20}).{3,}(?:\.([^.]*))?
+          <br>TabNameRep=\1...\2
+          <br>
+          <br>By default: "".
+        </td>
+      </tr>
+      <tr>
+        <td><b>PaintOptions</b></td>
+        <td>Defines some text draw settings. Sets by the sum of members:
+          <br><li>1 - Paint text by groups of characters (default is character by character). With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
+          <br><li>2 - Disable drawing new line selection as space character.
+          <br><li>4 - Draw newline selection to right edge of text area.
+          <br><li>8 - Hides the selection when the control loses the input focus.
+          <br><li>16 - Disable marker painting after last line.
+          <br><li>128 - Unit of vertical scrolling is line (default is pixel).
+          <br><li>256 - Show scroll bars only when needed.
+          <br><li>512 - Draw thin edit window border.
+          <br><li>1024 - Draw no edit window border.
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>FixedCharWidth</b></td>
+        <td>Defines fixed character width. All symbols, including proportional fonts, will be paint in this width. Special values:
+          <br><li>-1 - font latin character average width.
+          <br><li>-4 - font space width.
+          <br><li>-6 - font latin character maximum width.
+          <br><li>0 - disable fixed width.
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>CreateFile</b></td>
+        <td>Defines some file creation flags. Sets by the sum of members:
+          <br><li>1 - Use FILE_FLAG_WRITE_THROUGH flag when writing file. May be a solution if there is a risk of data loss due to power problems.
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>EditStyle</b></td>
+        <td>Defines some edit window creation flags. Sets by the sum of members:
+          <br><li>1 - Use process heap for Undo buffer instead of window heap. This flag required for work of AEM_DETACHUNDO and AEM_ATTACHUNDO messages, but when closing edit window the memory releasing will be slower.
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>RichEditClass</b></td>
+        <td>Defines edit control class name:
+          <br><li>0 - "AkelEdit".
+          <br><li>1 - "RichEdit20".
+          <br>
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>SingleOpenProgram</b></td>
+        <td>Option "Don't open a program twice" in MDI/PMDI mode. Set by the sum of members:
+          <br><li>1 - GUI (option is on).
+          <br><li>2 - option works only for the same exe file. Requires run as administrator (UAC).
+          <br>
+          <br>By default: 1.
+        </td>
+      </tr>
+      <tr>
+        <td><b>AkelAdminResident</b></td>
+        <td>Defines residency of "AkelAdmin.exe":
+          <br><li>0 - AkelAdmin.exe unloaded from memory. Password will be prompted each time to change protected file.
+          <br><li>1 - AkelAdmin.exe remains in memory. Password will be prompted only for the first time to change protected file.
+          <br>
+          <br>By default: 1.
         </td>
       </tr>
       <tr>

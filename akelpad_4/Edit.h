@@ -403,6 +403,7 @@ typedef struct {
   DWORD dwPaintOptions;
   int nFixedCharWidth;
   DWORD dwMScrollSpeed;
+  DWORD dwCreateFile;
   DWORD dwEditStyle;
   BOOL bRichEditClass;
   BOOL bAkelAdminResident;

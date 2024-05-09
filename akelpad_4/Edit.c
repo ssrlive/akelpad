@@ -3219,13 +3219,18 @@ BOOL SaveIni(INIFILE *hIniFile, const wchar_t *wpFile)
 {
   HANDLE hFile;
   DWORD dwAttr;
+  DWORD dwFlagsAndAttributes;
   BOOL bResult=FALSE;
 
   dwAttr=GetFileAttributesWide(wpFile);
 
   if (dwAttr == INVALID_FILE_ATTRIBUTES || !(dwAttr & FILE_ATTRIBUTE_READONLY))
   {
-    if ((hFile=API_CreateFile(wpFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+    dwFlagsAndAttributes=FILE_ATTRIBUTE_NORMAL;
+    if (moCur.dwCreateFile & CFF_WRITETHROUGH)
+      dwFlagsAndAttributes|=FILE_FLAG_WRITE_THROUGH;
+
+    if ((hFile=API_CreateFile(wpFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, dwFlagsAndAttributes, NULL)) != INVALID_HANDLE_VALUE)
     {
       bResult=WriteIni(hIniFile, hFile);
       CloseHandle(hFile);
@@ -3867,6 +3872,8 @@ HANDLE ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nType, HANDLE hHandle)
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"MScrollSpeed", MOT_DWORD, &mo->dwMScrollSpeed, sizeof(DWORD)))
       bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"CreateFile", MOT_DWORD, &mo->dwCreateFile, sizeof(DWORD)))
+      bSaveManual=TRUE;
     if (!ReadOption(&oh, L"EditStyle", MOT_DWORD, &mo->dwEditStyle, sizeof(DWORD)))
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
@@ -4145,6 +4152,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"FixedCharWidth", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, nFixedCharWidth), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"MScrollSpeed", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwMScrollSpeed), sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"CreateFile", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwCreateFile), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"EditStyle", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwEditStyle), sizeof(DWORD)))
     goto Error;
@@ -5363,6 +5372,7 @@ int SaveDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, int nCodePage, B
   wchar_t wszFile[MAX_PATH];
   WIN32_FIND_DATAW wfd;
   HANDLE hFile;
+  DWORD dwFlagsAndAttributes;
   FILESTREAMDATA fsd;
   UINT_PTR dwBytesWritten;
   int nResult=ESD_SUCCESS;
@@ -5518,7 +5528,11 @@ int SaveDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, int nCodePage, B
     else
       bFileExist=(wfd.dwFileAttributes != INVALID_FILE_ATTRIBUTES);
 
-    if ((hFile=CreateFileWide(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+    dwFlagsAndAttributes=FILE_ATTRIBUTE_NORMAL;
+    if (moCur.dwCreateFile & CFF_WRITETHROUGH)
+      dwFlagsAndAttributes|=FILE_FLAG_WRITE_THROUGH;
+
+    if ((hFile=CreateFileWide(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?TRUNCATE_EXISTING:CREATE_NEW, dwFlagsAndAttributes, NULL)) == INVALID_HANDLE_VALUE)
     {
       if (!bSetSecurity && !bOldWindows && GetLastError() == ERROR_ACCESS_DENIED && IsFile(wszFile) != ERROR_DIRECTORY)
       {

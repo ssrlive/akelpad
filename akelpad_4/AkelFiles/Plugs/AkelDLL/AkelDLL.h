@@ -287,6 +287,7 @@
 #define MI_FIXEDCHARWIDTH            120  //Return: "FixedCharWidth" value.
 #define MI_PAINTOPTIONS              121  //Return: "PaintOptions" flags, see PAINT_* defines.
 #define MI_EDITSTYLE                 122  //Return: "EditStyle" flags, see EDS_* defines.
+#define MI_CREATEFILE                123  //Return: "CreateFile" flags, see CFF_* defines.
 #define MI_RICHEDITCLASS             125  //Return: "RichEditClass" type.
 #define MI_AKELADMINRESIDENT         126  //Return: AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
 #define MI_DATELOGFORMAT             129  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateLogFormat" string.
@@ -365,6 +366,7 @@
 #define MIS_FIXEDCHARWIDTH            120  //(int)lParam - "FixedCharWidth" value. Changes are applied for a new edit windows.
 #define MIS_PAINTOPTIONS              121  //(DWORD)lParam - "PaintOptions" flags, see PAINT_* defines. Changes are applied for a new edit windows.
 #define MIS_EDITSTYLE                 122  //(DWORD)lParam - "EditStyle" flags, see EDS_* defines. Changes are applied for a new edit windows.
+#define MIS_CREATEFILE                123  //(DWORD)lParam - "CreateFile" flags, see CFF_* defines.
 #define MIS_RICHEDITCLASS             125  //(BOOL)lParam - "RichEditClass" type. Changes are applied for a new edit windows.
 #define MIS_AKELADMINRESIDENT         126  //(BOOL)lParam - AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
 #define MIS_DATELOGFORMAT             129  //(wchar_t *)lParam - "DateLogFormat" string.
@@ -568,6 +570,9 @@
                                                 //Compatibility: define same as ES_SUNKEN.
 #define EDS_HEAPSERIALIZE           0x00000002  //Mutual exclusion will be used when the heap functions allocate and free memory from window heap. Serialization of heap access allows two or more threads to simultaneously allocate and free memory from the same heap.
                                                 //Compatibility: define same as ES_SAVESEL.
+
+//CreateFile flags
+#define CFF_WRITETHROUGH            0x00000001  //Use FILE_FLAG_WRITE_THROUGH flag when writing file.
 
 //Status bar position type
 #define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
