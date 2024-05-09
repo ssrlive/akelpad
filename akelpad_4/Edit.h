@@ -402,6 +402,7 @@ typedef struct {
   DWORD dwWordBreakCustom;
   DWORD dwPaintOptions;
   int nFixedCharWidth;
+  DWORD dwMScrollSpeed;
   DWORD dwEditStyle;
   BOOL bRichEditClass;
   BOOL bAkelAdminResident;

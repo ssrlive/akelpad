@@ -504,6 +504,10 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   if (dwOptionsEx)
     SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, AECOOP_OR, dwOptionsEx);
 
+  //Scroll
+  if (moCur.dwMScrollSpeed)
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETSCROLLSPEED, (WPARAM)moCur.dwMScrollSpeed, 0);
+
   //Font
   if (moCur.nFixedCharWidth)
     SendMessage(lpFrame->ei.hWndEdit, AEM_FIXEDCHARWIDTH, (WPARAM)moCur.nFixedCharWidth, 0);
@@ -3861,6 +3865,8 @@ HANDLE ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nType, HANDLE hHandle)
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"FixedCharWidth", MOT_DWORD, &mo->nFixedCharWidth, sizeof(DWORD)))
       bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"MScrollSpeed", MOT_DWORD, &mo->dwMScrollSpeed, sizeof(DWORD)))
+      bSaveManual=TRUE;
     if (!ReadOption(&oh, L"EditStyle", MOT_DWORD, &mo->dwEditStyle, sizeof(DWORD)))
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
@@ -4137,6 +4143,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"PaintOptions", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwPaintOptions), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"FixedCharWidth", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, nFixedCharWidth), sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"MScrollSpeed", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwMScrollSpeed), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"EditStyle", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwEditStyle), sizeof(DWORD)))
     goto Error;
