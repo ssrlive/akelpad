@@ -114,6 +114,9 @@
     <PostBuildEvent>
       <Command>xcopy .\AkelFiles\Docs\*.* $(OutDir)\AkelFiles\Docs\ /e /s /y</Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -150,6 +153,9 @@
     <PostBuildEvent>
       <Command>xcopy .\AkelFiles\Docs\*.* $(OutDir)\AkelFiles\Docs\ /e /s /y</Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -188,6 +194,9 @@
     <PostBuildEvent>
       <Command>xcopy .\AkelFiles\Docs\*.* $(OutDir)\AkelFiles\Docs\ /e /s /y</Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -225,6 +234,9 @@
     <PostBuildEvent>
       <Command>xcopy .\AkelFiles\Docs\*.* $(OutDir)\AkelFiles\Docs\ /e /s /y</Command>
     </PostBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AkelPad.c" />
