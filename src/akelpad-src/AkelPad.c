@@ -876,6 +876,8 @@ EXTERN_C int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPTSTR lpCmd
   moInit.dwWordBreakCustom=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
   //moInit.dwPaintOptions=0;
   //moInit.nFixedCharWidth=0;
+  //moInit.dwMScrollSpeed=0;
+  //moInit.dwCreateFile=0;
   //moInit.dwEditStyle=0;
   //moInit.bRichEditClass=FALSE;
   moInit.bAkelAdminResident=TRUE;
@@ -2580,10 +2582,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return xstrcpynW((void *)lParam, moCur.wszStatusUserFormat, MAX_PATH);
           case MI_WORDBREAKCUSTOM:
             return moCur.dwWordBreakCustom;
-          case MI_PAINTOPTIONS:
-            return moCur.dwPaintOptions;
+          case MI_MSCROLLSPEED:
+            return moCur.dwMScrollSpeed;
           case MI_FIXEDCHARWIDTH:
             return moCur.nFixedCharWidth;
+          case MI_PAINTOPTIONS:
+            return moCur.dwPaintOptions;
+          case MI_CREATEFILE:
+            return moCur.dwCreateFile;
           case MI_EDITSTYLE:
             return moCur.dwEditStyle;
           case MI_RICHEDITCLASS:
@@ -2853,10 +2859,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           case MIS_WORDBREAKCUSTOM:
             return SetOption(lParam, &moCur.dwWordBreakCustom, sizeof(DWORD), INI_DWORD);
-          case MIS_PAINTOPTIONS:
-            return SetOption(lParam, &moCur.dwPaintOptions, sizeof(DWORD), INI_DWORD);
+          case MIS_MSCROLLSPEED:
+            return SetOption(lParam, &moCur.dwMScrollSpeed, sizeof(DWORD), INI_DWORD);
           case MIS_FIXEDCHARWIDTH:
             return SetOption(lParam, &moCur.nFixedCharWidth, sizeof(DWORD), INI_DWORD);
+          case MIS_PAINTOPTIONS:
+            return SetOption(lParam, &moCur.dwPaintOptions, sizeof(DWORD), INI_DWORD);
+          case MIS_CREATEFILE:
+            return SetOption(lParam, &moCur.dwCreateFile, sizeof(DWORD), INI_DWORD);
           case MIS_EDITSTYLE:
             return SetOption(lParam, &moCur.dwEditStyle, sizeof(DWORD), INI_DWORD);
           case MIS_RICHEDITCLASS:

@@ -17,6 +17,10 @@ Added: possibility to use x86 and x64 version with the same settings. For this:
          Settings of all plugins will continue to be stored in "[AkelPad]\AkelFiles\Plugs".
        - 64-bit AkelAdmin.exe rename to AkelAdmin64.exe.
 Added: possibility to set ini file in command line.
+Added: manual parameter "CreateFile" and flag 1 - use FILE_FLAG_WRITE_THROUGH flag
+       when writing file. May be a solution if there is a risk of data loss due to
+       power problems.
+Added: manual parameter "MScrollSpeed" - scrolling speed after middle mouse click.
 Added: opening a recent file with holding Shift, opens it in a new window (SDI).
 Added: "Settings..." dialog now resizable.
 Added: possibility to set negative line gap.

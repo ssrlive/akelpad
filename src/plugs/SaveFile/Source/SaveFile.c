@@ -179,7 +179,7 @@ VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 void DoAutoSave(FRAMEDATA *lpFrame, int nSaveMoment);
 BOOL IsBackupNeeded(FRAMEDATA *lpFrame);
 BOOL MakeBackupFile(FRAMEDATA *lpFrame);
-void RemoveBackupFile(const wchar_t *wpEditFile, AEHDOC hDocEdit, DWORD dwTmpFlags);
+void MoveBackupFile(const wchar_t *wpOldFile, const wchar_t *wpNewFile, AEHDOC hDocEdit, DWORD dwTmpFlags);
 int DeleteBackupFile(const wchar_t *wpFile, DWORD dwTmpFlags);
 void UncheckBOM(HWND hDlg);
 int GetComboboxCodepage(HWND hWnd);
@@ -228,7 +228,7 @@ DWORD dwSaveMoment=SMOM_TIME;
 DWORD dwSaveInterval=5;
 DWORD dwSaveIntervalType=SIT_MIN;
 DWORD dwSaveMethod=SMET_SIMPLE;
-DWORD dwTmpFile=REMC_DELETE|REMC_TOBIN|REMC_RECOVER;
+DWORD dwTmpFile=REMC_DELETE|REMC_RECOVER;
 RECT rcBackupMinMaxDialog={410, 153, 0, 0};
 RECT rcBackupCurrentDialog={0};
 int nColumnWidth1=209;
@@ -327,7 +327,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static wchar_t wszFileNameNew[MAX_PATH];
   static wchar_t wszFileNameOld[MAX_PATH];
-  static BOOL bRemoveBackupCheck;
+  static BOOL bRenameBackupCheck;
 
   if (uMsg == AKDN_INITDIALOGEND)
   {
@@ -506,7 +506,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         xstrcpynW(wszFileNameNew, nsd->wszFile, MAX_PATH);
         xstrcpynW(wszFileNameOld, lpFrame->ei.wszFile, MAX_PATH);
-        bRemoveBackupCheck=TRUE;
+        bRenameBackupCheck=TRUE;
       }
     }
   }
@@ -516,13 +516,14 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (bInitAutoSave)
     {
-      if (bRemoveBackupCheck)
+      if (bRenameBackupCheck)
       {
         if (lParam == ESD_SUCCESS)
         {
-          RemoveBackupFile(wszFileNameOld, lpFrame->ei.hDocEdit, 0);
+          if (xstrcmpiW(wszFileNameOld, wszFileNameNew))
+            MoveBackupFile(wszFileNameOld, wszFileNameNew, lpFrame->ei.hDocEdit, 0);
         }
-        bRemoveBackupCheck=FALSE;
+        bRenameBackupCheck=FALSE;
       }
     }
   }
@@ -538,7 +539,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpFrame->ei.bModified && (dwSaveMoment & SMOM_FRAME) && (!(dwTmpFile & REMC_DELETE) || (dwTmpFile & REMC_TOBIN)))
           DoAutoSave(lpFrame, SMOM_FRAME);
         if (!lpFrame->ei.bModified || (dwTmpFile & REMC_DELETE))
-          RemoveBackupFile(lpFrame->ei.wszFile, lpFrame->ei.hDocEdit, dwTmpFile);
+          MoveBackupFile(lpFrame->ei.wszFile, NULL, lpFrame->ei.hDocEdit, dwTmpFile);
       }
     }
   }
@@ -1342,18 +1343,26 @@ BOOL MakeBackupFile(FRAMEDATA *lpFrame)
   return bResult;
 }
 
-void RemoveBackupFile(const wchar_t *wpEditFile, AEHDOC hDocEdit, DWORD dwTmpFlags)
+void MoveBackupFile(const wchar_t *wpOldFile, const wchar_t *wpNewFile, AEHDOC hDocEdit, DWORD dwTmpFlags)
 {
-  wchar_t wszFile[MAX_PATH];
+  wchar_t wszOldFile[MAX_PATH];
+  wchar_t wszNewFile[MAX_PATH];
 
   if (dwSaveMethod & SMET_NEAR)
   {
-    if (*wpEditFile)
+    if (*wpOldFile)
     {
-      if (xnprintfW(wszFile, MAX_PATH, L"%s.%Id.tmp", wpEditFile, hDocEdit))
+      if (xnprintfW(wszOldFile, MAX_PATH, L"%s.%Id.tmp", wpOldFile, hDocEdit))
       {
-        if (FileExistsWide(wszFile))
-          DeleteBackupFile(wszFile, dwTmpFlags);
+        if (FileExistsWide(wszOldFile))
+        {
+          if (wpNewFile)
+          {
+            if (xnprintfW(wszNewFile, MAX_PATH, L"%s.%Id.tmp", wpNewFile, hDocEdit))
+              MoveFileWide(wszOldFile, wszNewFile);
+          }
+          else DeleteBackupFile(wszOldFile, dwTmpFlags);
+        }
       }
     }
   }
@@ -1361,12 +1370,19 @@ void RemoveBackupFile(const wchar_t *wpEditFile, AEHDOC hDocEdit, DWORD dwTmpFla
   {
     if (*wszSaveDirExp)
     {
-      if (xnprintfW(wszFile, MAX_PATH, L"%s\\%s.%Id.tmp", wszSaveDirExp, GetFileName(wpEditFile, -1), hDocEdit))
+      if (xnprintfW(wszOldFile, MAX_PATH, L"%s\\%s.%Id.tmp", wszSaveDirExp, GetFileName(wpOldFile, -1), hDocEdit))
       {
-        if (xstrcmpiW(wpEditFile, wszFile))
+        if (xstrcmpiW(wpOldFile, wszOldFile))
         {
-          if (FileExistsWide(wszFile))
-            DeleteBackupFile(wszFile, dwTmpFlags);
+          if (FileExistsWide(wszOldFile))
+          {
+            if (wpNewFile)
+            {
+              if (xnprintfW(wszNewFile, MAX_PATH, L"%s\\%s.%Id.tmp", wszSaveDirExp, GetFileName(wpNewFile, -1), hDocEdit))
+                MoveFileWide(wszOldFile, wszNewFile);
+            }
+            else DeleteBackupFile(wszOldFile, dwTmpFlags);
+          }
         }
       }
     }
