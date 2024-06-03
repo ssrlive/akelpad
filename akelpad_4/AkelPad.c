@@ -407,7 +407,6 @@ DWORD dwOfnFlags;
 BOOL bOfnBOM=FALSE;
 int nOfnCodePage;
 int nOfnStreamOffset;
-POINT64 ptDocumentPos;
 FILESTREAMDATA *lpStreamInData=NULL;
 HWND hOfnDlgCombo;
 HWND hOfnDlgEdit;
