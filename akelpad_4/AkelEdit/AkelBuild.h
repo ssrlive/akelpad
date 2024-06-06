@@ -1013,7 +1013,7 @@ UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 UINT_PTR AE_SetTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR dwTextLen, int nNewLine);
 UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int nNewLine, BOOL bOnInitWindow);
 UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi);
-void AE_FixEdit(AKELEDIT *ae, BOOL bJoinNewLines);
+void AE_PreviewEdit(AKELEDIT *ae, BOOL bJoinNewLines);
 int AE_JoinNewLines(AKELEDIT *ae);
 UINT_PTR AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso);
 BOOL AE_StreamOutHelper(AESTREAMOUT *aeso, AECHARINDEX *ciCount, const AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, UINT_PTR *dwResult);

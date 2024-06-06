@@ -5942,6 +5942,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DWORD dwPrompt=0;
 
+      RecentFilesFrameSave(lpFrameCurrent);
+
       if (!lpFrameCurrent->ei.bModified || (moCur.bSilentCloseEmptyMDI && !lpFrameCurrent->ei.wszFile[0] && !GetTextLength(lpFrameCurrent->ei.hWndEdit)))
         dwPrompt|=PROMPT_NONE;
 

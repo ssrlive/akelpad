@@ -12565,6 +12565,7 @@ void RecentFilesFrameSave(FRAMEDATA *lpFrame)
   RECENTFILE *lpRecentFile;
   CHARRANGE64 cr;
   BOOL bSwitch=FALSE;
+  BOOL bRestoreParams=FALSE;
 
   if (moCur.nRecentFiles && lpFrame->wszFile[0])
   {
@@ -12577,6 +12578,7 @@ void RecentFilesFrameSave(FRAMEDATA *lpFrame)
         {
           xmemcpy(&srfp, &lpRecentFile->lpParamsStack, sizeof(STACKRECENTFILEPARAM));
           xmemset(&lpRecentFile->lpParamsStack, 0, sizeof(STACKRECENTFILEPARAM));
+          bRestoreParams=TRUE;
         }
         RecentFilesRead(&moCur, &hRecentFilesStack);
       }
@@ -12605,7 +12607,7 @@ void RecentFilesFrameSave(FRAMEDATA *lpFrame)
         lpRecentFile->cpMax=bSwitch?cr.cpMin:cr.cpMax;
 
         //Restore current file params
-        if (srfp.first)
+        if (bRestoreParams)
           xmemcpy(&lpRecentFile->lpParamsStack, &srfp, sizeof(STACKRECENTFILEPARAM));
       }
       if (!nMDI && moCur.nRecentFiles)
