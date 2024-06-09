@@ -12,8 +12,8 @@ endif
 
 ifeq ($(BIT), 64)
   CC = x86_64-w64-mingw32-g++.exe
-  RES = x86_64-w64-mingw32-windres.exe
-  STRIP = x86_64-w64-mingw32-strip.exe
+  RES = windres.exe
+  STRIP = strip.exe
 else
   CC = g++.exe
   RES = windres.exe

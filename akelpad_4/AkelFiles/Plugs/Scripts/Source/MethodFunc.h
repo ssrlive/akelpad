@@ -1,7 +1,7 @@
 /*****************************************************************
- *                 Method functions header v1.4                  *
+ *                 Method functions header v1.5                  *
  *                                                               *
- * 2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2024 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  * MethodParseParameters, MethodStructParameters,                *
@@ -256,7 +256,7 @@ int MethodStructParameters(STACKEXTPARAM *hParamStack, unsigned char *lpStruct)
 #undef MethodGetParameter
 EXTPARAM* MethodGetParameter(STACKEXTPARAM *hParamStack, int nIndex)
 {
-  EXTPARAM *lpParameter;
+  EXTPARAM *lpParameter=NULL;
 
   if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
     return lpParameter;

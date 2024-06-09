@@ -2354,7 +2354,7 @@ void FillFavouritesListBox(STACKFAV *hStack, HWND hWnd, BOOL bShowFile)
 
 int MoveListBoxItem(STACKFAV *hStack, HWND hWnd, int nOldIndex, int nNewIndex)
 {
-  FAVITEM *lpElement;
+  FAVITEM *lpElement=NULL;
   wchar_t *wpText;
   int nIndex=LB_ERR;
   int nTextLen;
@@ -2437,7 +2437,7 @@ BOOL ShiftListBoxSelItems(STACKFAV *hStack, HWND hWnd, BOOL bMoveDown)
 
 int DeleteListBoxSelItems(STACKFAV *hStack, HWND hWnd)
 {
-  FAVITEM *lpElement;
+  FAVITEM *lpElement=NULL;
   int *lpSelItems;
   int nCount;
   int nSelCount;

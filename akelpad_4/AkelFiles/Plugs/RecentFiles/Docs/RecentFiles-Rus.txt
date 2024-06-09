@@ -1,8 +1,8 @@
 *****************************************************************
-***              RecentFiles AkelPad plugin v4.5              ***
+***              RecentFiles AkelPad plugin v4.6              ***
 *****************************************************************
 
-2007-2023 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+2007-2024 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
 
 
 *** Описание ***

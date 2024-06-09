@@ -4189,7 +4189,7 @@ SYNTAXFILE* StackGetSyntaxFileByTheme(STACKSYNTAXFILE *hStack, HANDLE hTheme)
 
 SYNTAXFILE* StackGetSyntaxFileByIndex(STACKSYNTAXFILE *hStack, int nIndex)
 {
-  SYNTAXFILE *lpElement;
+  SYNTAXFILE *lpElement=NULL;
 
   StackGetElement((stack *)hStack->first, (stack *)hStack->last, (stack **)&lpElement, nIndex);
   return lpElement;
@@ -4545,7 +4545,7 @@ VARTHEME* StackGetVarThemeByName(STACKVARTHEME *hStack, const wchar_t *wpVarThem
 
 VARTHEME* StackGetVarThemeByIndex(STACKVARTHEME *hStack, int nIndex)
 {
-  VARTHEME *lpElement;
+  VARTHEME *lpElement=NULL;
 
   StackGetElement((stack *)hStack->first, (stack *)hStack->last, (stack **)&lpElement, nIndex);
   return lpElement;

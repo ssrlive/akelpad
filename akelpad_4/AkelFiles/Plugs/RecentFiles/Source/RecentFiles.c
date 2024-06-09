@@ -735,7 +735,7 @@ void FillRecentFilesListBox(STACKRECENTFILE *srfPlugin, HWND hWnd, BOOL bOnlyNam
 
 int MoveListBoxItem(STACKRECENTFILE *srfPlugin, HWND hWnd, int nOldIndex, int nNewIndex)
 {
-  RECENTFILE *lpElement;
+  RECENTFILE *lpElement=NULL;
   wchar_t *wpText;
   int nIndex=LB_ERR;
   int nTextLen;
@@ -818,7 +818,7 @@ BOOL ShiftListBoxSelItems(STACKRECENTFILE *srfPlugin, HWND hWnd, BOOL bMoveDown)
 
 int DeleteListBoxSelItems(STACKRECENTFILE *srfPlugin, HWND hWnd)
 {
-  RECENTFILE *lpElement;
+  RECENTFILE *lpElement=NULL;
   int *lpSelItems;
   int nCount;
   int nSelCount;
