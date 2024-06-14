@@ -410,7 +410,6 @@ DWORD dwOfnFlags;
 BOOL bOfnBOM=FALSE;
 int nOfnCodePage;
 int nOfnStreamOffset;
-POINT64 ptDocumentPos;
 FILESTREAMDATA *lpStreamInData=NULL;
 HWND hOfnDlgCombo;
 HWND hOfnDlgEdit;
@@ -5948,6 +5947,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (!nMDI)
     {
       DWORD dwPrompt=0;
+
+      RecentFilesFrameSave(lpFrameCurrent);
 
       if (!lpFrameCurrent->ei.bModified || (moCur.bSilentCloseEmptyMDI && !lpFrameCurrent->ei.wszFile[0] && !GetTextLength(lpFrameCurrent->ei.hWndEdit)))
         dwPrompt|=PROMPT_NONE;

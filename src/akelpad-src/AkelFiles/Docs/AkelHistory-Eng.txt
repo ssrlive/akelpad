@@ -5,6 +5,7 @@ Changed: during codepage recognition character "\xF1" now refers to 1251.
 Changed: codepage recognition in "Recode" dialog in case of failure by
          values of "Codepage recognition" settings, tries to recognize by
          all encodings from the user list.
+Changed: restoring selection when reopening the current file.
 
 Added: possibility to save recent files and search history in ini file.
        Now program can be completely portable.

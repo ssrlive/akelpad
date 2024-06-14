@@ -17235,7 +17235,6 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
   DWORD dwProgressTime=0;
   DWORD dwCurrentTime=0;
   int nLinesInPage;
-  BYTE nLineBreak;
   BOOL bUpdated=FALSE;
   DWORD dwStopProgress=0;
 
@@ -17332,34 +17331,7 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
             if (dwCurrentTime - dwStartTime > AETIME_BEFOREUPDATE)
             {
               bUpdated=TRUE;
-
-              --ae->ptxt->nLastCharOffset;
-              nLineBreak=lpElement->nLineBreak;
-              AE_FixEdit(ae, FALSE);
-
-              InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-              UpdateWindow(ae->hWndEdit);
-
-              //Make sure that WM_PAINT will be send after setting text
-              {
-                RECT rcOnePixel={0, 0, 1, 1};
-
-                InvalidateRect(ae->hWndEdit, &rcOnePixel, TRUE);
-              }
-
-              //Restore variables
-              ++ae->ptxt->nLastCharOffset;
-              (ae->ptxt->hLinesStack.last)->nLineBreak=nLineBreak;
-              ae->liFirstDrawLine.nLine=0;
-              ae->liFirstDrawLine.lpLine=NULL;
-              ae->nFirstDrawLineOffset=0;
-              ae->ciLastCallIndex.nLine=0;
-              ae->ciLastCallIndex.nCharInLine=0;
-              ae->ciLastCallIndex.lpLine=NULL;
-              ae->nLastCallOffset=0;
-              ae->ptxt->liLineUnwrapLastCall.nLine=0;
-              ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
-              ae->ptxt->nLineUnwrapLastCall=0;
+              AE_PreviewEdit(ae, FALSE);
             }
           }
         }
@@ -17476,7 +17448,6 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   int nNewLine=aesi->nNewLine;
   int nLinesInPage;
   int nApproxLinesCount=0;
-  BYTE nLineBreak;
   BOOL bUpdated=FALSE;
   DWORD dwStopProgress=0;
 
@@ -17588,7 +17559,6 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           if ((aesi->dwError=aesi->lpCallback(aesi->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) || !dwBufDone)
           {
             //Stop callbacking
-            lpElement=NULL;
             break;
           }
           dwResult+=dwBufDone;
@@ -17646,34 +17616,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
               if (dwCurrentTime - dwStartTime > AETIME_BEFOREUPDATE)
               {
                 bUpdated=TRUE;
-
-                --ae->ptxt->nLastCharOffset;
-                nLineBreak=(ae->ptxt->hLinesStack.last)->nLineBreak;
-                AE_FixEdit(ae, TRUE);
-
-                InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-                UpdateWindow(ae->hWndEdit);
-
-                //Make sure that WM_PAINT will be send after setting text
-                {
-                  RECT rcOnePixel={0, 0, 1, 1};
-
-                  InvalidateRect(ae->hWndEdit, &rcOnePixel, TRUE);
-                }
-
-                //Restore variables
-                ++ae->ptxt->nLastCharOffset;
-                (ae->ptxt->hLinesStack.last)->nLineBreak=nLineBreak;
-                ae->liFirstDrawLine.nLine=0;
-                ae->liFirstDrawLine.lpLine=NULL;
-                ae->nFirstDrawLineOffset=0;
-                ae->ciLastCallIndex.nLine=0;
-                ae->ciLastCallIndex.nCharInLine=0;
-                ae->ciLastCallIndex.lpLine=NULL;
-                ae->nLastCallOffset=0;
-                ae->ptxt->liLineUnwrapLastCall.nLine=0;
-                ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
-                ae->ptxt->nLineUnwrapLastCall=0;
+                AE_PreviewEdit(ae, TRUE);
               }
             }
           }
@@ -17770,10 +17713,14 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   return dwResult;
 }
 
-void AE_FixEdit(AKELEDIT *ae, BOOL bJoinNewLines)
+void AE_PreviewEdit(AKELEDIT *ae, BOOL bJoinNewLines)
 {
   AECHARINDEX ciCaretChar;
+  BYTE nLineBreak;
 
+  //Fix content
+  --ae->ptxt->nLastCharOffset;
+  nLineBreak=(ae->ptxt->hLinesStack.last)->nLineBreak;
   (ae->ptxt->hLinesStack.last)->nLineBreak=AELB_EOF;
   if (bJoinNewLines) AE_JoinNewLines(ae);
 
@@ -17796,6 +17743,31 @@ void AE_FixEdit(AKELEDIT *ae, BOOL bJoinNewLines)
     ae->ciSelStartIndex=ciCaretChar;
     ae->ciSelEndIndex=ciCaretChar;
   }
+
+  //Show content
+  InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+  UpdateWindow(ae->hWndEdit);
+
+  //Make sure that WM_PAINT will be send after setting text
+  {
+    RECT rcOnePixel={0, 0, 1, 1};
+
+    InvalidateRect(ae->hWndEdit, &rcOnePixel, TRUE);
+  }
+
+  //Restore variables
+  ++ae->ptxt->nLastCharOffset;
+  (ae->ptxt->hLinesStack.last)->nLineBreak=nLineBreak;
+  ae->liFirstDrawLine.nLine=0;
+  ae->liFirstDrawLine.lpLine=NULL;
+  ae->nFirstDrawLineOffset=0;
+  ae->ciLastCallIndex.nLine=0;
+  ae->ciLastCallIndex.nCharInLine=0;
+  ae->ciLastCallIndex.lpLine=NULL;
+  ae->nLastCallOffset=0;
+  ae->ptxt->liLineUnwrapLastCall.nLine=0;
+  ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
+  ae->ptxt->nLineUnwrapLastCall=0;
 }
 
 int AE_JoinNewLines(AKELEDIT *ae)

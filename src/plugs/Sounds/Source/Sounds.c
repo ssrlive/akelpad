@@ -1015,7 +1015,7 @@ SOUNDITEM* StackInsertSound(SOUNDSTACK *hStack)
 
 SOUNDITEM* StackGetSoundItemByIndex(SOUNDSTACK *hStack, int nIndex)
 {
-  SOUNDITEM *siElement;
+  SOUNDITEM *siElement = NULL;
 
   if (!StackGetElement((stack *)hStack->first, (stack *)hStack->last, (stack **)&siElement, nIndex))
     return siElement;

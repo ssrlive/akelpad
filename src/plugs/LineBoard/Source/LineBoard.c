@@ -265,6 +265,7 @@ BOOL bInitCommon=FALSE;
 int nInitMain=0;
 DWORD dwSaveFlags=0;
 DWORD dwDocOpen=DOF_NONE;
+int nFileCmp=0;
 BOOL bShowBoard=TRUE;
 BOOL bRememberBookmarks=TRUE;
 BOOL bBookmarkCharHeight=FALSE;
@@ -1212,6 +1213,14 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     dwDocOpen=DOF_NONE;
     //if (bShowBoard) UpdateEdit((HWND)wParam, UE_FIRSTPIXEL);
   }
+  else if (uMsg == AKDN_SAVEDOCUMENT_START)
+  {
+    NSAVEDOCUMENT *nsd=(NSAVEDOCUMENT *)lParam;
+    FRAMEDATA *lpFrame=(FRAMEDATA *)wParam;
+
+    if (bRememberBookmarks)
+      nFileCmp=xstrcmpiW(nsd->wszFile, lpFrame->ei.wszFile);
+  }
   else if (uMsg == AKDN_SAVEDOCUMENT_FINISH)
   {
     WINDOWBOARD *lpBoard;
@@ -1221,7 +1230,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (lpBoard=StackGetBoard(&hWindowStack, lpFrame->ei.hWndEdit, lpFrame->ei.hDocEdit, GB_READ))
       {
-        if (ResetBookmarksMovedFlag(lpBoard))
+        if (nFileCmp || ResetBookmarksMovedFlag(lpBoard))
           SaveRecentFile(lpBoard);
       }
     }

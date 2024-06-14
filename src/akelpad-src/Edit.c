@@ -195,7 +195,6 @@ extern DWORD dwOfnFlags;
 extern BOOL bOfnBOM;
 extern int nOfnCodePage;
 extern int nOfnStreamOffset;
-extern POINT64 ptDocumentPos;
 extern FILESTREAMDATA *lpStreamInData;
 extern HWND hOfnDlgCombo;
 extern HWND hOfnDlgEdit;
@@ -4458,6 +4457,9 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
   wchar_t wszFile[MAX_PATH];
   HANDLE hFile;
   FILESTREAMDATA fsd;
+  CHARRANGE64 cr;
+  INT_PTR nCaretOffset;
+  POINT64 ptDocumentPos;
   FRAMEDATA *lpFrame=NULL;
   FRAMEDATA *lpFrameReopen=NULL;
   RECENTFILE *lpRecentFile;
@@ -4598,6 +4600,13 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
       }
       if (dwFlags & OD_REOPEN)
       {
+        SendMessage(hWnd, EM_EXGETSEL64, 0, (LPARAM)&cr);
+        nCaretOffset=SendMessage(hWnd, AEM_GETRICHOFFSET, AEGI_CARETCHAR, 0);
+        if (nCaretOffset == cr.cpMin)
+        {
+            cr.cpMin=cr.cpMax;
+            cr.cpMax=nCaretOffset;
+        }
         SendMessage(hWnd, AEM_GETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
       }
     }
@@ -4825,21 +4834,24 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
         //Update selection
         if (moCur.nRecentFiles && moCur.bSavePositions)
         {
-          CHARRANGE64 cr;
           int nLockScroll;
 
           if ((nLockScroll=(int)SendMessage(hWnd, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
             SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
-          cr.cpMin=hRecentFilesStack.first->cpMin;
-          cr.cpMax=hRecentFilesStack.first->cpMax;
+          if (!(dwFlags & OD_REOPEN))
+          {
+            cr.cpMin=hRecentFilesStack.first->cpMin;
+            cr.cpMax=hRecentFilesStack.first->cpMax;
+          }
           SendMessage(hWnd, EM_EXSETSEL64, 0, (LPARAM)&cr);
+
           if (nLockScroll == -1)
           {
             SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
             if (!(dwFlags & OD_NOSCROLL))
             {
-              if ((dwFlags & OD_REOPEN))
+              if (dwFlags & OD_REOPEN)
                 SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
               else
                 ScrollCaret(hWnd);
@@ -12553,6 +12565,7 @@ void RecentFilesFrameSave(FRAMEDATA *lpFrame)
   RECENTFILE *lpRecentFile;
   CHARRANGE64 cr;
   BOOL bSwitch=FALSE;
+  BOOL bRestoreParams=FALSE;
 
   if (moCur.nRecentFiles && lpFrame->wszFile[0])
   {
@@ -12565,6 +12578,7 @@ void RecentFilesFrameSave(FRAMEDATA *lpFrame)
         {
           xmemcpy(&srfp, &lpRecentFile->lpParamsStack, sizeof(STACKRECENTFILEPARAM));
           xmemset(&lpRecentFile->lpParamsStack, 0, sizeof(STACKRECENTFILEPARAM));
+          bRestoreParams=TRUE;
         }
         RecentFilesRead(&moCur, &hRecentFilesStack);
       }
@@ -12593,7 +12607,7 @@ void RecentFilesFrameSave(FRAMEDATA *lpFrame)
         lpRecentFile->cpMax=bSwitch?cr.cpMin:cr.cpMax;
 
         //Restore current file params
-        if (srfp.first)
+        if (bRestoreParams)
           xmemcpy(&lpRecentFile->lpParamsStack, &srfp, sizeof(STACKRECENTFILEPARAM));
       }
       if (!nMDI && moCur.nRecentFiles)

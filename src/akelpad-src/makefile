@@ -17,8 +17,8 @@ endif
 ifeq ($(BIT), 64)
   ENTRY = _WinMain
   CC = x86_64-w64-mingw32-g++.exe
-  RES = x86_64-w64-mingw32-windres.exe
-  STRIP = x86_64-w64-mingw32-strip.exe
+  RES = windres.exe
+  STRIP = strip.exe
 else
   ENTRY = __WinMain
   CC = g++.exe
