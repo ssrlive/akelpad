@@ -1,4 +1,4 @@
-::Build-Eng.cmd /S /X32 /D
+::Build.cmd /S /X32 /D
 :: /S   silent mode
 :: /X32 32-bit or /X64 64-bit
 :: /D   debug version
@@ -51,6 +51,7 @@ if exist Exit.obj del Exit.obj
 if exist Exit.lib del Exit.lib
 if exist Exit.exp del Exit.exp
 if exist Exit.ilk del Exit.ilk
+if exist vc?0.pdb del vc?0.pdb
 
 ::### End ###::
 if not "%1" == "/S" @PAUSE

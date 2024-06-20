@@ -1,4 +1,4 @@
-::Build-Eng.cmd /S /X32 /D
+::Build.cmd /S /X32 /D
 :: /S   silent mode
 :: /X32 32-bit or /X64 64-bit
 :: /D   debug version
@@ -54,6 +54,7 @@ if exist Scripts.obj del Scripts.obj
 if exist Scripts.lib del Scripts.lib
 if exist Scripts.exp del Scripts.exp
 if exist Scripts.ilk del Scripts.ilk
+if exist vc?0.pdb del vc?0.pdb
 if exist IServer.obj del IServer.obj
 if exist IWScript.obj del IWScript.obj
 if exist IWArguments.obj del IWArguments.obj
