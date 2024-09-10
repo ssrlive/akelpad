@@ -1,4 +1,4 @@
-::Build-Eng.cmd /S /X32 /D
+::Build.cmd /S /X32 /D
 :: /S   silent mode
 :: /X32 32-bit or /X64 64-bit
 :: /D   debug version
@@ -51,6 +51,7 @@ if exist Clipboard.obj del Clipboard.obj
 if exist Clipboard.lib del Clipboard.lib
 if exist Clipboard.exp del Clipboard.exp
 if exist Clipboard.ilk del Clipboard.ilk
+if exist vc?0.pdb del vc?0.pdb
 
 ::### End ###::
 if not "%1" == "/S" @PAUSE

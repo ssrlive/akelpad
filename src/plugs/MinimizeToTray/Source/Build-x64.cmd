@@ -1,4 +1,4 @@
-::Build-Eng.cmd /S /X32 /D
+::Build.cmd /S /X32 /D
 :: /S   silent mode
 :: /X32 32-bit or /X64 64-bit
 :: /D   debug version
@@ -51,6 +51,7 @@ if exist MinimizeToTray.obj del MinimizeToTray.obj
 if exist MinimizeToTray.lib del MinimizeToTray.lib
 if exist MinimizeToTray.exp del MinimizeToTray.exp
 if exist MinimizeToTray.ilk del MinimizeToTray.ilk
+if exist vc?0.pdb del vc?0.pdb
 
 ::### End ###::
 if not "%1" == "/S" @PAUSE

@@ -1,3 +1,5 @@
+.vscode/
+.VSCodeCounter/
 *.vcxproj.user
 x64/
 Release/

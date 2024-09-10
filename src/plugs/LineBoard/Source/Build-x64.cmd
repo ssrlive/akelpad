@@ -1,4 +1,4 @@
-::Build-Eng.cmd /S /X32 /D
+::Build.cmd /S /X32 /D
 :: /S   silent mode
 :: /X32 32-bit or /X64 64-bit
 :: /D   debug version
@@ -51,6 +51,7 @@ if exist LineBoard.obj del LineBoard.obj
 if exist LineBoard.lib del LineBoard.lib
 if exist LineBoard.exp del LineBoard.exp
 if exist LineBoard.ilk del LineBoard.ilk
+if exist vc?0.pdb del vc?0.pdb
 
 ::### End ###::
 if not "%1" == "/S" @PAUSE

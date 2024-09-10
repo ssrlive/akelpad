@@ -1,4 +1,4 @@
-::Build-Eng.cmd /S /X32 /D
+::Build.cmd /S /X32 /D
 :: /S   silent mode
 :: /X32 32-bit or /X64 64-bit
 :: /D   debug version
@@ -53,11 +53,12 @@ if exist Edit.obj del Edit.obj
 if exist AkelEdit.obj del AkelEdit.obj
 if exist AkelPad.res del AkelPad.res
 if exist AkelPad.ilk del AkelPad.ilk
+if exist vc?0.pdb del vc?0.pdb
 
 ::### End ###::
 if not "%1" == "/S" @PAUSE
 if defined EXITCODE exit %2 %EXITCODE%
 
-::Build-Eng.cmd /S /X32 /D
+::Build.cmd /S /X32 /D
 :: /S   silent mode
 :: /X32 32-bit or /X64 64-bit

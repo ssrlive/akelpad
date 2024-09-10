@@ -1,4 +1,4 @@
-::Build-Eng.cmd /S /X32 /D
+::Build.cmd /S /X32 /D
 :: /S   silent mode
 :: /X32 32-bit or /X64 64-bit
 :: /D   debug version
@@ -63,6 +63,7 @@ if exist IScriptSettings.obj del IScriptSettings.obj
 if exist ISystemFunction.obj del ISystemFunction.obj
 if exist IConstants.obj del IConstants.obj
 if exist IActiveScriptSite.obj del IActiveScriptSite.obj
+if exist vc?0.pdb del vc?0.pdb
 
 ::### End ###::
 if not "%1" == "/S" @PAUSE

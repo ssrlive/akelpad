@@ -1,4 +1,4 @@
-::Build-Eng.cmd /S /X32 /D
+::Build.cmd /S /X32 /D
 :: /S   silent mode
 :: /X32 32-bit or /X64 64-bit
 :: /D   debug version
@@ -6,8 +6,6 @@
 @ECHO OFF
 set VCDIR=c:\Program Files\Microsoft Visual C++ Toolkit 2003
 set MSSDK=c:\Program Files\Microsoft Platform SDK
-set LANGNAME=English
-set LANGID=0x409
 set BIT=64
 set DEBUG=0
 set CLFLAGS=/Wall /WX /wd4100 /wd4201 /wd4204 /wd4255 /wd4310 /wd4619 /wd4668 /wd4701 /wd4706 /wd4711 /wd4820 /wd4826
@@ -49,6 +47,8 @@ if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 if exist AkelDLL.obj del AkelDLL.obj
 if exist AkelDLL.lib del AkelDLL.lib
 if exist AkelDLL.exp del AkelDLL.exp
+if exist AkelDLL.ilk del AkelDLL.ilk
+if exist vc?0.pdb del vc?0.pdb
 
 ::### End ###::
 if not "%1" == "/S" @PAUSE
