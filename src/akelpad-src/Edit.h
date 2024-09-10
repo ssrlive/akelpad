@@ -4,10 +4,12 @@
 
 //// Defines
 
+#include "version.h"
+
 #ifdef _WIN64
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.9.9 (x64)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad " AKEL_PAD_VERSION L" (x64)"
 #else
-  #define APP_ABOUT_VERSIONW        L"AkelPad 4.9.9 (x86)"
+  #define APP_ABOUT_VERSIONW        L"AkelPad " AKEL_PAD_VERSION L" (x86)"
 #endif
 #ifdef AKELPAD_DLLBUILD
   #define APP_MAIN_CLASSA            "AkelPad4 Library"
