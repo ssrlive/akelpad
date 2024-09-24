@@ -52,7 +52,7 @@ BEGIN
             VALUE "FileDescription", "Text-To-Speech plugin for AkelPad"
             VALUE "FileVersion", "1, 10, 0, 0"
             VALUE "InternalName", "Speech"
-            VALUE "LegalCopyright", "Copyright (C) Panych Y.W. aka FeyFre 2010-2014"
+            VALUE "LegalCopyright", "Copyright \xa9 Panych Y.W. aka FeyFre 2010-2014"
             VALUE "OriginalFilename", "Speech.dll"
             VALUE "ProductVersion", "1, 10, 0, 0"
         END

@@ -23,7 +23,7 @@ BEGIN
         BEGIN
             VALUE "FileDescription", RC_VERSIONDESCRIPTION "\0"
             VALUE "FileVersion", "1, 0, 0, 0\0"
-            VALUE "LegalCopyright", "© 2013 somebody\0"
+            VALUE "LegalCopyright", "\xa9 2013 somebody\0"
             VALUE "OriginalFilename", ORIGINALFILENAME "\0"
             VALUE "ProductName", PRODUCTNAME "\0"
             VALUE "ProductVersion", "4, 8, 3, 0\0"

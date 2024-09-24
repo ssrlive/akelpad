@@ -13,7 +13,7 @@
   #else
     #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
   #endif
-  #define RC_VERSIONCOPYRIGHT "(c) 2014 cnnnc"
+  #define RC_VERSIONCOPYRIGHT "\xa9 2014 cnnnc"
   #define RC_VERSIONNAME "Chinese (Simplified).dll"
 #endif
 #include "winresrc.h"
@@ -965,7 +965,7 @@ BEGIN
     "  #else\r\n"
     "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
     "  #endif\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""(c) 2014 cnnnc""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""\xa9 2014 cnnnc""\r\n"
     "  #define RC_VERSIONNAME ""Chinese (Simplified).dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"

@@ -93,7 +93,7 @@ BEGIN
             VALUE "FileDescription", "Templates for AkelPad"
             VALUE "FileVersion", "1, 18, 0, 0"
             VALUE "InternalName", "Templates"
-            VALUE "LegalCopyright", "Panych Y.W. (C) 2010-2014"
+            VALUE "LegalCopyright", "Panych Y.W. \xa9 2010-2014"
             VALUE "OriginalFilename", "Templates.dll"
             VALUE "ProductName", "Templates for AkelPad"
             VALUE "ProductVersion", "1, 18, 0, 0"

@@ -13,7 +13,7 @@
   #else
     #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
   #endif
-  #define RC_VERSIONCOPYRIGHT "© 2014 Cleverson Casarin Uliana (clever92000@yahoo.com.br)"
+  #define RC_VERSIONCOPYRIGHT "\xa9 2014 Cleverson Casarin Uliana (clever92000@yahoo.com.br)"
   #define RC_VERSIONNAME "Brazilian.dll"
 #endif
 #include "winresrc.h"
@@ -982,7 +982,7 @@ BEGIN
     "  #else\r\n"
     "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
     "  #endif\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""© 2014 Cleverson Casarin Uliana (clever92000@yahoo.com.br)""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""\xa9 2014 Cleverson Casarin Uliana (clever92000@yahoo.com.br)""\r\n"
     "  #define RC_VERSIONNAME ""Brazilian.dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"

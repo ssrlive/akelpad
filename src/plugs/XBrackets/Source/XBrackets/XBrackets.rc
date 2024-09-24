@@ -58,7 +58,7 @@ BEGIN
       VALUE "FileDescription", "XBrackets plugin for AkelPad text editor\0"
       VALUE "FileVersion", "7, 7, 0, 0\0"
       VALUE "InternalName", "XBrackets\0"
-      VALUE "LegalCopyright", "(C) Oct 2006 - Apr 2021, Vitaliy Dovgan aka DV\0"
+      VALUE "LegalCopyright", "\xa9 Oct 2006 - Apr 2021, Vitaliy Dovgan aka DV\0"
       VALUE "OriginalFilename", "XBrackets.dll\0"
       VALUE "ProductName", " XBrackets plugin for AkelPad text editor\0"
       VALUE "ProductVersion", "7, 7, 0, 0\0"
