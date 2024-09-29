@@ -151,7 +151,7 @@ typedef struct _WINDOWBOARD {
   BOOL bUpdateBookmarks;
   wchar_t wszFile[MAX_PATH];
   STACKBOOKMARK hBookmarkStack;
-  HWND hWndMaster;
+  AEHDOC hDocMaster;
 
   //User window
   HWND hWndParent;
@@ -339,7 +339,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 7, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 9, 9, 0);
   pv->pPluginName="LineBoard";
 }
 
@@ -1251,7 +1251,7 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     WINDOWBOARD *lpBoard;
 
-    if (lpBoard=StackGetBoard(&hWindowStack, (HWND)wParam, NULL, GB_READ))
+    if (lpBoard=StackGetBoard(&hWindowStack, (HWND)wParam, (AEHDOC)lParam, GB_READ))
       StackDeleteBoard(&hWindowStack, lpBoard);
   }
   if (ParentMessages(hWnd, uMsg, wParam, lParam, &lResult))
@@ -1333,14 +1333,14 @@ BOOL CALLBACK ParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
           {
             //SaveMobileBookmarks
             WINDOWBOARD *lpBoard;
-            HWND hWndMaster;
+            AEHDOC hDocMaster;
 
-            if (!(hWndMaster=(HWND)SendMessage(aentc->hdr.hwndFrom, AEM_GETMASTER, 0, 0)))
-              hWndMaster=aentc->hdr.hwndFrom;
+            if (!(hDocMaster=(AEHDOC)SendMessage(aentc->hdr.hwndFrom, AEM_GETMASTER, TRUE, 0)))
+              hDocMaster=aentc->hdr.docFrom;
 
             for (lpBoard=hWindowStack.first; lpBoard; lpBoard=lpBoard->next)
             {
-              if (lpBoard->hWndMaster == hWndMaster)
+              if (lpBoard->hDocMaster == hDocMaster)
               {
                 StackSaveMobileBookmarks(lpBoard);
                 lpBoard->bUpdateBookmarks=TRUE;
@@ -1384,14 +1384,14 @@ BOOL CALLBACK ParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
         {
           //RestoreMobileBookmarks
           WINDOWBOARD *lpBoard;
-          HWND hWndMaster;
+          AEHDOC hDocMaster;
 
-          if (!(hWndMaster=(HWND)SendMessage(aentc->hdr.hwndFrom, AEM_GETMASTER, 0, 0)))
-            hWndMaster=aentc->hdr.hwndFrom;
+          if (!(hDocMaster=(AEHDOC)SendMessage(aentc->hdr.hwndFrom, AEM_GETMASTER, TRUE, 0)))
+            hDocMaster=aentc->hdr.docFrom;
 
           for (lpBoard=hWindowStack.first; lpBoard; lpBoard=lpBoard->next)
           {
-            if (lpBoard->hWndMaster == hWndMaster)
+            if (lpBoard->hDocMaster == hDocMaster)
             {
               if (lpBoard->bUpdateBookmarks)
               {
@@ -2264,45 +2264,47 @@ WINDOWBOARD* StackInsertBoard(STACKWINDOWBOARD *hStack)
 WINDOWBOARD* StackGetBoard(STACKWINDOWBOARD *hStack, HWND hWndEdit, AEHDOC hDocEdit, DWORD dwFlags)
 {
   WINDOWBOARD *lpBoard=NULL;
+  WINDOWBOARD *lpMaster;
+  BOOKMARK *lpBookmark;
 
-  if (hWndEdit || (nMDI == WMD_PMDI && hDocEdit))
+  if (hWndEdit || hDocEdit)
   {
+    if (!hDocEdit)
+      hDocEdit=(AEHDOC)SendMessage(hWndEdit, AEM_GETDOCUMENT, 0, 0);
+
     for (lpBoard=hStack->first; lpBoard; lpBoard=lpBoard->next)
     {
-      if (lpBoard->hWndEdit == hWndEdit)
-      {
-        if (lpBoard->hWndParent)
-          return lpBoard;
-        break;
-      }
-    }
-
-    if (lpBoard && nMDI == WMD_PMDI)
-    {
-      if (!hDocEdit)
-        hDocEdit=(AEHDOC)SendMessage(hWndEdit, AEM_GETDOCUMENT, 0, 0);
-
-      for (lpBoard=hStack->first; lpBoard; lpBoard=lpBoard->next)
-      {
-        if (lpBoard->hDocEdit == hDocEdit)
-          return lpBoard;
-      }
+      if (lpBoard->hDocEdit == hDocEdit)
+        return lpBoard;
     }
 
     if (!lpBoard && (dwFlags & GB_CREATE))
     {
       if (lpBoard=StackInsertBoard(hStack))
       {
-        if (nMDI == WMD_PMDI)
-        {
-          if (hDocEdit)
-            lpBoard->hDocEdit=hDocEdit;
-          else
-            lpBoard->hDocEdit=(AEHDOC)SendMessage(hWndEdit, AEM_GETDOCUMENT, 0, 0);
-        }
+        if (hDocEdit)
+          lpBoard->hDocEdit=hDocEdit;
+        else
+          lpBoard->hDocEdit=(AEHDOC)SendMessage(hWndEdit, AEM_GETDOCUMENT, 0, 0);
         lpBoard->hWndEdit=hWndEdit;
-        if (!(lpBoard->hWndMaster=(HWND)SendMessage(hWndEdit, AEM_GETMASTER, 0, 0)))
-          lpBoard->hWndMaster=hWndEdit;
+
+        if (lpBoard->hDocMaster=(AEHDOC)SendMessage(hWndEdit, AEM_GETMASTER, TRUE, 0))
+        {
+          //Find master board
+          for (lpMaster=hStack->first; lpMaster; lpMaster=lpMaster->next)
+          {
+            if (lpMaster->hDocEdit == lpBoard->hDocMaster)
+              break;
+          }
+
+          //Copy file and bookmarks from master
+          for (lpBookmark=lpMaster->hBookmarkStack.first; lpBookmark; lpBookmark=lpBookmark->next)
+          {
+            StackInsertBookmark(lpBoard, lpBookmark->nLine);
+          }
+          xstrcpynW(lpBoard->wszFile, lpMaster->wszFile, MAX_PATH);
+        }
+        else lpBoard->hDocMaster=hDocEdit;
       }
     }
   }
@@ -2363,7 +2365,7 @@ BOOKMARK* InsertBookmarkCommon(STACKWINDOWBOARD *hStack, WINDOWBOARD *wb, int nL
 
   for (lpBoard=hStack->first; lpBoard; lpBoard=lpBoard->next)
   {
-    if (lpBoard->hWndMaster == wb->hWndMaster)
+    if (lpBoard->hDocMaster == wb->hDocMaster)
     {
       if (lpBookmark=StackInsertBookmark(lpBoard, nLine))
         lpLastSuccess=lpBookmark;
@@ -2418,7 +2420,7 @@ BOOL DeleteBookmarkCommon(STACKWINDOWBOARD *hStack, WINDOWBOARD *wb, int nLine)
 
   for (lpBoard=hStack->first; lpBoard; lpBoard=lpBoard->next)
   {
-    if (lpBoard->hWndMaster == wb->hWndMaster)
+    if (lpBoard->hDocMaster == wb->hDocMaster)
     {
       if (StackDeleteBookmarkByLine(lpBoard, nLine))
         bLastSuccess=TRUE;
@@ -2594,7 +2596,7 @@ void FreeBookmarkCommon(STACKWINDOWBOARD *hStack, WINDOWBOARD *wb)
 
   for (lpBoard=hStack->first; lpBoard; lpBoard=lpBoard->next)
   {
-    if (lpBoard->hWndMaster == wb->hWndMaster)
+    if (lpBoard->hDocMaster == wb->hDocMaster)
     {
       StackFreeBookmark(lpBoard);
     }
