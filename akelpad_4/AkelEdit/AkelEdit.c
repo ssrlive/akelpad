@@ -2344,10 +2344,17 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     case AEM_GETMASTER:
     {
       if (ae->lpMaster)
+      {
+        if (wParam)
+          return (LRESULT)ae->lpMaster;
         return (LRESULT)ae->lpMaster->hWndEdit;
+      }
       if (ae->nCloneCount > 0)
+      {
+        if (wParam)
+          return (LRESULT)ae;
         return (LRESULT)ae->hWndEdit;
-
+      }
       return (LRESULT)NULL;
     }
     case AEM_GETCLONE:

@@ -5821,18 +5821,19 @@ Example:
 AEM_GETMASTER
 _____________
 
-Retrieve master window handle. Message send to a master or slave window.
+Retrieve master window/document handle. Message send to a master or slave window.
 
-wParam == not used.
-lParam == not used.
+(BOOL)wParam == TRUE   retrieve master document.
+                FALSE  retrieve master window.
+lParam       == not used.
 
 Return Value
- Master window handle.
+ Master window/document handle.
 
 Example:
  HWND hWndMaster;
 
- if (hWndMaster=(HWND)SendMessage(hWndEdit, AEM_GETMASTER, 0, 0))
+ if (hWndMaster=(HWND)SendMessage(hWndEdit, AEM_GETMASTER, FALSE, 0))
  {
    if (hWndMaster == hWndEdit)
      MessageBoxA(NULL, "hWndEdit is master", NULL, 0);
