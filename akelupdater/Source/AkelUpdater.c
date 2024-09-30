@@ -865,7 +865,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
         }
       }
-      else if ((int)((NMHDR *)lParam)->code == NM_CUSTOMDRAW)
+      else if (((NMHDR *)lParam)->code == (UINT)NM_CUSTOMDRAW)
       {
         LPNMLVCUSTOMDRAW lplvcd=(LPNMLVCUSTOMDRAW)lParam;
         LRESULT lResult;

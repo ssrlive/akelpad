@@ -59,14 +59,18 @@
 #define CLO_VARNOSYSTEM           0x1000  //Don't expand system variables (for example, %windir%).
 #define CLO_VARNOAKELPAD          0x2000  //Don't expand program variables %f,%d,%a. If flag set, then symbol % must be specified as is (without %%).
 
+//PARSECMDLINESENDW, PARSECMDLINEPOSTW flags
+#define PCLF_OPENINNEWWINDOW 0x0001  //Open all documents in new windows. If not set, open first document in current window and next in new windows (SDI).
+
 //AKD_PARSECMDLINE return value
-#define PCLE_SUCCESS     0  //Success.
-#define PCLE_QUIT        1  //Stop parsing command line parameters and close program.
-#define PCLE_END         2  //Stop parsing command line parameters.
-#define PCLE_ONLOAD      3  //Done parsing command line parameters on program load (used internally).
-#define PCLE_WINDOWEXIST 4  //File already opened in SDI mode.
-#define PCLE_OPENERROR   5  //Error occurred during file opening.
-#define PCLE_SAVEERROR   6  //Error occurred during file saving.
+#define PCLE_SUCCESS        0  //Success.
+#define PCLE_QUIT           1  //Stop parsing command line parameters and close program.
+#define PCLE_END            2  //Stop parsing command line parameters.
+#define PCLE_ONLOAD         3  //Done parsing command line parameters on program load (used internally).
+#define PCLE_PASS           4  //Stop parsing command line parameters, pass the rest of the command line to the new process (SDI).
+#define PCLE_OPENERROR      5  //Error occurred during file opening.
+#define PCLE_SAVEERROR      6  //Error occurred during file saving.
+#define PCLE_WRONGFILEPLACE 7  //File to open located in "CmdLineBegin" or "CmdLineEnd" (SDI).
 
 #ifndef _METHODFUNC_H_
   //External parameters
@@ -187,10 +191,10 @@
 #define RF_SET             2  //Set recent files number.
                               //(int)lParam is maximum number of recent files.
                               //Return value is zero.
-#define RF_READ            3  //Read recent files from registry.
+#define RF_READ            3  //Read recent files from registry or ini.
                               //(STACKRECENTFILE *)lParam is a pointer to a STACKRECENTFILE structure, can be NULL.
                               //Return value is number of records read.
-#define RF_SAVE            4  //Save recent files to registry.
+#define RF_SAVE            4  //Save recent files to registry or ini.
                               //(STACKRECENTFILE *)lParam is a pointer to a STACKRECENTFILE structure, can be NULL.
                               //Return value is zero.
 #define RF_CLEAR           5  //Clear recent files stack. Use RF_SAVE to save result.
@@ -223,6 +227,9 @@
 #define RF_DELETEPARAM     23 //Delete recent file parameter.
                               //(RECENTFILEPARAM *)lParam a pointer to a real RECENTFILEPARAM structure.
                               //Return value is zero.
+#define RF_FRAMESAVE       31 //Save frame data in STACKRECENTFILE for MDI and in registry or ini for SDI.
+                              //(FRAMEDATA *)lParam a pointer to a real FRAMEDATA structure.
+                              //Return value is zero.
 
 //AKD_SEARCHHISTORY flags
 #define SH_GET          1  //Retrieve search strings count.
@@ -236,6 +243,7 @@
 #define MI_INSTANCEEXE               3    //Return: EXE instance.
 #define MI_PLUGINSSTACK              4    //Return: copied bytes. (HSTACK *)lParam - buffer that receives plugin stack.
 #define MI_SAVESETTINGS              5    //Return: see SS_* defines.
+#define MI_SAVEHISTORY               6    //Return: see SS_* defines.
 #define MI_WNDPROGRESS               10   //Return: progress bar window handle.
 #define MI_WNDSTATUS                 11   //Return: status bar window handle.
 #define MI_WNDMDICLIENT              12   //Return: MDI client window handle.
@@ -262,6 +270,8 @@
 #define MI_ONFINISH                  91   //Return: see MOF_* defines.
 #define MI_AKELEXEA                  95   //Return: copied chars. (char *)lParam - buffer that receives AkelPad executable string.
 #define MI_AKELEXEW                  96   //Return: copied chars. (wchar_t *)lParam - buffer that receives AkelPad executable string.
+#define MI_AKELINIA                  97   //Return: copied chars. (char *)lParam - buffer that receives AkelPad ini file.
+#define MI_AKELINIW                  98   //Return: copied chars. (wchar_t *)lParam - buffer that receives AkelPad ini file.
 //Compile
 #define MI_X64                       101  //Return: TRUE - x64 version, FALSE - x86 version.
 #define MI_AKELEDITSTATICBUILD       102  //Return: TRUE - AkelEdit is compiled statically, FALSE - AkelEdit is compiled as standalone library.
@@ -273,9 +283,11 @@
 #define MI_STATUSPOSTYPE             111  //Return: "StatusPosType" type, see SPT_* defines.
 #define MI_STATUSUSERFORMAT          112  //Return: copied chars. (wchar_t *)lParam - buffer that receives "StatusUserFormat" string.
 #define MI_WORDBREAKCUSTOM           117  //Return: "WordBreak" flags.
+#define MI_MSCROLLSPEED              118  //Return: "MScrollSpeed" value.
 #define MI_FIXEDCHARWIDTH            120  //Return: "FixedCharWidth" value.
 #define MI_PAINTOPTIONS              121  //Return: "PaintOptions" flags, see PAINT_* defines.
 #define MI_EDITSTYLE                 122  //Return: "EditStyle" flags, see EDS_* defines.
+#define MI_CREATEFILE                123  //Return: "CreateFile" flags, see CFF_* defines.
 #define MI_RICHEDITCLASS             125  //Return: "RichEditClass" type.
 #define MI_AKELADMINRESIDENT         126  //Return: AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
 #define MI_DATELOGFORMAT             129  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateLogFormat" string.
@@ -339,6 +351,7 @@
 
 //PLUGINDATA
 #define MIS_SAVESETTINGS              5    //(int)lParam - see SS_* defines.
+#define MIS_SAVEHISTORY               6    //(int)lParam - see SS_* defines.
 #define MIS_MDI                       45   //(int)lParam - window mode, see WMD_* defines. Required program restart.
 #define MIS_LANGMODULEA               51   //(char *)lParam - language module string. Required program restart.
 #define MIS_LANGMODULEW               52   //(wchar_t *)lParam - language module string. Required program restart.
@@ -349,9 +362,11 @@
 #define MIS_STATUSPOSTYPE             111  //(DWORD)lParam - "StatusPosType" type, see SPT_* defines.
 #define MIS_STATUSUSERFORMAT          112  //(wchar_t *)lParam - "StatusUserFormat" string.
 #define MIS_WORDBREAKCUSTOM           117  //(DWORD)lParam - "WordBreak" flags. Changes are applied for a new edit windows.
+#define MIS_MSCROLLSPEED              118  //(DWORD)lParam - "MScrollSpeed" value. Changes are applied for a new edit windows.
 #define MIS_FIXEDCHARWIDTH            120  //(int)lParam - "FixedCharWidth" value. Changes are applied for a new edit windows.
 #define MIS_PAINTOPTIONS              121  //(DWORD)lParam - "PaintOptions" flags, see PAINT_* defines. Changes are applied for a new edit windows.
 #define MIS_EDITSTYLE                 122  //(DWORD)lParam - "EditStyle" flags, see EDS_* defines. Changes are applied for a new edit windows.
+#define MIS_CREATEFILE                123  //(DWORD)lParam - "CreateFile" flags, see CFF_* defines.
 #define MIS_RICHEDITCLASS             125  //(BOOL)lParam - "RichEditClass" type. Changes are applied for a new edit windows.
 #define MIS_AKELADMINRESIDENT         126  //(BOOL)lParam - AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
 #define MIS_DATELOGFORMAT             129  //(wchar_t *)lParam - "DateLogFormat" string.
@@ -555,6 +570,9 @@
                                                 //Compatibility: define same as ES_SUNKEN.
 #define EDS_HEAPSERIALIZE           0x00000002  //Mutual exclusion will be used when the heap functions allocate and free memory from window heap. Serialization of heap access allows two or more threads to simultaneously allocate and free memory from the same heap.
                                                 //Compatibility: define same as ES_SAVESEL.
+
+//CreateFile flags
+#define CFF_WRITETHROUGH            0x00000001  //Use FILE_FLAG_WRITE_THROUGH flag when writing file.
 
 //Status bar position type
 #define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
@@ -987,116 +1005,6 @@ typedef BOOL (CALLBACK *PLUGINPROC)(void *lpParameter, LPARAM lParam, DWORD dwSu
 // FALSE do default hotkey processing.
 
 typedef struct {
-  //Save place
-  int nSaveSettings;
-
-  //Manual
-  DWORD dwShowModify;
-  DWORD dwStatusPosType;
-  wchar_t wszStatusUserFormat[MAX_PATH];
-  int nStatusUserFormatLen;
-  DWORD dwStatusUserFlags;
-  DWORD dwWordBreakCustom;
-  DWORD dwPaintOptions;
-  int nFixedCharWidth;
-  DWORD dwEditStyle;
-  BOOL bRichEditClass;
-  BOOL bAkelAdminResident;
-  wchar_t wszDateLogFormat[128];
-  wchar_t wszDateInsertFormat[128];
-  wchar_t wszAkelUpdaterOptions[MAX_PATH];
-  wchar_t wszUrlCommand[MAX_PATH];
-  wchar_t wszTabNameFind[MAX_PATH];
-  wchar_t wszTabNameRep[MAX_PATH];
-
-  //Menu settings
-  BOOL bOnTop;
-  BOOL bStatusBar;
-  char szLangModule[MAX_PATH];
-  wchar_t wszLangModule[MAX_PATH];
-  BOOL bKeepSpace;
-  BOOL bWatchFile;
-  BOOL bSaveTime;
-  BOOL bSingleOpenFile;
-  DWORD dwSingleOpenProgram;
-  int nMDI;
-  DWORD dwTabOptionsMDI;
-
-  //Settings dialog
-  RECT rcPropCurrentDialog;
-  wchar_t wszExecuteCommand[BUFFER_SIZE];
-  wchar_t wszExecuteDirectory[MAX_PATH];
-  int nDefaultCodePage;
-  int bDefaultBOM;
-  int nNewFileCodePage;
-  int bNewFileBOM;
-  int nNewFileNewLine;
-  DWORD dwLangCodepageRecognition;
-  DWORD dwCodepageRecognitionBuffer;
-  BOOL bSavePositions;
-  BOOL bSaveCodepages;
-  int nRecentFiles;
-  int nSearchStrings;
-  wchar_t wszFileTypesOpen[MAX_PATH];
-  wchar_t wszFileTypesEdit[MAX_PATH];
-  wchar_t wszFileTypesPrint[MAX_PATH];
-  DWORD dwFileTypesAssociated;
-  DWORD dwKeybLayoutOptions;
-  BOOL bSilentCloseEmptyMDI;
-  BOOL bDateLog;
-  BOOL bSaveInReadOnlyMsg;
-  wchar_t wszDefaultSaveExt[MAX_PATH];
-
-  //Modeless dialog
-  BOOL bModelessSavePos;
-
-  //Recode dialog
-  RECT rcRecodeCurrentDialog;
-
-  //Find/Replace dialog
-  RECT rcSearchCurrentDialog;
-  DWORD dwSearchOptions;
-
-  //Go to line dialog
-  RECT rcGotoCurrentDialog;
-  DWORD dwGotoOptions;
-
-  //Open file dialog
-  wchar_t wszOfnDir[MAX_PATH];
-  wchar_t wszLastDir[MAX_PATH];
-  BOOL bShowPlacesBar;
-
-  //Print dialog
-  RECT rcPrintMargins;
-  DWORD dwPrintColor;
-  BOOL bPrintHeaderEnable;
-  wchar_t wszPrintHeader[MAX_PATH];
-  BOOL bPrintFooterEnable;
-  wchar_t wszPrintFooter[MAX_PATH];
-  BOOL bPrintFontEnable;
-  LOGFONTW lfPrintFont;
-
-  //Colors dialog
-  RECT rcColorsCurrentDialog;
-
-  //Plugin dialog
-  RECT rcPluginsCurrentDialog;
-
-  //Mdi list dialog
-  DWORD dwMdiListOptions;
-  RECT rcMdiListCurrentDialog;
-
-  //Main window
-  DWORD dwMainStyle;
-  RECT rcMainWindowRestored;
-  DWORD dwMdiStyle;
-
-  //Events
-  BOOL bMessageTranslating;
-  int nTextChanging;
-} MAINOPTIONS;
-
-typedef struct {
   HWND hWndEdit;           //Edit window.
   AEHDOC hDocEdit;         //Edit document.
   const BYTE *pFile;       //Current editing file.
@@ -1366,8 +1274,7 @@ typedef struct {
   HMODULE hLangModule;                //Language module handle.
   LANGID wLangSystem;                 //System language ID.
   LANGID wLangModule;                 //Language module language ID.
-  MAINOPTIONS *moInit;                //Pointer to a initial (on start) MAINOPTIONS structure.
-  MAINOPTIONS *moCur;                 //Pointer to a current FRAMEDATA structure.
+  int nSaveHistory;                   //See SS_* defines.
 } PLUGINDATA;
 
 typedef struct {
@@ -1626,7 +1533,6 @@ typedef struct {
   RECENTFILE *first;          //Pointer to the first RECENTFILE structure.
   RECENTFILE *last;           //Pointer to the last RECENTFILE structure.
   int nElements;              //Items in stack.
-  DWORD dwSaveTime;           //GetTickCount() for the last recent files save operation.
 } STACKRECENTFILE;
 
 typedef struct _RECENTFILEPARAM {
@@ -1641,6 +1547,19 @@ typedef struct {
   RECENTFILEPARAM *first;
   RECENTFILEPARAM *last;
 } STACKRECENTFILEPARAM;
+
+typedef struct _SEARCHITEM {
+  struct _SEARCHITEM *next;
+  struct _SEARCHITEM *prev;
+  wchar_t *wpString;        //Find or replace string.
+  int nStringLen;           //String length.
+} SEARCHITEM;
+
+typedef struct {
+  SEARCHITEM *first;        //Pointer to the first SEARCHITEM structure.
+  SEARCHITEM *last;         //Pointer to the last SEARCHITEM structure.
+  int nElements;            //Items in stack.
+} STACKSEARCH;
 
 typedef struct {
   DWORD dwFlags;            //See FRF_* defines.
@@ -1800,7 +1719,8 @@ typedef struct {
 
 typedef struct {
   const wchar_t *pCmdLine; //Command line string. On return contain pointer to a unprocessed string.
-  const wchar_t *pWorkDir; //Command line string.
+  const wchar_t *pWorkDir; //Command line string. Can be NULL.
+  DWORD dwFlags;           //See PCLF_* defines.
 } PARSECMDLINESENDW;
 
 typedef struct {
@@ -1810,7 +1730,7 @@ typedef struct {
   int nCmdLineLen;                     //Command line length, not including the terminating null character.
   wchar_t szWorkDir[MAX_PATH];         //Working directory string.
   int nWorkDirLen;                     //Working directory length, not including the terminating null character.
-  BOOL bQuitAsEnd;                     //Internal variable - "/quit" stops parsing command line parameters, but not closes program.
+  DWORD dwFlags;                       //See PCLF_* defines.
 } PARSECMDLINEPOSTW;
 
 #ifndef _METHODFUNC_H_
@@ -3201,6 +3121,7 @@ Example:
 
  pcls.pCmdLine=L"/p \"C:\\MyFile.txt\"";
  pcls.pWorkDir=L"";
+ pcls.dwFlags=0;
  SendMessage(pd->hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pcls);
 
 
@@ -5864,6 +5785,7 @@ Example (Unicode):
    pclp->bPostMessage=TRUE;
    pclp->nCmdLineLen=lstrcpynW(pclp->szCmdLine, wpCmdLine, COMMANDLINE_SIZE);
    pclp->nWorkDirLen=GetCurrentDirectoryWide(MAX_PATH, pclp->szWorkDir);
+   pclp->dwFlags=0;
 
    cds.dwData=CD_PARSECMDLINEW;
    cds.cbData=sizeof(PARSECMDLINEPOSTW);
