@@ -1,7 +1,7 @@
 /*****************************************************************
- *                 Resize functions header v1.5                  *
+ *                 Resize functions header v1.6                  *
  *                                                               *
- * 2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2024 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
@@ -532,7 +532,7 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
             SetRectRgn(hRgnControl, rcControl.left, rcControl.top, rcControl.right, rcControl.bottom);
             CombineRgn(hRgnToErase, hRgnControl, hRgnAllChild, RGN_DIFF);
             InvalidateRgn(hDlg, hRgnToErase, TRUE);
-            UpdateWindow(hDlg);
+            //UpdateWindow(hDlg);
 
             //{
             //  //Region debug
@@ -555,7 +555,7 @@ BOOL ResizeDialogMessages(RESIZEDIALOG *rds, const RECT *rcMinMax, RECT *rcCurre
             CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnToErase, RGN_DIFF);
             CombineRgn(hRgnToDrawAfter, hRgnToDrawAfter, hRgnToDrawBefore, RGN_OR);
             InvalidateRgn(hDlg, hRgnToDrawAfter, FALSE);
-            UpdateWindow(hDlg);
+            //UpdateWindow(hDlg);
           }
         }
         DeleteObject(hRgnChanged);
