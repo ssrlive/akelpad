@@ -408,6 +408,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
         if (hThemesStack.first == hThemesStack.last)
         {
           //Notepad++ theme
+          aec.dwFlags=AECLR_ALL;
           aec.crCaret=RGB(0x80, 0x00, 0xFF);
           aec.crBasicText=RGB(0x00, 0x00, 0x00);
           aec.crBasicBk=RGB(0xFF, 0xFF, 0xFF);
