@@ -195,7 +195,7 @@
 //AEN_PAINT type
 #define AEPNT_BEGIN             0x00000001  //Sends before painting is started, only AENPAINT.hDC member is valid.
 #define AEPNT_END               0x00000002  //Sends before clean-up paint resources.
-#define AEPNT_DRAWLINE          0x00000004  //Sends before line is drawn.
+#define AEPNT_DRAWLINE          0x00000004  //Sends before line is drawn. Used in callback, see AEM_DRAWCALLBACK.
 
 //AEM_SETOPTIONS flags
                                                   // Window styles:
@@ -424,6 +424,20 @@
                               //lParam                    == not used.
                               //Return                    == zero.
 
+
+//AEM_DRAWCALLBACK operations
+#define AEDC_STACK         1  //Retrieve stack.
+                              //lParam                        == not used.
+                              //(AESTACKDRAWCALLBACK *)Return == pointer to an draw callback stack.
+#define AEDC_ADD       2  //Add draw line callback item.
+                              //(AEDRAWCALLBACKADD *)lParam  == pointer to a AEDRAWCALLBACKADD structure.
+                              //(AEDRAWCALLBACK *)Return      == pointer to an AEDRAWCALLBACK item.
+#define AEDC_DEL           3  //Delete callback item.
+                              //(AEDRAWCALLBACK *)lParam      == pointer to an AEDRAWCALLBACK item.
+                              //Return                        == zero.
+#define AEDC_FREE          4  //Free stack.
+                              //lParam                        == not used.
+                              //Return                        == zero.
 
 //AEM_SETCOLORS flags
 #define AECLR_DEFAULT          0x00000001  //Use default system colors for the specified flags, all members of the AECOLORS structure are ignored.
@@ -1495,6 +1509,33 @@ typedef struct {
   POINT ptMaxDraw;        //Left upper corner in client coordinates of last character in line to paint.
 } AENPAINT;
 
+typedef DWORD (CALLBACK *AEDrawCallback)(UINT_PTR dwCookie, const AENPAINT *pnt);
+//dwCookie     Value of the dwCookie member of the AEDRAWCALLBACKADD structure. The application specifies this value when it sends the AEM_DRAWCALLBACK message with AEDC_ADD.
+//pnt          Paint information.
+//
+//Return Value
+// To continue processing, the callback function must return zero; to stop processing (until next AEN_PAINT), it must return nonzero.
+
+typedef struct {
+  AEDrawCallback lpCallback;
+  UINT_PTR dwCookie;
+} AEDRAWCALLBACKADD;
+
+typedef struct _AEDRAWCALLBACK {
+  struct _AEDRAWCALLBACK *next;
+  struct _AEDRAWCALLBACK *prev;
+  AEHDOC hDoc;               //Document handle. See AEM_CREATEDOCUMENT message.
+  HWND hWnd;                 //Window handle.
+  AEDrawCallback lpCallback; //Callback function.
+  UINT_PTR dwCookie;         //User parameter to callback function.
+  DWORD dwError;             //Indicates the result of the callback function.
+} AEDRAWCALLBACK;
+
+typedef struct {
+  AEDRAWCALLBACK *first;
+  AEDRAWCALLBACK *last;
+} AESTACKDRAWCALLBACK;
+
 typedef struct {
   AENMHDR hdr;
   UINT_PTR dwTextLimit;   //Current text limit.
@@ -1818,6 +1859,7 @@ typedef struct {
 #define AEM_REDRAWLINERANGE       (WM_USER + 2362)
 #define AEM_GETBACKGROUNDIMAGE    (WM_USER + 2366)
 #define AEM_SETBACKGROUNDIMAGE    (WM_USER + 2367)
+#define AEM_DRAWCALLBACK          (WM_USER + 2368)
 
 //Folding
 #define AEM_GETFOLDSTACK          (WM_USER + 2381)
@@ -5378,6 +5420,44 @@ if (hBkImage=(HBITMAP)LoadImageA(NULL, "c:\\MyBackground.bmp", IMAGE_BITMAP, 0, 
 {
   SendMessage(hWndEdit, AEM_SETBACKGROUNDIMAGE, (WPARAM)hBkImage, 128);
 }
+
+
+AEM_DRAWCALLBACK
+________________
+
+Draw line operations.
+
+(int)wParam  == see AEDC_* defines.
+(void)lParam == depend of AEDC_* define.
+
+Return Value
+ Depend of AEDC_* define.
+
+Example:
+ DWORD CALLBACK DrawCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
+ {
+   if (pnt->dwType == AEPNT_BEGIN)
+   {
+   }
+   else if (pnt->dwType == AEPNT_DRAWLINE)
+   {
+   }
+   else if (pnt->dwType == AEPNT_END)
+   {
+   }
+   return 0
+ }
+
+ //Init
+ AEDRAWCALLBACKADD dca;
+
+ dca.lpCallback=DrawCallback;
+ dca.dwCookie=0;
+ lpDrawCallback=(AEDRAWCALLBACK *)SendMessage(hWndEdit, AEM_DRAWCALLBACK, AEDC_ADD, (LPARAM)&dca);
+
+ //Uninit
+ SendMessage(hWndEdit, AEM_DRAWCALLBACK, AEDC_DEL, (LPARAM)lpDrawCallback);
+
 
 
 AEM_GETFOLDSTACK
