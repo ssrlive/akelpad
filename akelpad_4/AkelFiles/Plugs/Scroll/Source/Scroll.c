@@ -1575,10 +1575,7 @@ void ScrollCaretOptions(HWND hWndEdit, AEHDOC hDocEdit, BOOL bCheckIfSet)
   sco.dwFlags=0;
   if (bCheckIfSet)
   {
-    if (hDocEdit)
-      SendToDoc(hDocEdit, hWndEdit, AEM_SCROLLCARETOPTIONS, FALSE, (LPARAM)&sco);
-    else
-      SendMessage(hWndEdit, AEM_SCROLLCARETOPTIONS, FALSE, (LPARAM)&sco);
+    SendToDoc(hDocEdit, hWndEdit, AEM_SCROLLCARETOPTIONS, FALSE, (LPARAM)&sco);
   }
 
   if (!sco.dwFlags)
@@ -1588,10 +1585,7 @@ void ScrollCaretOptions(HWND hWndEdit, AEHDOC hDocEdit, BOOL bCheckIfSet)
     sco.dwSelType=nAlignCaretSelType;
     sco.nOffsetX=nAlignCaretOffsetX;
     sco.nOffsetY=nAlignCaretOffsetY;
-    if (hDocEdit)
-      SendToDoc(hDocEdit, hWndEdit, AEM_SCROLLCARETOPTIONS, TRUE, (LPARAM)&sco);
-    else
-      SendMessage(hWndEdit, AEM_SCROLLCARETOPTIONS, TRUE, (LPARAM)&sco);
+    SendToDoc(hDocEdit, hWndEdit, AEM_SCROLLCARETOPTIONS, TRUE, (LPARAM)&sco);
   }
 }
 
@@ -1603,10 +1597,7 @@ void ScrollCaretOptionsAll(BOOL bRemove)
   {
     if (bRemove)
     {
-      if (nMDI == WMD_PMDI)
-        SendToDoc(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, AEM_SCROLLCARETOPTIONS, TRUE, (LPARAM)NULL);
-      else
-        SendMessage(lpFrame->ei.hWndEdit, AEM_SCROLLCARETOPTIONS, TRUE, (LPARAM)NULL);
+      SendToDoc(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, AEM_SCROLLCARETOPTIONS, TRUE, (LPARAM)NULL);
     }
     else ScrollCaretOptions(lpFrame->ei.hWndEdit, (nMDI == WMD_PMDI?lpFrame->ei.hDocEdit:NULL), FALSE);
 
@@ -1626,16 +1617,21 @@ AEHDOC GetCurDoc()
 
 LRESULT SendToDoc(AEHDOC hDocEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  AESENDMESSAGE sm;
+  if (nMDI == WMD_PMDI && hDocEdit)
+  {
+    AESENDMESSAGE sm;
 
-  sm.hDoc=hDocEdit;
-  sm.uMsg=uMsg;
-  sm.wParam=wParam;
-  sm.lParam=lParam;
-  if (SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm))
-    return sm.lResult;
-  return 0;
+    sm.hDoc=hDocEdit;
+    sm.uMsg=uMsg;
+    sm.wParam=wParam;
+    sm.lParam=lParam;
+    if (SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm))
+      return sm.lResult;
+    return 0;
+  }
+  return SendMessage(hWndEdit, uMsg, wParam, lParam);
 }
+
 
 
 //// Options

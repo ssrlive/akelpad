@@ -2609,10 +2609,7 @@ void StackFreeBookmark(WINDOWBOARD *wb)
 
   for (lpBookmark=wb->hBookmarkStack.first; lpBookmark; lpBookmark=lpBookmark->next)
   {
-    if (nMDI == WMD_PMDI)
-      SendToDoc(wb->hDocEdit, wb->hWndEdit, AEM_DELPOINT, (WPARAM)lpBookmark->lpPoint, 0);
-    else
-      SendMessage(wb->hWndEdit, AEM_DELPOINT, (WPARAM)lpBookmark->lpPoint, 0);
+    SendToDoc(wb->hDocEdit, wb->hWndEdit, AEM_DELPOINT, (WPARAM)lpBookmark->lpPoint, 0);
   }
 
   StackClear((stack **)&wb->hBookmarkStack.first, (stack **)&wb->hBookmarkStack.last);
@@ -2894,32 +2891,16 @@ void SetEditRect(AEHDOC hDocEdit, HWND hWndEdit, int nNewWidth, int nOldWidth, i
   RECT rcDraw;
   DWORD dwFlags=AERC_NORIGHT|AERC_NOBOTTOM;
 
-  if (nMDI == WMD_PMDI)
-  {
-    SendToDoc(hDocEdit, hWndEdit, AEM_GETERASERECT, dwFlags, (LPARAM)&rcErase);
-    SendToDoc(hDocEdit, hWndEdit, AEM_GETRECT, dwFlags, (LPARAM)&rcDraw);
-  }
-  else
-  {
-    SendMessage(hWndEdit, AEM_GETERASERECT, dwFlags, (LPARAM)&rcErase);
-    SendMessage(hWndEdit, AEM_GETRECT, dwFlags, (LPARAM)&rcDraw);
-  }
+  SendToDoc(hDocEdit, hWndEdit, AEM_GETERASERECT, dwFlags, (LPARAM)&rcErase);
+  SendToDoc(hDocEdit, hWndEdit, AEM_GETRECT, dwFlags, (LPARAM)&rcDraw);
 
   rcDraw.left+=nNewWidth - nOldWidth;
   rcDraw.top+=nNewHeight - nOldHeight;
   rcErase.left+=nNewWidth - nOldWidth;
   rcErase.top+=nNewHeight - nOldHeight;
 
-  if (nMDI == WMD_PMDI)
-  {
-    SendToDoc(hDocEdit, hWndEdit, AEM_SETERASERECT, dwFlags, (LPARAM)&rcErase);
-    SendToDoc(hDocEdit, hWndEdit, AEM_SETRECT, dwFlags|AERC_UPDATE, (LPARAM)&rcDraw);
-  }
-  else
-  {
-    SendMessage(hWndEdit, AEM_SETERASERECT, dwFlags, (LPARAM)&rcErase);
-    SendMessage(hWndEdit, AEM_SETRECT, dwFlags|AERC_UPDATE, (LPARAM)&rcDraw);
-  }
+  SendToDoc(hDocEdit, hWndEdit, AEM_SETERASERECT, dwFlags, (LPARAM)&rcErase);
+  SendToDoc(hDocEdit, hWndEdit, AEM_SETRECT, dwFlags|AERC_UPDATE, (LPARAM)&rcDraw);
 }
 
 HWND GetCurEdit()
@@ -3068,15 +3049,19 @@ DWORD ScrollCaret(HWND hWnd)
 
 LRESULT SendToDoc(AEHDOC hDocEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  AESENDMESSAGE sm;
+  if (nMDI == WMD_PMDI && hDocEdit)
+  {
+    AESENDMESSAGE sm;
 
-  sm.hDoc=hDocEdit;
-  sm.uMsg=uMsg;
-  sm.wParam=wParam;
-  sm.lParam=lParam;
-  if (SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm))
-    return sm.lResult;
-  return 0;
+    sm.hDoc=hDocEdit;
+    sm.uMsg=uMsg;
+    sm.wParam=wParam;
+    sm.lParam=lParam;
+    if (SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm))
+      return sm.lResult;
+    return 0;
+  }
+  return SendMessage(hWndEdit, uMsg, wParam, lParam);
 }
 
 

@@ -1,8 +1,8 @@
 *****************************************************************
-***                Sessions AkelPad plugin v9.2               ***
+***                Sessions AkelPad plugin v9.3               ***
 *****************************************************************
 
-2007-2021 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+2007-2024 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
 
 
 *** Description ***

@@ -3320,17 +3320,8 @@ SESSION* AddCurrentSession(STACKSESSION *hStack, const wchar_t *wpSessionName)
           else
             nTabActive=0;
 
-          if (nMDI == WMD_PMDI)
-          {
-            SendToDoc(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-            nFirstVisChar=SendToDoc(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, AEM_GETRICHOFFSET, AEGI_FIRSTVISIBLECHAR, 0);
-
-          }
-          else
-          {
-            SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-            nFirstVisChar=SendMessage(lpFrame->ei.hWndEdit, AEM_GETRICHOFFSET, AEGI_FIRSTVISIBLECHAR, 0);
-          }
+          SendToDoc(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
+          nFirstVisChar=SendToDoc(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, AEM_GETRICHOFFSET, AEGI_FIRSTVISIBLECHAR, 0);
 
           //Get LineBoard plugin bookmarks
           wszBookmarks=NULL;
@@ -4881,15 +4872,19 @@ int IsFile(const wchar_t *wpFile)
 
 LRESULT SendToDoc(AEHDOC hDocEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  AESENDMESSAGE sm;
+  if (nMDI == WMD_PMDI && hDocEdit)
+  {
+    AESENDMESSAGE sm;
 
-  sm.hDoc=hDocEdit;
-  sm.uMsg=uMsg;
-  sm.wParam=wParam;
-  sm.lParam=lParam;
-  if (SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm))
-    return sm.lResult;
-  return 0;
+    sm.hDoc=hDocEdit;
+    sm.uMsg=uMsg;
+    sm.wParam=wParam;
+    sm.lParam=lParam;
+    if (SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm))
+      return sm.lResult;
+    return 0;
+  }
+  return SendMessage(hWndEdit, uMsg, wParam, lParam);
 }
 
 COLORREF AE_ColorBrightness(COLORREF crColor, int nPercent)

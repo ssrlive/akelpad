@@ -367,6 +367,9 @@ BOOL CALLBACK CodeFoldDockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       SetWindowTextWide(hWndTitleText, wszBuffer);
 
       bd.dwFlags=BIF_DOWNARROW|BIF_ETCHED;
+      bd.hImage=NULL;
+      bd.nImageWidth=0;
+      bd.nImageHeight=0;
       SendMessage(hMainWnd, AKD_SETBUTTONDRAW, (WPARAM)hWndTitleHide, (LPARAM)&bd);
 
       if (!bCodeFoldDockWaitResize)
@@ -3820,24 +3823,13 @@ void FreeFolds(FOLDWINDOW *lpFoldWindow, BOOL bUpdate)
     DeleteFoldData(FoldData(lpFold));
   }
 
-  if (nMDI == WMD_PMDI)
-    SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_DELETEFOLD, (WPARAM)NULL, bUpdate);
-  else
-    SendMessage(lpFoldWindow->hWndEdit, AEM_DELETEFOLD, (WPARAM)NULL, bUpdate);
+  SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_DELETEFOLD, (WPARAM)NULL, bUpdate);
 }
 
 void RestoreHideLineEnd(FOLDWINDOW *lpFoldWindow)
 {
-  if (nMDI == WMD_PMDI)
-  {
-    if (lpFoldWindow->nHideMaxLineOffset != lpFoldWindow->nHideMaxLineOffsetOld)
-      SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffsetOld), 0);
-  }
-  else
-  {
-    if (lpFoldWindow->nHideMaxLineOffset != lpFoldWindow->nHideMaxLineOffsetOld)
-      SendMessage(lpFoldWindow->hWndEdit, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffsetOld), 0);
-  }
+  if (lpFoldWindow->nHideMaxLineOffset != lpFoldWindow->nHideMaxLineOffsetOld)
+    SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_SETFOLDHIDEOFFSET, MAKELONG(lpFoldWindow->nHideMinLineOffset, lpFoldWindow->nHideMaxLineOffsetOld), 0);
   lpFoldWindow->nHideMaxLineOffsetOld=lpFoldWindow->nHideMaxLineOffset;
 }
 
@@ -4350,28 +4342,19 @@ BOOL RemoveTagMark(FOLDWINDOW *lpFoldWindow)
 
   if (lpFoldWindow->pfwd->hTagMarkFirst)
   {
-    if (nMDI == WMD_PMDI)
-      SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)NULL, (LPARAM)lpFoldWindow->pfwd->hTagMarkFirst);
-    else
-      SendMessage(lpFoldWindow->hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)NULL, (LPARAM)lpFoldWindow->pfwd->hTagMarkFirst);
+    SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)NULL, (LPARAM)lpFoldWindow->pfwd->hTagMarkFirst);
     lpFoldWindow->pfwd->hTagMarkFirst=NULL;
     bResult=TRUE;
   }
   if (lpFoldWindow->pfwd->hTagMarkSecond)
   {
-    if (nMDI == WMD_PMDI)
-      SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)NULL, (LPARAM)lpFoldWindow->pfwd->hTagMarkSecond);
-    else
-      SendMessage(lpFoldWindow->hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)NULL, (LPARAM)lpFoldWindow->pfwd->hTagMarkSecond);
+    SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)NULL, (LPARAM)lpFoldWindow->pfwd->hTagMarkSecond);
     lpFoldWindow->pfwd->hTagMarkSecond=NULL;
     bResult=TRUE;
   }
   if (lpFoldWindow->pfwd->hTagMarkThird)
   {
-    if (nMDI == WMD_PMDI)
-      SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)NULL, (LPARAM)lpFoldWindow->pfwd->hTagMarkThird);
-    else
-      SendMessage(lpFoldWindow->hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)NULL, (LPARAM)lpFoldWindow->pfwd->hTagMarkThird);
+    SendToDoc(lpFoldWindow->hDocEdit, lpFoldWindow->hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)NULL, (LPARAM)lpFoldWindow->pfwd->hTagMarkThird);
     lpFoldWindow->pfwd->hTagMarkThird=NULL;
     bResult=TRUE;
   }
@@ -5020,30 +5003,14 @@ void SetEditRect(AEHDOC hDocEdit, HWND hWndEdit, int nNewWidth, int nOldWidth)
   RECT rcDraw;
   DWORD dwFlags=AERC_NOTOP|AERC_NORIGHT|AERC_NOBOTTOM;
 
-  if (nMDI == WMD_PMDI)
-  {
-    SendToDoc(hDocEdit, hWndEdit, AEM_GETERASERECT, dwFlags, (LPARAM)&rcErase);
-    SendToDoc(hDocEdit, hWndEdit, AEM_GETRECT, dwFlags, (LPARAM)&rcDraw);
-  }
-  else
-  {
-    SendMessage(hWndEdit, AEM_GETERASERECT, dwFlags, (LPARAM)&rcErase);
-    SendMessage(hWndEdit, AEM_GETRECT, dwFlags, (LPARAM)&rcDraw);
-  }
+  SendToDoc(hDocEdit, hWndEdit, AEM_GETERASERECT, dwFlags, (LPARAM)&rcErase);
+  SendToDoc(hDocEdit, hWndEdit, AEM_GETRECT, dwFlags, (LPARAM)&rcDraw);
 
   rcDraw.left+=nNewWidth - nOldWidth;
   rcErase.left+=nNewWidth - nOldWidth;
 
-  if (nMDI == WMD_PMDI)
-  {
-    SendToDoc(hDocEdit, hWndEdit, AEM_SETERASERECT, dwFlags, (LPARAM)&rcErase);
-    SendToDoc(hDocEdit, hWndEdit, AEM_SETRECT, dwFlags|AERC_UPDATE, (LPARAM)&rcDraw);
-  }
-  else
-  {
-    SendMessage(hWndEdit, AEM_SETERASERECT, dwFlags, (LPARAM)&rcErase);
-    SendMessage(hWndEdit, AEM_SETRECT, dwFlags|AERC_UPDATE, (LPARAM)&rcDraw);
-  }
+  SendToDoc(hDocEdit, hWndEdit, AEM_SETERASERECT, dwFlags, (LPARAM)&rcErase);
+  SendToDoc(hDocEdit, hWndEdit, AEM_SETRECT, dwFlags|AERC_UPDATE, (LPARAM)&rcDraw);
 }
 
 DWORD ScrollToPoint(HWND hWnd, POINT *ptPos)
@@ -5089,15 +5056,19 @@ BOOL GetWindowSize(HWND hWnd, HWND hWndOwner, RECT *rc)
 
 LRESULT SendToDoc(AEHDOC hDocEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  AESENDMESSAGE sm;
+  if (nMDI == WMD_PMDI && hDocEdit)
+  {
+    AESENDMESSAGE sm;
 
-  sm.hDoc=hDocEdit;
-  sm.uMsg=uMsg;
-  sm.wParam=wParam;
-  sm.lParam=lParam;
-  if (SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm))
-    return sm.lResult;
-  return 0;
+    sm.hDoc=hDocEdit;
+    sm.uMsg=uMsg;
+    sm.wParam=wParam;
+    sm.lParam=lParam;
+    if (SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm))
+      return sm.lResult;
+    return 0;
+  }
+  return SendMessage(hWndEdit, uMsg, wParam, lParam);
 }
 
 
