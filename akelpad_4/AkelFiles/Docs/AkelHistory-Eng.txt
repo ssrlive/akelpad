@@ -6,6 +6,7 @@ Changed: codepage recognition in "Recode" dialog in case of failure by
          values of "Ñodepage recognition" settings, tries to recognize by
          all encodings from the user list.
 Changed: restoring selection when reopening the current file.
+Changed: improved compatibility with Windows 11.
 
 Added: possibility to save recent files and search history in ini file.
        Now program can be completely portable.
