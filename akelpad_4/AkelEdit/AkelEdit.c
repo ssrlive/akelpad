@@ -2128,24 +2128,24 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         InvalidateRect(ae->hWndEdit, NULL, TRUE);
       return bResult;
     }
-    case AEM_DRAWCALLBACK:
+    case AEM_PAINTCALLBACK:
     {
-      if (wParam == AEDC_STACK)
+      if (wParam == AEPCB_STACK)
       {
-        return (LRESULT)&ae->hDrawCallbackStack;
+        return (LRESULT)&ae->hPaintCallbackStack;
       }
-      else if (wParam == AEDC_ADD)
+      else if (wParam == AEPCB_ADD)
       {
-        return (LRESULT)AE_DrawCallbackInsert(ae, (const AEDRAWCALLBACKADD *)lParam);
+        return (LRESULT)AE_PaintCallbackInsert(ae, (const AEPAINTCALLBACKADD *)lParam);
       }
-      else if (wParam == AEDC_DEL)
+      else if (wParam == AEPCB_DEL)
       {
-        AE_DrawCallbackDelete(ae, (AEDRAWCALLBACK *)lParam);
+        AE_PaintCallbackDelete(ae, (AEPAINTCALLBACK *)lParam);
         return 0;
       }
-      else if (wParam == AEDC_FREE)
+      else if (wParam == AEPCB_FREE)
       {
-        AE_DrawCallbackFree(ae);
+        AE_PaintCallbackFree(ae);
         return 0;
       }
       return 0;
@@ -5266,7 +5266,7 @@ void AE_DeleteDocument(AKELEDIT *ae)
   AE_StackFoldFree(ae);
   AE_StackPointFree(ae);
   AE_StackEraseFree(ae);
-  AE_DrawCallbackFree(ae);
+  AE_PaintCallbackFree(ae);
   AE_UrlVisitFree(ae);
 
   AE_HeapStackDelete(NULL, (stack **)&hAkelEditWindowsStack.first, (stack **)&hAkelEditWindowsStack.last, (stack *)ae);
@@ -10867,28 +10867,28 @@ void AE_UrlVisitFree(AKELEDIT *ae)
   AE_HeapStackClear(NULL, (stack **)&ae->hUrlVisitStack.first, (stack **)&ae->hUrlVisitStack.last);
 }
 
-AEDRAWCALLBACK* AE_DrawCallbackInsert(AKELEDIT *ae, const AEDRAWCALLBACKADD *dca)
+AEPAINTCALLBACK* AE_PaintCallbackInsert(AKELEDIT *ae, const AEPAINTCALLBACKADD *dca)
 {
-  AEDRAWCALLBACK *lpDrawCallback=NULL;
+  AEPAINTCALLBACK *lpPaintCallback=NULL;
 
-  if (!AE_HeapStackInsertIndex(NULL, (stack **)&ae->hDrawCallbackStack.first, (stack **)&ae->hDrawCallbackStack.last, (stack **)&lpDrawCallback, -1, sizeof(AEDRAWCALLBACK)))
+  if (!AE_HeapStackInsertIndex(NULL, (stack **)&ae->hPaintCallbackStack.first, (stack **)&ae->hPaintCallbackStack.last, (stack **)&lpPaintCallback, -1, sizeof(AEPAINTCALLBACK)))
   {
-    lpDrawCallback->hDoc=(AEHDOC)ae;
-    lpDrawCallback->hWnd=ae->hWndEdit;
-    lpDrawCallback->lpCallback=dca->lpCallback;
-    lpDrawCallback->dwCookie=dca->dwCookie;
+    lpPaintCallback->hDoc=(AEHDOC)ae;
+    lpPaintCallback->hWnd=ae->hWndEdit;
+    lpPaintCallback->lpCallback=dca->lpCallback;
+    lpPaintCallback->dwCookie=dca->dwCookie;
   }
-  return lpDrawCallback;
+  return lpPaintCallback;
 }
 
-void AE_DrawCallbackDelete(AKELEDIT *ae, AEDRAWCALLBACK *lpDrawCallback)
+void AE_PaintCallbackDelete(AKELEDIT *ae, AEPAINTCALLBACK *lpPaintCallback)
 {
-  AE_HeapStackDelete(NULL, (stack **)&ae->hDrawCallbackStack.first, (stack **)&ae->hDrawCallbackStack.last, (stack *)lpDrawCallback);
+  AE_HeapStackDelete(NULL, (stack **)&ae->hPaintCallbackStack.first, (stack **)&ae->hPaintCallbackStack.last, (stack *)lpPaintCallback);
 }
 
-void AE_DrawCallbackFree(AKELEDIT *ae)
+void AE_PaintCallbackFree(AKELEDIT *ae)
 {
-  AE_HeapStackClear(NULL, (stack **)&ae->hDrawCallbackStack.first, (stack **)&ae->hDrawCallbackStack.last);
+  AE_HeapStackClear(NULL, (stack **)&ae->hPaintCallbackStack.first, (stack **)&ae->hPaintCallbackStack.last);
 }
 
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crRange)
@@ -14403,7 +14403,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
 
           //Send AEN_PAINT
-          if (ae->hDrawCallbackStack.first)
+          if (ae->hPaintCallbackStack.first)
           {
             pntNotify.ciMaxDraw=to.ciDrawLine;
             pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
@@ -22435,7 +22435,7 @@ void AE_NotifySetRect(AKELEDIT *ae)
 
 void AE_NotifyPaint(AKELEDIT *ae, DWORD dwType, AENPAINT *pnt)
 {
-  if ((ae->popt->dwEventMask & AENM_PAINT) || ae->hDrawCallbackStack.first)
+  if ((ae->popt->dwEventMask & AENM_PAINT) || ae->hPaintCallbackStack.first)
   {
     pnt->hdr.hwndFrom=ae->hWndEdit;
     pnt->hdr.idFrom=ae->nEditCtrlID;
@@ -22451,15 +22451,15 @@ void AE_NotifyPaint(AKELEDIT *ae, DWORD dwType, AENPAINT *pnt)
       AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)pnt);
   }
 
-  if (ae->hDrawCallbackStack.first)
+  if (ae->hPaintCallbackStack.first)
   {
     //Call callback for AEPNT_BEGIN, AEPNT_DRAWLINE, AEPNT_END
-    AEDRAWCALLBACK *lpDrawCallback;
+    AEPAINTCALLBACK *lpPaintCallback;
 
-    for (lpDrawCallback=ae->hDrawCallbackStack.first; lpDrawCallback; lpDrawCallback=lpDrawCallback->next)
+    for (lpPaintCallback=ae->hPaintCallbackStack.first; lpPaintCallback; lpPaintCallback=lpPaintCallback->next)
     {
-      if (!lpDrawCallback->dwError || dwType == AEPNT_BEGIN)
-        lpDrawCallback->dwError=lpDrawCallback->lpCallback(lpDrawCallback->dwCookie, pnt);
+      if (!lpPaintCallback->dwError || dwType == AEPNT_BEGIN)
+        lpPaintCallback->dwError=lpPaintCallback->lpCallback(lpPaintCallback->dwCookie, pnt);
     }
   }
 }

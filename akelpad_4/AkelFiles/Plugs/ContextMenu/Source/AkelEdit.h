@@ -195,7 +195,7 @@
 //AEN_PAINT type
 #define AEPNT_BEGIN             0x00000001  //Sends before painting is started, only AENPAINT.hDC member is valid.
 #define AEPNT_END               0x00000002  //Sends before clean-up paint resources.
-#define AEPNT_DRAWLINE          0x00000004  //Sends before line is drawn. Used in callback, see AEM_DRAWCALLBACK.
+#define AEPNT_DRAWLINE          0x00000004  //Sends before line is drawn. Used only in callback, see AEM_PAINTCALLBACK.
 
 //AEM_SETOPTIONS flags
                                                   // Window styles:
@@ -425,19 +425,19 @@
                               //Return                    == zero.
 
 
-//AEM_DRAWCALLBACK operations
-#define AEDC_STACK         1  //Retrieve stack.
-                              //lParam                        == not used.
-                              //(AESTACKDRAWCALLBACK *)Return == pointer to an draw callback stack.
-#define AEDC_ADD       2  //Add draw line callback item.
-                              //(AEDRAWCALLBACKADD *)lParam  == pointer to a AEDRAWCALLBACKADD structure.
-                              //(AEDRAWCALLBACK *)Return      == pointer to an AEDRAWCALLBACK item.
-#define AEDC_DEL           3  //Delete callback item.
-                              //(AEDRAWCALLBACK *)lParam      == pointer to an AEDRAWCALLBACK item.
-                              //Return                        == zero.
-#define AEDC_FREE          4  //Free stack.
-                              //lParam                        == not used.
-                              //Return                        == zero.
+//AEM_PAINTCALLBACK operations
+#define AEPCB_STACK         1 //Retrieve stack.
+                              //lParam                         == not used.
+                              //(AESTACKPAINTCALLBACK *)Return == pointer to an paint callback stack.
+#define AEPCB_ADD           2 //Add paint callback item.
+                              //(AEPAINTCALLBACKADD *)lParam   == pointer to a AEPAINTCALLBACKADD structure.
+                              //(AEPAINTCALLBACK *)Return      == pointer to an AEPAINTCALLBACK item.
+#define AEPCB_DEL           3 //Delete callback item.
+                              //(AEPAINTCALLBACK *)lParam      == pointer to an AEPAINTCALLBACK item.
+                              //Return                         == zero.
+#define AEPCB_FREE          4 //Free stack.
+                              //lParam                         == not used.
+                              //Return                         == zero.
 
 //AEM_SETCOLORS flags
 #define AECLR_DEFAULT          0x00000001  //Use default system colors for the specified flags, all members of the AECOLORS structure are ignored.
@@ -1509,32 +1509,32 @@ typedef struct {
   POINT ptMaxDraw;        //Left upper corner in client coordinates of last character in line to paint.
 } AENPAINT;
 
-typedef DWORD (CALLBACK *AEDrawCallback)(UINT_PTR dwCookie, const AENPAINT *pnt);
-//dwCookie     Value of the dwCookie member of the AEDRAWCALLBACKADD structure. The application specifies this value when it sends the AEM_DRAWCALLBACK message with AEDC_ADD.
+typedef DWORD (CALLBACK *AEPaintCallback)(UINT_PTR dwCookie, const AENPAINT *pnt);
+//dwCookie     Value of the dwCookie member of the AEPAINTCALLBACKADD structure. The application specifies this value when it sends the AEM_PAINTCALLBACK message with AEPCB_ADD.
 //pnt          Paint information.
 //
 //Return Value
-// To continue processing, the callback function must return zero; to stop processing (until next AEN_PAINT), it must return nonzero.
+// To continue processing, the callback function must return zero; to stop processing (until next AEPNT_BEGIN), it must return nonzero.
 
 typedef struct {
-  AEDrawCallback lpCallback;
+  AEPaintCallback lpCallback;
   UINT_PTR dwCookie;
-} AEDRAWCALLBACKADD;
+} AEPAINTCALLBACKADD;
 
-typedef struct _AEDRAWCALLBACK {
-  struct _AEDRAWCALLBACK *next;
-  struct _AEDRAWCALLBACK *prev;
-  AEHDOC hDoc;               //Document handle. See AEM_CREATEDOCUMENT message.
-  HWND hWnd;                 //Window handle.
-  AEDrawCallback lpCallback; //Callback function.
-  UINT_PTR dwCookie;         //User parameter to callback function.
-  DWORD dwError;             //Indicates the result of the callback function.
-} AEDRAWCALLBACK;
+typedef struct _AEPAINTCALLBACK {
+  struct _AEPAINTCALLBACK *next;
+  struct _AEPAINTCALLBACK *prev;
+  AEHDOC hDoc;                //Document handle. See AEM_CREATEDOCUMENT message.
+  HWND hWnd;                  //Window handle.
+  AEPaintCallback lpCallback; //Callback function.
+  UINT_PTR dwCookie;          //User parameter to callback function.
+  DWORD dwError;              //Indicates the result of the callback function.
+} AEPAINTCALLBACK;
 
 typedef struct {
-  AEDRAWCALLBACK *first;
-  AEDRAWCALLBACK *last;
-} AESTACKDRAWCALLBACK;
+  AEPAINTCALLBACK *first;
+  AEPAINTCALLBACK *last;
+} AESTACKPAINTCALLBACK;
 
 typedef struct {
   AENMHDR hdr;
@@ -1859,7 +1859,7 @@ typedef struct {
 #define AEM_REDRAWLINERANGE       (WM_USER + 2362)
 #define AEM_GETBACKGROUNDIMAGE    (WM_USER + 2366)
 #define AEM_SETBACKGROUNDIMAGE    (WM_USER + 2367)
-#define AEM_DRAWCALLBACK          (WM_USER + 2368)
+#define AEM_PAINTCALLBACK         (WM_USER + 2368)
 
 //Folding
 #define AEM_GETFOLDSTACK          (WM_USER + 2381)
@@ -5422,19 +5422,19 @@ if (hBkImage=(HBITMAP)LoadImageA(NULL, "c:\\MyBackground.bmp", IMAGE_BITMAP, 0, 
 }
 
 
-AEM_DRAWCALLBACK
-________________
+AEM_PAINTCALLBACK
+_________________
 
-Draw line operations.
+Receiving paint operations including draw line.
 
-(int)wParam  == see AEDC_* defines.
-(void)lParam == depend of AEDC_* define.
+(int)wParam  == see AEPCB_* defines.
+(void)lParam == depend of AEPCB_* define.
 
 Return Value
- Depend of AEDC_* define.
+ Depend of AEPCB_* define.
 
 Example:
- DWORD CALLBACK DrawCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
+ DWORD CALLBACK PaintCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
  {
    if (pnt->dwType == AEPNT_BEGIN)
    {
@@ -5449,14 +5449,14 @@ Example:
  }
 
  //Init
- AEDRAWCALLBACKADD dca;
+ AEPAINTCALLBACKADD pcba;
 
- dca.lpCallback=DrawCallback;
- dca.dwCookie=0;
- lpDrawCallback=(AEDRAWCALLBACK *)SendMessage(hWndEdit, AEM_DRAWCALLBACK, AEDC_ADD, (LPARAM)&dca);
+ pcba.lpCallback=PaintCallback;
+ pcba.dwCookie=0;
+ lpPaintCallback=(AEPAINTCALLBACK *)SendMessage(hWndEdit, AEM_PAINTCALLBACK, AEPCB_ADD, (LPARAM)&pcba);
 
  //Uninit
- SendMessage(hWndEdit, AEM_DRAWCALLBACK, AEDC_DEL, (LPARAM)lpDrawCallback);
+ SendMessage(hWndEdit, AEM_PAINTCALLBACK, AEPCB_DEL, (LPARAM)lpPaintCallback);
 
 
 

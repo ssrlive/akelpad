@@ -138,16 +138,16 @@ typedef struct {
   SPECIALCHAR *last;
 } STACKSPECIALCHAR;
 
-typedef struct _DRAWCALLBACK {
-  struct _DRAWCALLBACK *next;
-  struct _DRAWCALLBACK *prev;
-  AEDRAWCALLBACK *aedc;
-} DRAWCALLBACK;
+typedef struct _PAINTCALLBACK {
+  struct _PAINTCALLBACK *next;
+  struct _PAINTCALLBACK *prev;
+  AEPAINTCALLBACK *aepcb;
+} PAINTCALLBACK;
 
 typedef struct {
-  DRAWCALLBACK *first;
-  DRAWCALLBACK *last;
-} STACKDRAWCALLBACK;
+  PAINTCALLBACK *first;
+  PAINTCALLBACK *last;
+} STACKPAINTCALLBACK;
 
 //UpdateEdit flags
 #define UE_ERASE        0x01
@@ -194,15 +194,15 @@ typedef struct {
 BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-DWORD CALLBACK DrawCallback(UINT_PTR dwCookie, const AENPAINT *pnt);
+DWORD CALLBACK PaintCallback(UINT_PTR dwCookie, const AENPAINT *pnt);
 LRESULT SendToDoc(AEHDOC hDocEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
 COLORREF GetIndentColor(BOOL bCharInSel, SPECIALCHAR *pscIndentDraw, AECOLORS *aec);
 void GetCoderColors(HWND hWnd);
 void CreateSpecialCharStack(STACKSPECIALCHAR *hStack, const wchar_t *wpText);
 void FreeSpecialCharStack(STACKSPECIALCHAR *hStack);
-DRAWCALLBACK* InsertDrawCallbackStack(STACKDRAWCALLBACK *hStack, AEDRAWCALLBACK *aedc);
-void DeleteDrawCallbackStack(STACKDRAWCALLBACK *hStack, DRAWCALLBACK *lpElement);
-void FreeDrawCallbackStack(STACKDRAWCALLBACK *hStack);
+PAINTCALLBACK* InsertPaintCallbackStack(STACKPAINTCALLBACK *hStack, AEPAINTCALLBACK *aepcb);
+void DeletePaintCallbackStack(STACKPAINTCALLBACK *hStack, PAINTCALLBACK *lpElement);
+void FreePaintCallbackStack(STACKPAINTCALLBACK *hStack);
 int HexCharToValue(const wchar_t **wpText);
 int ValueToHexChar(int nValue, wchar_t *wszHexChar);
 int ValueToNormalChar(int nValue, wchar_t *wszNormalChar);
@@ -247,7 +247,7 @@ DWORD dwSaveFlags=0;
 char *szSpecialChar=NULL;
 wchar_t *wszSpecialCharText=NULL;
 STACKSPECIALCHAR hSpecialCharStack={0};
-STACKDRAWCALLBACK hDrawCallbackStack={0};
+STACKPAINTCALLBACK hPaintCallbackStack={0};
 SPECIALCHAR *pscIndentLine=NULL;
 int nIndentLineSize=0;
 BOOL bIndentLineSolid=FALSE;
@@ -1388,38 +1388,38 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_PAINT)
   {
-    AEDRAWCALLBACKADD dca;
-    DRAWCALLBACK *lpDrawCallback;
-    AEDRAWCALLBACK *aedc;
+    AEPAINTCALLBACKADD pcba;
+    PAINTCALLBACK *lpPaintCallback;
+    AEPAINTCALLBACK *aepcb;
     AEHDOC hDoc;
 
     //Find callback
     hDoc=(AEHDOC)SendMessage(hWnd, AEM_GETDOCUMENT, 0, 0);
-    for (lpDrawCallback=(DRAWCALLBACK *)hDrawCallbackStack.first; lpDrawCallback; lpDrawCallback=lpDrawCallback->next)
+    for (lpPaintCallback=(PAINTCALLBACK *)hPaintCallbackStack.first; lpPaintCallback; lpPaintCallback=lpPaintCallback->next)
     {
-      if (lpDrawCallback->aedc->hDoc == hDoc)
+      if (lpPaintCallback->aepcb->hDoc == hDoc)
         break;
     }
     //Add callback
-    if (!lpDrawCallback)
+    if (!lpPaintCallback)
     {
-      dca.lpCallback=DrawCallback;
-      dca.dwCookie=0;
-      if (aedc=(AEDRAWCALLBACK *)SendMessage(hWnd, AEM_DRAWCALLBACK, AEDC_ADD, (LPARAM)&dca))
-        InsertDrawCallbackStack(&hDrawCallbackStack, aedc);
+      pcba.lpCallback=PaintCallback;
+      pcba.dwCookie=0;
+      if (aepcb=(AEPAINTCALLBACK *)SendMessage(hWnd, AEM_PAINTCALLBACK, AEPCB_ADD, (LPARAM)&pcba))
+        InsertPaintCallbackStack(&hPaintCallbackStack, aepcb);
     }
   }
   else if (uMsg == AEM_DELETEDOCUMENT || uMsg == WM_DESTROY)
   {
-    DRAWCALLBACK *lpDrawCallback;
+    PAINTCALLBACK *lpPaintCallback;
     AEHDOC hDoc;
 
     //Delete callback
     hDoc=(AEHDOC)SendMessage(hWnd, AEM_GETDOCUMENT, 0, 0);
-    for (lpDrawCallback=(DRAWCALLBACK *)hDrawCallbackStack.first; lpDrawCallback; lpDrawCallback=lpDrawCallback->next)
+    for (lpPaintCallback=(PAINTCALLBACK *)hPaintCallbackStack.first; lpPaintCallback; lpPaintCallback=lpPaintCallback->next)
     {
-      if (lpDrawCallback->aedc->hDoc == hDoc)
-        DeleteDrawCallbackStack(&hDrawCallbackStack, lpDrawCallback);
+      if (lpPaintCallback->aepcb->hDoc == hDoc)
+        DeletePaintCallbackStack(&hPaintCallbackStack, lpPaintCallback);
     }
   }
 
@@ -1427,7 +1427,7 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   return NewEditProcData->NextProc(hWnd, uMsg, wParam, lParam);
 }
 
-DWORD CALLBACK DrawCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
+DWORD CALLBACK PaintCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
 {
   RECT rcDraw;
   static AECOLORS aec;
@@ -2153,31 +2153,31 @@ void FreeSpecialCharStack(STACKSPECIALCHAR *hStack)
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-DRAWCALLBACK* InsertDrawCallbackStack(STACKDRAWCALLBACK *hStack, AEDRAWCALLBACK *aedc)
+PAINTCALLBACK* InsertPaintCallbackStack(STACKPAINTCALLBACK *hStack, AEPAINTCALLBACK *aepcb)
 {
-  DRAWCALLBACK *lpDrawCallback=NULL;
+  PAINTCALLBACK *lpPaintCallback=NULL;
 
   //Insert at the beginning
-  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpDrawCallback, 1, sizeof(DRAWCALLBACK)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpPaintCallback, 1, sizeof(PAINTCALLBACK)))
   {
-    lpDrawCallback->aedc=aedc;
+    lpPaintCallback->aepcb=aepcb;
   }
-  return lpDrawCallback;
+  return lpPaintCallback;
 }
 
-void DeleteDrawCallbackStack(STACKDRAWCALLBACK *hStack, DRAWCALLBACK *lpDrawCallback)
+void DeletePaintCallbackStack(STACKPAINTCALLBACK *hStack, PAINTCALLBACK *lpPaintCallback)
 {
-  SendToDoc(lpDrawCallback->aedc->hDoc, lpDrawCallback->aedc->hWnd, AEM_DRAWCALLBACK, AEDC_DEL, (LPARAM)lpDrawCallback->aedc);
-  StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpDrawCallback);
+  SendToDoc(lpPaintCallback->aepcb->hDoc, lpPaintCallback->aepcb->hWnd, AEM_PAINTCALLBACK, AEPCB_DEL, (LPARAM)lpPaintCallback->aepcb);
+  StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpPaintCallback);
 }
 
-void FreeDrawCallbackStack(STACKDRAWCALLBACK *hStack)
+void FreePaintCallbackStack(STACKPAINTCALLBACK *hStack)
 {
-  DRAWCALLBACK *lpDrawCallback=NULL;
+  PAINTCALLBACK *lpPaintCallback=NULL;
 
-  for (lpDrawCallback=hStack->first; lpDrawCallback; lpDrawCallback=lpDrawCallback->next)
+  for (lpPaintCallback=hStack->first; lpPaintCallback; lpPaintCallback=lpPaintCallback->next)
   {
-    SendToDoc(lpDrawCallback->aedc->hDoc, lpDrawCallback->aedc->hWnd, AEM_DRAWCALLBACK, AEDC_DEL, (LPARAM)lpDrawCallback->aedc);
+    SendToDoc(lpPaintCallback->aepcb->hDoc, lpPaintCallback->aepcb->hWnd, AEM_PAINTCALLBACK, AEPCB_DEL, (LPARAM)lpPaintCallback->aepcb);
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -2766,7 +2766,7 @@ void UninitMain()
     dwSaveFlags=0;
   }
   FreeSpecialCharStack(&hSpecialCharStack);
-  FreeDrawCallbackStack(&hDrawCallbackStack);
+  FreePaintCallbackStack(&hPaintCallbackStack);
   pscIndentLine=NULL;
 
   //Remove subclass
