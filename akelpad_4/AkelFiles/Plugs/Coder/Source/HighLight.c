@@ -128,11 +128,14 @@ void __declspec(dllexport) HighLight(PLUGINDATA *pd)
 
                 if (cr.cpMax > cr.cpMin && cr.cpMax - cr.cpMin < nAutoMarkMaxSel)
                 {
-                  if (wpMarkText=(wchar_t *)SendMessage(hMainWnd, AKD_GETSELTEXTW, (WPARAM)ei.hWndEdit, (LPARAM)&nMarkTextLen))
+                  if (!SendMessage(ei.hWndEdit, AEM_GETLINENUMBER, AEGL_UNWRAPSELMULTILINE, 0))
                   {
-                    if (MarkSelection(lpHighlightWindow, wpMarkText, (int)nMarkTextLen, dwColorText, dwColorBk, dwHLFlags, dwFontStyle, dwMarkID))
-                      bUpdate=TRUE;
-                    SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpMarkText);
+                    if (wpMarkText=(wchar_t *)SendMessage(hMainWnd, AKD_GETSELTEXTW, (WPARAM)ei.hWndEdit, (LPARAM)&nMarkTextLen))
+                    {
+                      if (MarkSelection(lpHighlightWindow, wpMarkText, (int)nMarkTextLen, dwColorText, dwColorBk, dwHLFlags, dwFontStyle, dwMarkID))
+                        bUpdate=TRUE;
+                      SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpMarkText);
+                    }
                   }
                 }
               }

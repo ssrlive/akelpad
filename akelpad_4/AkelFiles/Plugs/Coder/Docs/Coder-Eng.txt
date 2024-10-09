@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Coder AkelPad plugin v20.6                ***
+***                 Coder AkelPad plugin v20.7                ***
 *****************************************************************
 
 2007-2024 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -55,7 +55,7 @@ for any document, use Shift+Enter to select from list.
 Call("Coder::HighLight", 2, "#RRGGBB", "#RRGGBB", FLAGS, FONTSTYLE, ID, "TEXT", TEXTLENGTH)
   Parameters:
     2
-      Mark selected text or specified text.
+      Mark selected or specified text. Multiline text not supported.
     "#RRGGBB"
       Text color, ignored if "0".
     "#RRGGBB"
