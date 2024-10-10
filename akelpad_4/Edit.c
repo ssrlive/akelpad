@@ -6297,6 +6297,9 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
 
     //Set header menu image
     bd.dwFlags=BIF_DOWNARROW|BIF_ENABLEFOCUS;
+    bd.hImage=NULL;
+    bd.nImageWidth=0;
+    bd.nImageHeight=0;
     SetButtonDraw(hWndHeaderHelp, &bd);
 
     SendMessage(hWndFooterCheck, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
@@ -7987,6 +7990,9 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         BUTTONDRAW bd;
 
         bd.dwFlags=moCur.bShowPlacesBar?BIF_RIGHTARROW:BIF_LEFTARROW;
+        bd.hImage=NULL;
+        bd.nImageWidth=0;
+        bd.nImageHeight=0;
         SetButtonDraw(hWndShowPlacesBar, &bd);
       }
 
@@ -9896,6 +9902,9 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       int nTextLen;
 
       bd.dwFlags=BIF_DOWNARROW|BIF_ENABLEFOCUS;
+      bd.hImage=NULL;
+      bd.nImageWidth=0;
+      bd.nImageHeight=0;
       SetButtonDraw(hWndRegExpArrow, &bd);
 
       if (hDC=GetDC(hWndRegExp))

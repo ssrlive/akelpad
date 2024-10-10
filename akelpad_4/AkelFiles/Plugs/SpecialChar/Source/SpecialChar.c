@@ -1412,12 +1412,18 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == AEM_DELETEDOCUMENT || uMsg == WM_DESTROY)
   {
     PAINTCALLBACK *lpPaintCallback;
+    PAINTCALLBACK *lpNextCallback;
     AEHDOC hDoc;
 
+    if (uMsg == AEM_DELETEDOCUMENT)
+      hDoc=(AEHDOC)wParam;
+    else
+      hDoc=(AEHDOC)SendMessage(hWnd, AEM_GETDOCUMENT, 0, 0);
+
     //Delete callback
-    hDoc=(AEHDOC)SendMessage(hWnd, AEM_GETDOCUMENT, 0, 0);
-    for (lpPaintCallback=(PAINTCALLBACK *)hPaintCallbackStack.first; lpPaintCallback; lpPaintCallback=lpPaintCallback->next)
+    for (lpPaintCallback=(PAINTCALLBACK *)hPaintCallbackStack.first; lpPaintCallback; lpPaintCallback=lpNextCallback)
     {
+      lpNextCallback=lpPaintCallback->next;
       if (lpPaintCallback->aepcb->hDoc == hDoc)
         DeletePaintCallbackStack(&hPaintCallbackStack, lpPaintCallback);
     }
