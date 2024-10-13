@@ -14650,58 +14650,62 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg)
     HMODULE hModule=NULL;
     HANDLE hThread;
 
-    if (lpMsg->wParam)
+    if (pup)
     {
-      //AKD_DLLUNLOAD was posted not from CommonMainProc (old syntax).
-      phElement=StackHandleGet(&hHandlesStack, (HMODULE)lpMsg->wParam, NULL);
-      hModule=(HMODULE)lpMsg->wParam;
-      hThread=(HANDLE)lpMsg->lParam;
-    }
-    else
-    {
-      phElement=pup->phElement;
-      hModule=pup->hModule;
-      hThread=pup->hThread;
-    }
-
-    if (phElement && (!pup || pup->nCallCount == phElement->nCallCount))
-    {
-      if (hThread)
+      if (lpMsg->wParam)
       {
-        WaitForSingleObject(hThread, INFINITE);
-        CloseHandle(hThread);
+        //AKD_DLLUNLOAD was posted not from CommonMainProc (old syntax).
+        phElement=StackHandleGet(&hHandlesStack, (HMODULE)lpMsg->wParam, NULL);
+        hModule=(HMODULE)lpMsg->wParam;
+        hThread=(HANDLE)lpMsg->lParam;
+      }
+      else
+      {
+        phElement=pup->phElement;
+        hModule=pup->hModule;
+        hThread=pup->hThread;
       }
 
-      xprintfW(wszPluginName, L"%s::", phElement->wszPlugin);
-      WideCharToMultiByte(CP_ACP, 0, wszPluginName, -1, szPluginName, MAX_PATH, NULL, NULL);
-
-      if (FreeLibrary(hModule))
+      if (phElement && (!pup || pup->nCallCount == phElement->nCallCount))
       {
-        PLUGINFUNCTION *pfElement=hPluginsStack.first;
-        PLUGINFUNCTION *pfNextElement;
-        UNISTRING us;
-
-        StackHandleDecrease(&hHandlesStack, hModule);
-
-        //Clean-up plugins stack
-        while (pfElement)
+        if (hThread)
         {
-          pfNextElement=pfElement->next;
-
-          if (!xstrcmpinW(wszPluginName, pfElement->wszFunction, (UINT_PTR)-1))
-          {
-            if (pfElement->wHotkey || pfElement->bAutoLoad)
-              pfElement->bRunning=FALSE;
-            else
-              StackPluginDelete(&hPluginsStack, pfElement);
-          }
-          pfElement=pfNextElement;
+          WaitForSingleObject(hThread, INFINITE);
+          CloseHandle(hThread);
         }
-        us.pString=bOldWindows?(LPBYTE)szPluginName:(LPBYTE)wszPluginName;
-        us.szString=szPluginName;
-        us.wszString=wszPluginName;
-        SendMessage(hMainWnd, AKDN_DLLUNLOAD, 0, (WPARAM)&us);
+
+        xprintfW(wszPluginName, L"%s::", phElement->wszPlugin);
+        WideCharToMultiByte(CP_ACP, 0, wszPluginName, -1, szPluginName, MAX_PATH, NULL, NULL);
+
+        if (FreeLibrary(hModule))
+        {
+          PLUGINFUNCTION *pfElement=hPluginsStack.first;
+          PLUGINFUNCTION *pfNextElement;
+          UNISTRING us;
+
+          StackHandleDecrease(&hHandlesStack, hModule);
+
+          //Clean-up plugins stack
+          while (pfElement)
+          {
+            pfNextElement=pfElement->next;
+
+            if (!xstrcmpinW(wszPluginName, pfElement->wszFunction, (UINT_PTR)-1))
+            {
+              if (pfElement->wHotkey || pfElement->bAutoLoad)
+                pfElement->bRunning=FALSE;
+              else
+                StackPluginDelete(&hPluginsStack, pfElement);
+            }
+            pfElement=pfNextElement;
+          }
+          us.pString=bOldWindows?(LPBYTE)szPluginName:(LPBYTE)wszPluginName;
+          us.szString=szPluginName;
+          us.wszString=wszPluginName;
+          SendMessage(hMainWnd, AKDN_DLLUNLOAD, 0, (WPARAM)&us);
+        }
       }
+      GlobalFree((HGLOBAL)pup);
     }
     return TRUE;
   }
