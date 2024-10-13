@@ -1798,7 +1798,7 @@ BOOL CALLBACK EditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, L
             GetObjectA(hFont, sizeof(LOGFONTA), &lfFont);
             lfFont.lfHeight=-MulDiv(lpBoard->nBoardHeight, GetDeviceCaps(hBufferDC, LOGPIXELSY), 72) / 2;
             hFontRuler=(HFONT)CreateFontIndirectA(&lfFont);
-            SelectObject(hBufferDC, hFontRuler);
+            hFontOld=(HFONT)SelectObject(hBufferDC, hFontRuler);
 
             //Erase ruler space
             FillRect(hBufferDC, &rcBoard, hBrushBoard);
@@ -1866,7 +1866,7 @@ BOOL CALLBACK EditMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, L
             hRgn=CreateRectRgn(rcBoard.left, rcBoard.top, rcBoard.right, rcBoard.bottom);
             hRgnOld=(HRGN)SelectObject(hDC, hRgn);
             BitBlt(hDC, rcBoard.left, rcBoard.top, rcBoard.right - rcBoard.left, rcBoard.bottom - rcBoard.top, hBufferDC, rcBoard.left, rcBoard.top, SRCCOPY);
-            if (hRgnOld) SelectObject(hBufferDC, hRgnOld);
+            if (hRgnOld) SelectObject(hDC, hRgnOld);
             DeleteObject(hRgn);
 
             if (hPenOld) SelectObject(hBufferDC, hPenOld);
