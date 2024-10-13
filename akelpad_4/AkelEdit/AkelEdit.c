@@ -21389,7 +21389,7 @@ BOOL AE_EditCopyToClipboard(AKELEDIT *ae, AECHARRANGE *cr, int nNewLine, BOOL bC
           pDataInfo->dwUnicodeLen64=dwUnicodeLen?dwUnicodeLen - 1:0;
           pDataInfo->dwAnsiLen=(DWORD)pDataInfo->dwAnsiLen64;
           pDataInfo->dwUnicodeLen=(DWORD)pDataInfo->dwUnicodeLen64;
-          GlobalUnlock(pDataInfo);
+          GlobalUnlock(hDataInfo);
         }
         SetClipboardData(cfAkelEditText, hDataInfo);
       }
@@ -21433,7 +21433,7 @@ INT_PTR AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags, int nNewLine)
           dwAnsiLen=pDataInfo->dwAnsiLen;
           dwUnicodeLen=pDataInfo->dwUnicodeLen;
         #endif
-        GlobalUnlock(pDataInfo);
+        GlobalUnlock(hDataInfo);
       }
     }
 
