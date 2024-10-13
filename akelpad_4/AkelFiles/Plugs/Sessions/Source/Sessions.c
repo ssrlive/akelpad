@@ -4253,7 +4253,6 @@ int UpdateComboBoxDropWidth(HWND hWnd)
 void TreeFillItemsCurrent(HWND hWndTreeView)
 {
   TVINSERTSTRUCTW tvis;
-  TVITEMW tvi;
   TCITEMW tcItem;
   FRAMEDATA *lpFrame;
   int nTabItem=0;
@@ -4267,12 +4266,10 @@ void TreeFillItemsCurrent(HWND hWndTreeView)
 
     if (*lpFrame->ei.wszFile)
     {
-      tvi.mask=TVIF_TEXT|TVIF_PARAM;
-      tvi.pszText=(wchar_t *)(bShowPath?lpFrame->ei.wszFile:GetFileName(lpFrame->ei.wszFile, -1));
-      tvi.cchTextMax=MAX_PATH;
-      tvi.lParam=(LPARAM)lpFrame;
-
-      xmemcpy(&tvis.item, &tvi, sizeof(TVITEMW));
+      tvis.item.mask=TVIF_TEXT|TVIF_PARAM;
+      tvis.item.pszText=(wchar_t *)(bShowPath?lpFrame->ei.wszFile:GetFileName(lpFrame->ei.wszFile, -1));
+      tvis.item.cchTextMax=MAX_PATH;
+      tvis.item.lParam=(LPARAM)lpFrame;
       tvis.hParent=NULL;
       tvis.hInsertAfter=TVI_LAST;
       TreeView_InsertItemWide(hWndTreeView, &tvis);
