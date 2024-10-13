@@ -1463,7 +1463,7 @@ void ReadOptions(DWORD dwFlags)
 
   if (!wszSoundText)
   {
-    if (wszSoundText=(wchar_t *)GlobalAlloc(GPTR, sizeof(TXT_DEFAULT_SOUNDS)))
+    if (wszSoundText=(wchar_t *)HeapAlloc(hHeap, 0, sizeof(TXT_DEFAULT_SOUNDS)))
     {
       xmemcpy((unsigned char *)wszSoundText, TXT_DEFAULT_SOUNDS, sizeof(TXT_DEFAULT_SOUNDS));
     }
