@@ -470,6 +470,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptions|=AECO_ACTIVELINE;
   if (lpFrame->dwCaretOptions & CO_CARETACTIVELINEBORDER)
     dwOptions|=AECO_ACTIVELINEBORDER;
+  if (lpFrame->dwCaretOptions & CO_NOCARETHORZINDENT)
+    dwOptionsEx|=AECOE_NOCARETHORZINDENT;
   if (lpFrame->bAltLineBorder)
     dwOptions|=AECO_ALTLINEBORDER;
   if (!(lpFrame->dwMouseOptions & MO_LEFTMARGINSELECTION))
@@ -21268,11 +21270,13 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
       if (lpFrame->dwCaretOptions != (DWORD)dwData)
       {
         DWORD dwAddOptions;
+        DWORD dwAddOptionsEx;
         DWORD dwCurOptions;
 
         lpFrame->dwCaretOptions=(DWORD)dwData;
 
         dwAddOptions=0;
+        dwAddOptionsEx=0;
         if (lpFrame->dwCaretOptions & CO_CARETOUTEDGE)
           dwAddOptions|=AECO_CARETOUTEDGE;
         if (lpFrame->dwCaretOptions & CO_CARETVERTLINE)
@@ -21281,9 +21285,16 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
           dwAddOptions|=AECO_ACTIVELINE;
         if (lpFrame->dwCaretOptions & CO_CARETACTIVELINEBORDER)
           dwAddOptions|=AECO_ACTIVELINEBORDER;
+        if (lpFrame->dwCaretOptions & CO_NOCARETHORZINDENT)
+          dwAddOptionsEx|=AECOE_NOCARETHORZINDENT;
+
         dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_GETOPTIONS, 0, 0);
         dwCurOptions&=~AECO_CARETOUTEDGE & ~AECO_ACTIVECOLUMN & ~AECO_ACTIVELINE & ~AECO_ACTIVELINEBORDER;
         SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptions);
+
+        dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_EXGETOPTIONS, 0, 0);
+        dwCurOptions&=~AECOE_NOCARETHORZINDENT;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptionsEx);
 
         return TRUE;
       }

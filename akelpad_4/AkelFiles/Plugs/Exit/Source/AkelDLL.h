@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 2, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 3, 0)
 
 
 //// Defines
@@ -536,6 +536,7 @@
 #define CO_CARETVERTLINE         0x00000002  //Draw caret vertical line.
 #define CO_CARETACTIVELINE       0x00000004  //Draw active line.
 #define CO_CARETACTIVELINEBORDER 0x00000008  //Draw active line border.
+#define CO_NOCARETHORZINDENT     0x00000010  //Caret horizontal indent isn't recovered after pressing Up, Down, Page Up, Page Down keys.
 
 //Mouse options
 #define MO_LEFTMARGINSELECTION   0x00000001  //Enables left margin line selection with mouse.

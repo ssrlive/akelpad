@@ -28,6 +28,8 @@ Added: "Settings..." dialog now resizable.
 Added: possibility to set negative line gap.
 Added: manual flag 268435456 in the parameter "TabOptionsMDI" - close modified tabs first
        on exit.
+Added: manual flag 16 in the parameter "CaretOptions" - caret horizontal indent isn't
+       recovered after pressing Up, Down, Page Up, Page Down keys. 
 Added: optional parameter for command 4321:
        1 - close all modified tabs.
 Added: optional parameter for commands 4153,4154:

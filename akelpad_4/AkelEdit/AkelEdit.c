@@ -20933,7 +20933,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
     }
 
     //Set horizontal caret
-    if (!bSetCaretHorzIndent)
+    if (!bSetCaretHorzIndent && !(ae->popt->dwOptionsEx & AECOE_NOCARETHORZINDENT))
     {
       ae->nCaretHorzIndent=nCaretHorzIndent;
     }
