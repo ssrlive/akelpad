@@ -5441,27 +5441,26 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
 
 INT_PTR EscapeString(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput)
 {
-  //Escape: \ -> \\ and " -> \"
+  //Escape: \ -> \\, " -> \", CR -> \r, LF -> \n
   const wchar_t *wpInputMax=wpInput + nInputLen;
   wchar_t *wpOutput=wszOutput;
 
   for (; wpInput < wpInputMax; ++wpInput)
   {
-    if (*wpInput == L'\\')
+    if (*wpInput == L'\\' ||
+        *wpInput == L'\"' ||
+        *wpInput == L'\r' ||
+        *wpInput == L'\n')
     {
       if (wszOutput)
       {
         *wpOutput++=L'\\';
-        *wpOutput++=L'\\';
-      }
-      else wpOutput+=2;
-    }
-    else if (*wpInput == L'\"')
-    {
-      if (wszOutput)
-      {
-        *wpOutput++=L'\\';
-        *wpOutput++=L'\"';
+        if (*wpInput == L'\r')
+          *wpOutput++=L'r';
+        else if (*wpInput == L'\n')
+          *wpOutput++=L'n';
+        else
+          *wpOutput++=*wpInput;
       }
       else wpOutput+=2;
     }
@@ -5478,19 +5477,33 @@ INT_PTR EscapeString(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutp
 
 INT_PTR UnescapeString(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput)
 {
-  //Unescape: \\ -> \ and \" -> "
+  //Unescape: \\ -> \, \" -> ", \r -> CR, \n -> LF
   const wchar_t *wpInputMax=wpInput + nInputLen;
   wchar_t *wpOutput=wszOutput;
 
   for (; wpInput < wpInputMax; ++wpInput)
   {
     if (*wpInput == L'\\')
+    {
       ++wpInput;
-
-    if (wszOutput)
-      *wpOutput++=*wpInput;
+      if (wszOutput)
+      {
+        if (*wpInput == L'r')
+          *wpOutput++=L'\r';
+        else if (*wpInput == L'n')
+          *wpOutput++=L'\n';
+        else
+          *wpOutput++=*wpInput;
+      }
+      else wpOutput+=1;
+    }
     else
-      wpOutput+=1;
+    {
+      if (wszOutput)
+        *wpOutput++=*wpInput;
+      else
+        wpOutput+=1;
+    }
   }
   return (wpOutput - wszOutput);
 }

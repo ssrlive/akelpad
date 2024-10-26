@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 2, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 3, 0)
 
 
 //// Defines
@@ -59,8 +59,8 @@
 #define CLO_VARNOSYSTEM           0x1000  //Don't expand system variables (for example, %windir%).
 #define CLO_VARNOAKELPAD          0x2000  //Don't expand program variables %f,%d,%a. If flag set, then symbol % must be specified as is (without %%).
 
-// PARSECMDLINESENDW, PARSECMDLINEPOSTW flags
-#define PCLF_OPENINNEWWINDOW 0x0001 // Open all documents in new windows. If not set, open first document in current window and next in new windows (SDI).
+//PARSECMDLINESENDW, PARSECMDLINEPOSTW flags
+#define PCLF_OPENINNEWWINDOW 0x0001  //Open all documents in new windows. If not set, open first document in current window and next in new windows (SDI).
 
 //AKD_PARSECMDLINE return value
 #define PCLE_SUCCESS        0  //Success.
@@ -536,6 +536,7 @@
 #define CO_CARETVERTLINE         0x00000002  //Draw caret vertical line.
 #define CO_CARETACTIVELINE       0x00000004  //Draw active line.
 #define CO_CARETACTIVELINEBORDER 0x00000008  //Draw active line border.
+#define CO_NOCARETHORZINDENT     0x00000010  //Caret horizontal indent isn't recovered after pressing Up, Down, Page Up, Page Down keys.
 
 //Mouse options
 #define MO_LEFTMARGINSELECTION   0x00000001  //Enables left margin line selection with mouse.
@@ -1506,7 +1507,7 @@ typedef struct {
 #ifdef __AKELEDIT_H__
 typedef struct {
   AECHARRANGE cr;             //Characters range to retrieve.
-  BOOL bColumnSel;            //Column selection. If this value is 1, active column selection mode is used.
+  BOOL bColumnSel;            //Column selection. If this value is -1, active column selection mode is used.
   unsigned char *pText;       //Pointer that receive allocated text.
                               //Must be deallocated with AKD_FREETEXT message.
                               //  char *pText      if bOldWindows == TRUE
@@ -1957,10 +1958,10 @@ typedef struct {
                                               //Return Value: zero.
                                               //
 #define IDM_EDIT_FINDNEXTDOWN           4159  //Find last string down.
-                                              //Return Value: Character position of the next match. If there are no more matches, the return value is 1.
+                                              //Return Value: Character position of the next match. If there are no more matches, the return value is -1.
                                               //
 #define IDM_EDIT_FINDNEXTUP             4160  //Find last string up.
-                                              //Return Value: Character position of the next match. If there are no more matches, the return value is 1.
+                                              //Return Value: Character position of the next match. If there are no more matches, the return value is -1.
                                               //
 #define IDM_EDIT_REPLACE                4161  //Replace dialog.
                                               //Return Value: zero.
@@ -3790,9 +3791,9 @@ Finds text in a edit control.
 
 Return Value
  Character position of the next match.
- If there are no more matches, the return value is 1.
- If there is syntax error occurred with FRF_REGEXP or FRF_ESCAPESEQ flag, the return value is (100 - PatternOffset).
- For example, TEXTFINDW.pFindIt equal to "ab[c" with FRF_REGEXP, syntax error in third symbol, return value is 102.
+ If there are no more matches, the return value is -1.
+ If there is syntax error occurred with FRF_REGEXP or FRF_ESCAPESEQ flag, the return value is (-100 - PatternOffset).
+ For example, TEXTFINDW.pFindIt equal to "ab[c" with FRF_REGEXP, syntax error in third symbol, return value is -102.
 
 Example (Unicode):
  TEXTFINDW tf;
@@ -3813,9 +3814,9 @@ Replaces text in a edit control.
 
 Return Value
  Character position of the next match.
- If there are no more matches, the return value is 1.
- If there is syntax error occurred with FRF_REGEXP or FRF_ESCAPESEQ flag, the return value is (100 - PatternOffset).
- For example, TEXTREPLACEW.pFindIt equal to "ab[c" with FRF_REGEXP, syntax error in third symbol, return value is 102.
+ If there are no more matches, the return value is -1.
+ If there is syntax error occurred with FRF_REGEXP or FRF_ESCAPESEQ flag, the return value is (-100 - PatternOffset).
+ For example, TEXTREPLACEW.pFindIt equal to "ab[c" with FRF_REGEXP, syntax error in third symbol, return value is -102.
 
 Example (Unicode):
  TEXTREPLACEW tr;

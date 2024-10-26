@@ -197,7 +197,7 @@
 //AEN_PAINT type
 #define AEPNT_BEGIN             0x00000001  //Sends before painting is started, only AENPAINT.hDC member is valid.
 #define AEPNT_END               0x00000002  //Sends before clean-up paint resources.
-#define AEPNT_DRAWLINE          0x00000004  //Sends before line is drawn.
+#define AEPNT_DRAWLINE          0x00000004  //Sends before line is drawn. Used only in callback, see AEM_PAINTCALLBACK.
 
 //AEM_SETOPTIONS flags
                                                   // Window styles:
@@ -242,6 +242,7 @@
 #define AECOE_ALTDECINPUT             0x00000008  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 #define AECOE_INVERTHORZWHEEL         0x00000010  //Invert mouse horizontal wheel.
 #define AECOE_INVERTVERTWHEEL         0x00000020  //Invert mouse vertical wheel.
+#define AECOE_NOCARETHORZINDENT       0x00000040  //Caret horizontal indent isn't recovered after pressing VK_UP, VK_DOWN, VK_PRIOR, VK_NEXT.
 #define AECOE_NOPRINTCOLLAPSED        0x00001000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
@@ -426,6 +427,20 @@
                               //lParam                    == not used.
                               //Return                    == zero.
 
+
+//AEM_PAINTCALLBACK operations
+#define AEPCB_STACK         1 //Retrieve stack.
+                              //lParam                         == not used.
+                              //(AESTACKPAINTCALLBACK *)Return == pointer to an paint callback stack.
+#define AEPCB_ADD           2 //Add paint callback item.
+                              //(AEPAINTCALLBACKADD *)lParam   == pointer to a AEPAINTCALLBACKADD structure.
+                              //(AEPAINTCALLBACK *)Return      == pointer to an AEPAINTCALLBACK item.
+#define AEPCB_DEL           3 //Delete callback item.
+                              //(AEPAINTCALLBACK *)lParam      == pointer to an AEPAINTCALLBACK item.
+                              //Return                         == zero.
+#define AEPCB_FREE          4 //Free stack.
+                              //lParam                         == not used.
+                              //Return                         == zero.
 
 //AEM_SETCOLORS flags
 #define AECLR_DEFAULT          0x00000001  //Use default system colors for the specified flags, all members of the AECOLORS structure are ignored.
@@ -1497,6 +1512,33 @@ typedef struct {
   POINT ptMaxDraw;        //Left upper corner in client coordinates of last character in line to paint.
 } AENPAINT;
 
+typedef DWORD (CALLBACK *AEPaintCallback)(UINT_PTR dwCookie, const AENPAINT *pnt);
+//dwCookie     Value of the dwCookie member of the AEPAINTCALLBACKADD structure. The application specifies this value when it sends the AEM_PAINTCALLBACK message with AEPCB_ADD.
+//pnt          Paint information.
+//
+//Return Value
+// To continue processing, the callback function must return zero; to stop processing (until next AEPNT_BEGIN), it must return nonzero.
+
+typedef struct {
+  AEPaintCallback lpCallback;
+  UINT_PTR dwCookie;
+} AEPAINTCALLBACKADD;
+
+typedef struct _AEPAINTCALLBACK {
+  struct _AEPAINTCALLBACK *next;
+  struct _AEPAINTCALLBACK *prev;
+  AEHDOC hDoc;                //Document handle. See AEM_CREATEDOCUMENT message.
+  HWND hWnd;                  //Window handle.
+  AEPaintCallback lpCallback; //Callback function.
+  UINT_PTR dwCookie;          //User parameter to callback function.
+  DWORD dwError;              //Indicates the result of the callback function.
+} AEPAINTCALLBACK;
+
+typedef struct {
+  AEPAINTCALLBACK *first;
+  AEPAINTCALLBACK *last;
+} AESTACKPAINTCALLBACK;
+
 typedef struct {
   AENMHDR hdr;
   UINT_PTR dwTextLimit;   //Current text limit.
@@ -1820,6 +1862,7 @@ typedef struct {
 #define AEM_REDRAWLINERANGE       (WM_USER + 2362)
 #define AEM_GETBACKGROUNDIMAGE    (WM_USER + 2366)
 #define AEM_SETBACKGROUNDIMAGE    (WM_USER + 2367)
+#define AEM_PAINTCALLBACK         (WM_USER + 2368)
 
 //Folding
 #define AEM_GETFOLDSTACK          (WM_USER + 2381)
@@ -5382,6 +5425,44 @@ if (hBkImage=(HBITMAP)LoadImageA(NULL, "c:\\MyBackground.bmp", IMAGE_BITMAP, 0, 
 }
 
 
+AEM_PAINTCALLBACK
+_________________
+
+Receiving paint operations including draw line.
+
+(int)wParam  == see AEPCB_* defines.
+(void)lParam == depend of AEPCB_* define.
+
+Return Value
+ Depend of AEPCB_* define.
+
+Example:
+ DWORD CALLBACK PaintCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
+ {
+   if (pnt->dwType == AEPNT_BEGIN)
+   {
+   }
+   else if (pnt->dwType == AEPNT_DRAWLINE)
+   {
+   }
+   else if (pnt->dwType == AEPNT_END)
+   {
+   }
+   return 0
+ }
+
+ //Init
+ AEPAINTCALLBACKADD pcba;
+
+ pcba.lpCallback=PaintCallback;
+ pcba.dwCookie=0;
+ lpPaintCallback=(AEPAINTCALLBACK *)SendMessage(hWndEdit, AEM_PAINTCALLBACK, AEPCB_ADD, (LPARAM)&pcba);
+
+ //Uninit
+ SendMessage(hWndEdit, AEM_PAINTCALLBACK, AEPCB_DEL, (LPARAM)lpPaintCallback);
+
+
+
 AEM_GETFOLDSTACK
 ________________
 
@@ -5823,18 +5904,19 @@ Example:
 AEM_GETMASTER
 _____________
 
-Retrieve master window handle. Message send to a master or slave window.
+Retrieve master window/document handle. Message send to a master or slave window.
 
-wParam == not used.
-lParam == not used.
+(BOOL)wParam == TRUE   retrieve master document.
+                FALSE  retrieve master window.
+lParam       == not used.
 
 Return Value
- Master window handle.
+ Master window/document handle.
 
 Example:
  HWND hWndMaster;
 
- if (hWndMaster=(HWND)SendMessage(hWndEdit, AEM_GETMASTER, 0, 0))
+ if (hWndMaster=(HWND)SendMessage(hWndEdit, AEM_GETMASTER, FALSE, 0))
  {
    if (hWndMaster == hWndEdit)
      MessageBoxA(NULL, "hWndEdit is master", NULL, 0);

@@ -1241,7 +1241,7 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   //Explorer menu
   if (pExplorerSubMenu3)
   {
-    LRESULT lResult;
+    LRESULT lResult=0;
 
     if (SUCCEEDED(pExplorerSubMenu3->lpVtbl->HandleMenuMsg2(pExplorerSubMenu3, uMsg, wParam, lParam, &lResult)))
       return (BOOL)lResult;
@@ -1609,7 +1609,6 @@ void FillTreeView(HWND hWnd, LPSHELLFOLDER psfRoot, LPITEMIDLIST pidlRoot, HTREE
   ULONG ulAttrs;
   ULONG ulState;
   TVINSERTSTRUCTW tvis;
-  TVITEMW tvi;
   HTREEITEM hPrev=NULL;
   int nItem;
   BOOL bFound=-1;
@@ -1669,22 +1668,22 @@ void FillTreeView(HWND hWnd, LPSHELLFOLDER psfRoot, LPITEMIDLIST pidlRoot, HTREE
               if (ulAttrs & SFGAO_GHOSTED)
                 ulState|=TVIS_CUT;
 
-              tvi.mask=TVIF_TEXT|TVIF_IMAGE|TVIF_SELECTEDIMAGE|TVIF_PARAM|TVIF_STATE;
-              tvi.state=ulState;
-              tvi.stateMask=TVIS_OVERLAYMASK|TVIS_CUT;
-              tvi.pszText=wszName;
-              tvi.cchTextMax=MAX_PATH;
-              tvi.iImage=GetItemIcon(lptvid->pidlFullPath, SHGFI_PIDL|SHGFI_SYSICONINDEX|SHGFI_SMALLICON);
-              tvi.iSelectedImage=GetItemIcon(lptvid->pidlFullPath, SHGFI_PIDL|SHGFI_SYSICONINDEX|SHGFI_SMALLICON|SHGFI_OPENICON);
-              tvi.lParam=(LPARAM)lptvid;
+              tvis.item.mask=TVIF_TEXT|TVIF_IMAGE|TVIF_SELECTEDIMAGE|TVIF_PARAM|TVIF_STATE;
+              tvis.item.state=ulState;
+              tvis.item.stateMask=TVIS_OVERLAYMASK|TVIS_CUT;
+              tvis.item.pszText=wszName;
+              tvis.item.cchTextMax=MAX_PATH;
+              tvis.item.iImage=GetItemIcon(lptvid->pidlFullPath, SHGFI_PIDL|SHGFI_SYSICONINDEX|SHGFI_SMALLICON);
+              tvis.item.iSelectedImage=GetItemIcon(lptvid->pidlFullPath, SHGFI_PIDL|SHGFI_SYSICONINDEX|SHGFI_SMALLICON|SHGFI_OPENICON);
+              tvis.item.lParam=(LPARAM)lptvid;
 
               if ((ulAttrs & SFGAO_FOLDER) &&
                  !(ulAttrs & SFGAO_STREAM)) //not .zip
               {
                 if (!(ulAttrs & SFGAO_FILESYSTEM))
                 {
-                  tvi.cChildren=1;
-                  tvi.mask|=TVIF_CHILDREN;
+                  tvis.item.cChildren=1;
+                  tvis.item.mask|=TVIF_CHILDREN;
                 }
                 else
                 {
@@ -1694,14 +1693,13 @@ void FillTreeView(HWND hWnd, LPSHELLFOLDER psfRoot, LPITEMIDLIST pidlRoot, HTREE
 
                     if (wszPath[xstrlenW(wszPath) - 1] == ':' || !IsDirEmpty(wszPath))
                     {
-                      tvi.cChildren=1;
-                      tvi.mask|=TVIF_CHILDREN;
+                      tvis.item.cChildren=1;
+                      tvis.item.mask|=TVIF_CHILDREN;
                     }
                   }
                 }
               }
 
-              xmemcpy(&tvis.item, &tvi, sizeof(TVITEMW));
               tvis.hInsertAfter=hPrev;
               tvis.hParent=hParent;
               hPrev=(HTREEITEM)TreeView_InsertItemWide(hWnd, &tvis);

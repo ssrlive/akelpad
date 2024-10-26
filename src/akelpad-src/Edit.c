@@ -408,6 +408,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
         if (hThemesStack.first == hThemesStack.last)
         {
           //Notepad++ theme
+          aec.dwFlags=AECLR_ALL;
           aec.crCaret=RGB(0x80, 0x00, 0xFF);
           aec.crBasicText=RGB(0x00, 0x00, 0x00);
           aec.crBasicBk=RGB(0xFF, 0xFF, 0xFF);
@@ -469,6 +470,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptions|=AECO_ACTIVELINE;
   if (lpFrame->dwCaretOptions & CO_CARETACTIVELINEBORDER)
     dwOptions|=AECO_ACTIVELINEBORDER;
+  if (lpFrame->dwCaretOptions & CO_NOCARETHORZINDENT)
+    dwOptionsEx|=AECOE_NOCARETHORZINDENT;
   if (lpFrame->bAltLineBorder)
     dwOptions|=AECO_ALTLINEBORDER;
   if (!(lpFrame->dwMouseOptions & MO_LEFTMARGINSELECTION))
@@ -6296,6 +6299,9 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
 
     //Set header menu image
     bd.dwFlags=BIF_DOWNARROW|BIF_ENABLEFOCUS;
+    bd.hImage=NULL;
+    bd.nImageWidth=0;
+    bd.nImageHeight=0;
     SetButtonDraw(hWndHeaderHelp, &bd);
 
     SendMessage(hWndFooterCheck, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
@@ -7986,6 +7992,9 @@ UINT_PTR CALLBACK FileDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         BUTTONDRAW bd;
 
         bd.dwFlags=moCur.bShowPlacesBar?BIF_RIGHTARROW:BIF_LEFTARROW;
+        bd.hImage=NULL;
+        bd.nImageWidth=0;
+        bd.nImageHeight=0;
         SetButtonDraw(hWndShowPlacesBar, &bd);
       }
 
@@ -8919,9 +8928,9 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
 
   if (dwLangID == LANG_RUSSIAN)
   {
-    xstrcpyA(szANSIwatermark, "\xE0\xE1\xE2\xE5\xE8\xEA\xED\xEE\xEF\xF0\xF1\xF2\xC0\xC1\xC2\xC5\xC8\xCA\xCD\xCE\xCF\xD2");  //[нћ»нѕћ]вЈҐ[жѕ•][иѕ‰]оЇЇнњІнїЅЮќс›ѕЅ]В‚Д›ЖЅн°±нјЉ=ићЌПЏРЌ
-    xstrcpyA(szKOIwatermark,  "\xC1\xC2\xD7\xC5\xC9\xCD\xCE\xCF\xD2\xD4\xE1\xE2\xF7\xE5\xE9\xED\xEE\xEF\xF0\xF2\xF4");  //В‚[ХЅбћ…[ЗЅзћЌПЏС›ТЅсћўў[н¶ён±ќдњ©=ЗќоЇЇс±њґ=Сќ
-    xstrcpyA(szOEMwatermark,  "\xAE\xA5\xA0\xA8\xAA\xAC\xAD\xE2\x8E\x85\x80\x88\x8A\x8C\x8D\x92\xB0\xB1\xB2\xB3\xBA\xDB\xCD");  //п¦ й«¬оіЋЖЂЙЉНЌР         Graphic simbols: \xB0\xB1\xB2\xB3\xBA\xDB\xCD
+    xstrcpyA(szANSIwatermark, "\xE0\xE1\xE2\xE5\xE8\xEA\xED\xEE\xEF\xF0\xF1\xF2\xC0\xC1\xC2\xC5\xC8\xCA\xCD\xCE\xCF\xD2");  //[а=Ю]бве[и=Х][к=Й]нопр[с=Я]т[А=ю]БВЕ[И=х][К=й]НОПТ
+    xstrcpyA(szKOIwatermark,  "\xC1\xC2\xD7\xC5\xC9\xCD\xCE\xCF\xD2\xD4\xE1\xE2\xF7\xE5\xE9\xED\xEE\xEF\xF0\xF2\xF4");  //БВ[Ч=в]Е[Й=и]НОПТ[Ф=т]бв[ч=В]е[й=И]нопрт[ф=Т]
+    xstrcpyA(szOEMwatermark,  "\xAE\xA5\xA0\xA8\xAA\xAC\xAD\xE2\x8E\x85\x80\x88\x8A\x8C\x8D\x92\xB0\xB1\xB2\xB3\xBA\xDB\xCD");  //оеаикмнтОЕАИКМНТ         Graphic simbols: \xB0\xB1\xB2\xB3\xBA\xDB\xCD
     xstrcpyA(szUTF8watermark, "\xD0\xD1");
   }
   else if (IsLangEasternEurope(dwLangID))
@@ -9895,6 +9904,9 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       int nTextLen;
 
       bd.dwFlags=BIF_DOWNARROW|BIF_ENABLEFOCUS;
+      bd.hImage=NULL;
+      bd.nImageWidth=0;
+      bd.nImageHeight=0;
       SetButtonDraw(hWndRegExpArrow, &bd);
 
       if (hDC=GetDC(hWndRegExp))
@@ -14640,58 +14652,62 @@ BOOL TranslateMessagePlugin(LPMSG lpMsg)
     HMODULE hModule=NULL;
     HANDLE hThread;
 
-    if (lpMsg->wParam)
+    if (pup)
     {
-      //AKD_DLLUNLOAD was posted not from CommonMainProc (old syntax).
-      phElement=StackHandleGet(&hHandlesStack, (HMODULE)lpMsg->wParam, NULL);
-      hModule=(HMODULE)lpMsg->wParam;
-      hThread=(HANDLE)lpMsg->lParam;
-    }
-    else
-    {
-      phElement=pup->phElement;
-      hModule=pup->hModule;
-      hThread=pup->hThread;
-    }
-
-    if (phElement && (!pup || pup->nCallCount == phElement->nCallCount))
-    {
-      if (hThread)
+      if (lpMsg->wParam)
       {
-        WaitForSingleObject(hThread, INFINITE);
-        CloseHandle(hThread);
+        //AKD_DLLUNLOAD was posted not from CommonMainProc (old syntax).
+        phElement=StackHandleGet(&hHandlesStack, (HMODULE)lpMsg->wParam, NULL);
+        hModule=(HMODULE)lpMsg->wParam;
+        hThread=(HANDLE)lpMsg->lParam;
+      }
+      else
+      {
+        phElement=pup->phElement;
+        hModule=pup->hModule;
+        hThread=pup->hThread;
       }
 
-      xprintfW(wszPluginName, L"%s::", phElement->wszPlugin);
-      WideCharToMultiByte(CP_ACP, 0, wszPluginName, -1, szPluginName, MAX_PATH, NULL, NULL);
-
-      if (FreeLibrary(hModule))
+      if (phElement && (!pup || pup->nCallCount == phElement->nCallCount))
       {
-        PLUGINFUNCTION *pfElement=hPluginsStack.first;
-        PLUGINFUNCTION *pfNextElement;
-        UNISTRING us;
-
-        StackHandleDecrease(&hHandlesStack, hModule);
-
-        //Clean-up plugins stack
-        while (pfElement)
+        if (hThread)
         {
-          pfNextElement=pfElement->next;
-
-          if (!xstrcmpinW(wszPluginName, pfElement->wszFunction, (UINT_PTR)-1))
-          {
-            if (pfElement->wHotkey || pfElement->bAutoLoad)
-              pfElement->bRunning=FALSE;
-            else
-              StackPluginDelete(&hPluginsStack, pfElement);
-          }
-          pfElement=pfNextElement;
+          WaitForSingleObject(hThread, INFINITE);
+          CloseHandle(hThread);
         }
-        us.pString=bOldWindows?(LPBYTE)szPluginName:(LPBYTE)wszPluginName;
-        us.szString=szPluginName;
-        us.wszString=wszPluginName;
-        SendMessage(hMainWnd, AKDN_DLLUNLOAD, 0, (WPARAM)&us);
+
+        xprintfW(wszPluginName, L"%s::", phElement->wszPlugin);
+        WideCharToMultiByte(CP_ACP, 0, wszPluginName, -1, szPluginName, MAX_PATH, NULL, NULL);
+
+        if (FreeLibrary(hModule))
+        {
+          PLUGINFUNCTION *pfElement=hPluginsStack.first;
+          PLUGINFUNCTION *pfNextElement;
+          UNISTRING us;
+
+          StackHandleDecrease(&hHandlesStack, hModule);
+
+          //Clean-up plugins stack
+          while (pfElement)
+          {
+            pfNextElement=pfElement->next;
+
+            if (!xstrcmpinW(wszPluginName, pfElement->wszFunction, (UINT_PTR)-1))
+            {
+              if (pfElement->wHotkey || pfElement->bAutoLoad)
+                pfElement->bRunning=FALSE;
+              else
+                StackPluginDelete(&hPluginsStack, pfElement);
+            }
+            pfElement=pfNextElement;
+          }
+          us.pString=bOldWindows?(LPBYTE)szPluginName:(LPBYTE)wszPluginName;
+          us.szString=szPluginName;
+          us.wszString=wszPluginName;
+          SendMessage(hMainWnd, AKDN_DLLUNLOAD, 0, (WPARAM)&us);
+        }
       }
+      GlobalFree((HGLOBAL)pup);
     }
     return TRUE;
   }
@@ -21254,11 +21270,13 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
       if (lpFrame->dwCaretOptions != (DWORD)dwData)
       {
         DWORD dwAddOptions;
+        DWORD dwAddOptionsEx;
         DWORD dwCurOptions;
 
         lpFrame->dwCaretOptions=(DWORD)dwData;
 
         dwAddOptions=0;
+        dwAddOptionsEx=0;
         if (lpFrame->dwCaretOptions & CO_CARETOUTEDGE)
           dwAddOptions|=AECO_CARETOUTEDGE;
         if (lpFrame->dwCaretOptions & CO_CARETVERTLINE)
@@ -21267,9 +21285,16 @@ BOOL SetFrameInfo(FRAMEDATA *lpFrame, int nType, UINT_PTR dwData)
           dwAddOptions|=AECO_ACTIVELINE;
         if (lpFrame->dwCaretOptions & CO_CARETACTIVELINEBORDER)
           dwAddOptions|=AECO_ACTIVELINEBORDER;
+        if (lpFrame->dwCaretOptions & CO_NOCARETHORZINDENT)
+          dwAddOptionsEx|=AECOE_NOCARETHORZINDENT;
+
         dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_GETOPTIONS, 0, 0);
         dwCurOptions&=~AECO_CARETOUTEDGE & ~AECO_ACTIVECOLUMN & ~AECO_ACTIVELINE & ~AECO_ACTIVELINEBORDER;
         SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptions);
+
+        dwCurOptions=(DWORD)SendMessage(lpFrame->ei.hWndEdit, AEM_EXGETOPTIONS, 0, 0);
+        dwCurOptions&=~AECOE_NOCARETHORZINDENT;
+        SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, AECOOP_SET, dwCurOptions|dwAddOptionsEx);
 
         return TRUE;
       }

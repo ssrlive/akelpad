@@ -2658,7 +2658,7 @@ void ReadOptions(DWORD dwFlags)
 
   if (!wszHotkeyText)
   {
-    if (wszHotkeyText=(wchar_t *)GlobalAlloc(GPTR, sizeof(TXT_DEFAULT_HOTKEYS)))
+    if (wszHotkeyText=(wchar_t *)HeapAlloc(hHeap, 0, sizeof(TXT_DEFAULT_HOTKEYS)))
     {
       xmemcpy((unsigned char *)wszHotkeyText, TXT_DEFAULT_HOTKEYS, sizeof(TXT_DEFAULT_HOTKEYS));
     }

@@ -3322,17 +3322,8 @@ SESSION* AddCurrentSession(STACKSESSION *hStack, const wchar_t *wpSessionName)
           else
             nTabActive=0;
 
-          if (nMDI == WMD_PMDI)
-          {
-            SendToDoc(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-            nFirstVisChar=SendToDoc(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, AEM_GETRICHOFFSET, AEGI_FIRSTVISIBLECHAR, 0);
-
-          }
-          else
-          {
-            SendMessage(lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-            nFirstVisChar=SendMessage(lpFrame->ei.hWndEdit, AEM_GETRICHOFFSET, AEGI_FIRSTVISIBLECHAR, 0);
-          }
+          SendToDoc(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
+          nFirstVisChar=SendToDoc(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, AEM_GETRICHOFFSET, AEGI_FIRSTVISIBLECHAR, 0);
 
           //Get LineBoard plugin bookmarks
           wszBookmarks=NULL;
@@ -4264,7 +4255,6 @@ int UpdateComboBoxDropWidth(HWND hWnd)
 void TreeFillItemsCurrent(HWND hWndTreeView)
 {
   TVINSERTSTRUCTW tvis;
-  TVITEMW tvi;
   TCITEMW tcItem;
   FRAMEDATA *lpFrame;
   int nTabItem=0;
@@ -4278,12 +4268,10 @@ void TreeFillItemsCurrent(HWND hWndTreeView)
 
     if (*lpFrame->ei.wszFile)
     {
-      tvi.mask=TVIF_TEXT|TVIF_PARAM;
-      tvi.pszText=(wchar_t *)(bShowPath?lpFrame->ei.wszFile:GetFileName(lpFrame->ei.wszFile, -1));
-      tvi.cchTextMax=MAX_PATH;
-      tvi.lParam=(LPARAM)lpFrame;
-
-      xmemcpy(&tvis.item, &tvi, sizeof(TVITEMW));
+      tvis.item.mask=TVIF_TEXT|TVIF_PARAM;
+      tvis.item.pszText=(wchar_t *)(bShowPath?lpFrame->ei.wszFile:GetFileName(lpFrame->ei.wszFile, -1));
+      tvis.item.cchTextMax=MAX_PATH;
+      tvis.item.lParam=(LPARAM)lpFrame;
       tvis.hParent=NULL;
       tvis.hInsertAfter=TVI_LAST;
       TreeView_InsertItemWide(hWndTreeView, &tvis);
@@ -4627,27 +4615,26 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
 
 INT_PTR EscapeString(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput)
 {
-  //Escape: \ -> \\ and " -> \"
+  //Escape: \ -> \\, " -> \", CR -> \r, LF -> \n
   const wchar_t *wpInputMax=wpInput + nInputLen;
   wchar_t *wpOutput=wszOutput;
 
   for (; wpInput < wpInputMax; ++wpInput)
   {
-    if (*wpInput == L'\\')
+    if (*wpInput == L'\\' ||
+        *wpInput == L'\"' ||
+        *wpInput == L'\r' ||
+        *wpInput == L'\n')
     {
       if (wszOutput)
       {
         *wpOutput++=L'\\';
-        *wpOutput++=L'\\';
-      }
-      else wpOutput+=2;
-    }
-    else if (*wpInput == L'\"')
-    {
-      if (wszOutput)
-      {
-        *wpOutput++=L'\\';
-        *wpOutput++=L'\"';
+        if (*wpInput == L'\r')
+          *wpOutput++=L'r';
+        else if (*wpInput == L'\n')
+          *wpOutput++=L'n';
+        else
+          *wpOutput++=*wpInput;
       }
       else wpOutput+=2;
     }
@@ -4664,19 +4651,33 @@ INT_PTR EscapeString(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutp
 
 INT_PTR UnescapeString(const wchar_t *wpInput, INT_PTR nInputLen, wchar_t *wszOutput)
 {
-  //Unescape: \\ -> \ and \" -> "
+  //Unescape: \\ -> \, \" -> ", \r -> CR, \n -> LF
   const wchar_t *wpInputMax=wpInput + nInputLen;
   wchar_t *wpOutput=wszOutput;
 
   for (; wpInput < wpInputMax; ++wpInput)
   {
     if (*wpInput == L'\\')
+    {
       ++wpInput;
-
-    if (wszOutput)
-      *wpOutput++=*wpInput;
+      if (wszOutput)
+      {
+        if (*wpInput == L'r')
+          *wpOutput++=L'\r';
+        else if (*wpInput == L'n')
+          *wpOutput++=L'\n';
+        else
+          *wpOutput++=*wpInput;
+      }
+      else wpOutput+=1;
+    }
     else
-      wpOutput+=1;
+    {
+      if (wszOutput)
+        *wpOutput++=*wpInput;
+      else
+        wpOutput+=1;
+    }
   }
   return (wpOutput - wszOutput);
 }
@@ -4883,15 +4884,19 @@ int IsFile(const wchar_t *wpFile)
 
 LRESULT SendToDoc(AEHDOC hDocEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  AESENDMESSAGE sm;
+  if (nMDI == WMD_PMDI && hDocEdit)
+  {
+    AESENDMESSAGE sm;
 
-  sm.hDoc=hDocEdit;
-  sm.uMsg=uMsg;
-  sm.wParam=wParam;
-  sm.lParam=lParam;
-  if (SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm))
-    return sm.lResult;
-  return 0;
+    sm.hDoc=hDocEdit;
+    sm.uMsg=uMsg;
+    sm.wParam=wParam;
+    sm.lParam=lParam;
+    if (SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm))
+      return sm.lResult;
+    return 0;
+  }
+  return SendMessage(hWndEdit, uMsg, wParam, lParam);
 }
 
 COLORREF AE_ColorBrightness(COLORREF crColor, int nPercent)
