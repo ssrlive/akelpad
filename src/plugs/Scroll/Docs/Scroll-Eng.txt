@@ -1,8 +1,8 @@
 *****************************************************************
-***                Scroll AkelPad plugin v3.4                 ***
+***                Scroll AkelPad plugin v3.5                 ***
 *****************************************************************
 
-2007-2016 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+2007-2024 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
 
 
 *** Features ***

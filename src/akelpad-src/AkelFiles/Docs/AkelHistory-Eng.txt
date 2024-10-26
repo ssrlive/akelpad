@@ -1,11 +1,12 @@
 
-AkelPad 4.9.9 ()
+AkelPad 4.9.9 (Oct 16, 2024)
 ----------------------------
 Changed: during codepage recognition character "\xF1" now refers to 1251.
 Changed: codepage recognition in "Recode" dialog in case of failure by
          values of "Codepage recognition" settings, tries to recognize by
          all encodings from the user list.
 Changed: restoring selection when reopening the current file.
+Changed: improved compatibility with Windows 11.
 
 Added: possibility to save recent files and search history in ini file.
        Now program can be completely portable.
@@ -27,6 +28,8 @@ Added: "Settings..." dialog now resizable.
 Added: possibility to set negative line gap.
 Added: manual flag 268435456 in the parameter "TabOptionsMDI" - close modified tabs first
        on exit.
+Added: manual flag 16 in the parameter "CaretOptions" - caret horizontal indent isn't
+       recovered after pressing Up, Down, Page Up, Page Down keys.
 Added: optional parameter for command 4321:
        1 - close all modified tabs.
 Added: optional parameter for commands 4153,4154:

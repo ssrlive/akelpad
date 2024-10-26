@@ -1,7 +1,7 @@
 /******************************************************************
- *                 IconMenu functions header v2.8                 *
+ *                 IconMenu functions header v2.9                 *
  *                                                                *
- *  2015 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ *  2024 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                *
  *                                                                *
  *           Header provide support for images in menu.           *
@@ -1261,7 +1261,15 @@ LRESULT IconMenu_Messages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               {
                 if (IconMenu_hUxTheme)
                 {
+                  COLORREF crBefore;
+                  COLORREF crAfter;
+
+                  crBefore=GetPixel(hMemDC, rcImageEdge.left, rcImageEdge.top);
                   IconMenu_DrawThemeBackground(IconMenu_hUxTheme, hMemDC, 12 /*MENU_POPUPCHECKBACKGROUND*/, (lpdis->itemState & ODS_GRAYED)?1 /*MCB_DISABLED*/:2 /*MCB_NORMAL*/, &rcImageEdge, NULL);
+                  crAfter=GetPixel(hMemDC, rcImageEdge.left, rcImageEdge.top);
+                  if (crBefore == crAfter)
+                    //Windows 11 workaround: DrawThemeBackground with MENU_POPUPCHECKBACKGROUND don't change background
+                    IconMenu_DrawThemeBackground(IconMenu_hUxTheme, hMemDC, 14 /*MENU_POPUPITEM*/, (lpdis->itemState & ODS_GRAYED)?4 /*MPI_DISABLEDHOT*/:2 /*MPI_HOT*/, &rcImageEdge, NULL);
                 }
                 else
                 {

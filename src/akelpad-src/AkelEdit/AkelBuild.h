@@ -526,9 +526,6 @@ typedef struct {
   DWORD dwUndoLimit;
   DWORD dwUndoCount;
 
-  //Visited URLs
-  AESTACKURLVISIT hUrlVisitStack;
-
   //Highlight (default window theme)
   AESTACKDELIM hDelimiterStack;
   AESTACKWORD hWordStack;
@@ -655,6 +652,8 @@ typedef struct _AKELEDIT {
   RECT rcDraw;
   RECT rcErase;
   AESTACKERASE hEraseStack;
+  AESTACKPAINTCALLBACK hPaintCallbackStack;
+  AESTACKURLVISIT hUrlVisitStack;
   POINT ptActiveColumnDraw;
   BOOL bHScrollShow;
   BOOL bVScrollShow;
@@ -783,9 +782,9 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance);
 void AE_UnregisterClassCommon(HINSTANCE hInstance);
 LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam);
-AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditProc);
-AKELEDIT* AE_SetWindowData(AKELEDIT *aeOld, AKELEDIT *aeNew, DWORD dwFlags);
-void AE_DestroyWindowData(AKELEDIT *ae);
+AKELEDIT* AE_CreateDocument(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditProc);
+AKELEDIT* AE_SetDocument(AKELEDIT *aeOld, AKELEDIT *aeNew, DWORD dwFlags);
+void AE_DeleteDocument(AKELEDIT *ae);
 HANDLE AE_HeapCreate(AKELEDIT *ae);
 LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes);
 BOOL AE_HeapFree(AKELEDIT *ae, DWORD dwFlags, LPVOID lpMem);
@@ -909,6 +908,9 @@ AEURLVISIT* AE_UrlVisitGetByRange(AKELEDIT *ae, const AECHARRANGE *crUrl);
 AEURLVISIT* AE_UrlVisitGetByText(AKELEDIT *ae, const wchar_t *wpText);
 void AE_UrlVisitDelete(AKELEDIT *ae, AEURLVISIT *lpUrlVisit);
 void AE_UrlVisitFree(AKELEDIT *ae);
+AEPAINTCALLBACK* AE_PaintCallbackInsert(AKELEDIT *ae, const AEPAINTCALLBACKADD *dca);
+void AE_PaintCallbackDelete(AKELEDIT *ae, AEPAINTCALLBACK *lpPaintCallback);
+void AE_PaintCallbackFree(AKELEDIT *ae);
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
 BOOL AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEMARKTEXTMATCH *mtm);
 AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, AECHARINDEX *ciMaxRE, AESTACKMARKTEXT *lpMarkTextStack);
@@ -971,8 +973,8 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
 REGROUP* AE_PatCharInGroup(STACKREGROUP *hStack, const AECHARINDEX *ciChar, REGROUP **lppREGroupEnd);
 void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, int nLastDrawLine);
 void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
-void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar);
-void AE_PaintCheckHighlightReset(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar);
+void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, const AECHARINDEX *ciChar);
+void AE_PaintCheckHighlightReset(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, const AECHARINDEX *ciChar);
 int AE_HighlightAllowed(AEQUOTEITEMW *lpQuote, AEFOLDMATCH *fm, int nParentID, int nQuoteRuleID, const AECHARINDEX *ciChar);
 void AE_SetDefaultStyle(AEHLPAINT *hlp, int nParentType);
 void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh);

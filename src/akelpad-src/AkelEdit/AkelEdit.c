@@ -137,7 +137,7 @@ AKELEDIT *lpAkelEditPrev=NULL;
 AKELEDIT *lpAkelEditDrag=NULL;
 UINT cfAkelEditColumnSel=0;
 UINT cfAkelEditText=0;
-HMODULE hAkelEditMsimg32=NULL;
+HANDLE hAkelEditMsimg32=NULL;
 BOOL bAkelEditMsimg32Free=FALSE;
 BOOL (WINAPI *AkelEditAlphaBlendPtr)(HDC, int, int, int, int, HDC, int, int, int, int, BLENDFUNCTION)=NULL;
 
@@ -401,7 +401,7 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
   if (uMsg == WM_CREATE)
   {
-    if (ae=AE_CreateWindowData(hWnd, (CREATESTRUCTA *)lParam, (AEEditProc)AE_EditProc))
+    if (ae=AE_CreateDocument(hWnd, (CREATESTRUCTA *)lParam, (AEEditProc)AE_EditProc))
     {
       //Register drop window
       //CoLockObjectExternal((LPUNKNOWN)&ae->idt, TRUE, FALSE);
@@ -1039,7 +1039,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       if (wParam == AEUV_STACK)
       {
-        return (LRESULT)&ae->ptxt->hUrlVisitStack;
+        return (LRESULT)&ae->hUrlVisitStack;
       }
       else if (wParam == AEUV_GETBYRANGE)
       {
@@ -2131,6 +2131,28 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         InvalidateRect(ae->hWndEdit, NULL, TRUE);
       return bResult;
     }
+    case AEM_PAINTCALLBACK:
+    {
+      if (wParam == AEPCB_STACK)
+      {
+        return (LRESULT)&ae->hPaintCallbackStack;
+      }
+      else if (wParam == AEPCB_ADD)
+      {
+        return (LRESULT)AE_PaintCallbackInsert(ae, (const AEPAINTCALLBACKADD *)lParam);
+      }
+      else if (wParam == AEPCB_DEL)
+      {
+        AE_PaintCallbackDelete(ae, (AEPAINTCALLBACK *)lParam);
+        return 0;
+      }
+      else if (wParam == AEPCB_FREE)
+      {
+        AE_PaintCallbackFree(ae);
+        return 0;
+      }
+      return 0;
+    }
 
     //Folding
     case AEM_GETFOLDSTACK:
@@ -2247,7 +2269,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AKELEDIT *aeNew;
 
-      if (aeNew=AE_CreateWindowData(ae->hWndEdit, (CREATESTRUCTA *)lParam, (AEEditProc)AE_EditProc))
+      if (aeNew=AE_CreateDocument(ae->hWndEdit, (CREATESTRUCTA *)lParam, (AEEditProc)AE_EditProc))
       {
         //Initially unassigned. Later assigned with AEM_SETDOCUMENT.
         aeNew->hWndEdit=NULL;
@@ -2256,7 +2278,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case AEM_DELETEDOCUMENT:
     {
-      AE_DestroyWindowData((AKELEDIT *)wParam);
+      AE_DeleteDocument((AKELEDIT *)wParam);
       if (lpAkelEditPrev == (AKELEDIT *)wParam)
         lpAkelEditPrev=NULL;
       return 0;
@@ -2267,7 +2289,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case AEM_SETDOCUMENT:
     {
-      return (LRESULT)AE_SetWindowData(ae, (AKELEDIT *)wParam, (DWORD)lParam);
+      return (LRESULT)AE_SetDocument(ae, (AKELEDIT *)wParam, (DWORD)lParam);
     }
     case AEM_GETDOCUMENTPROC:
     {
@@ -2295,7 +2317,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (psm->uMsg != AEM_SENDMESSAGE)
       {
         if (psm->hDoc && (AKELEDIT *)psm->hDoc != ae)
-          AE_SetWindowData(ae, (AKELEDIT *)psm->hDoc, AESWD_NOALL);
+          AE_SetDocument(ae, (AKELEDIT *)psm->hDoc, AESWD_NOALL);
 
         if (!ae->bUnicodeWindow)
           psm->lResult=SendMessageA(hWndEdit, psm->uMsg, psm->wParam, psm->lParam);
@@ -2303,7 +2325,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           psm->lResult=SendMessageW(hWndEdit, psm->uMsg, psm->wParam, psm->lParam);
 
         if (psm->hDoc && (AKELEDIT *)psm->hDoc != ae && ((AKELEDIT *)psm->hDoc)->hWndEdit == hWndEdit)
-          AE_SetWindowData((AKELEDIT *)psm->hDoc, ae, AESWD_NOALL);
+          AE_SetDocument((AKELEDIT *)psm->hDoc, ae, AESWD_NOALL);
         return TRUE;
       }
       return FALSE;
@@ -2347,10 +2369,17 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     case AEM_GETMASTER:
     {
       if (ae->lpMaster)
+      {
+        if (wParam)
+          return (LRESULT)ae->lpMaster;
         return (LRESULT)ae->lpMaster->hWndEdit;
+      }
       if (ae->nCloneCount > 0)
+      {
+        if (wParam)
+          return (LRESULT)ae;
         return (LRESULT)ae->hWndEdit;
-
+      }
       return (LRESULT)NULL;
     }
     case AEM_GETCLONE:
@@ -4839,7 +4868,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       //CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
       //((IDropTarget *)&ae->idt)->Release();
 
-      AE_DestroyWindowData(ae);
+      AE_DeleteDocument(ae);
       lpAkelEditPrev=NULL;
       ae=NULL;
       return 0;
@@ -4970,7 +4999,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     return DefWindowProcW(ae->hWndEdit, uMsg, wParam, lParam);
 }
 
-AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditProc)
+AKELEDIT* AE_CreateDocument(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditProc)
 {
   AKELEDIT *ae;
 
@@ -5147,7 +5176,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
   return ae;
 }
 
-AKELEDIT* AE_SetWindowData(AKELEDIT *aeOld, AKELEDIT *aeNew, DWORD dwFlags)
+AKELEDIT* AE_SetDocument(AKELEDIT *aeOld, AKELEDIT *aeNew, DWORD dwFlags)
 {
   if (aeOld != aeNew)
   {
@@ -5163,38 +5192,41 @@ AKELEDIT* AE_SetWindowData(AKELEDIT *aeOld, AKELEDIT *aeNew, DWORD dwFlags)
     else
       aeNew->bFocus=FALSE;
 
-    //Register Drag'n'Drop with new idt pointer.
-    if (!(dwFlags & AESWD_NODRAGDROP))
+    if (dwFlags != AESWD_NOALL)
     {
-      RevokeDragDrop(aeNew->hWndEdit);
-      RegisterDragDrop(aeNew->hWndEdit, (LPDROPTARGET)&aeNew->idt);
-    }
+      //Register Drag'n'Drop with new idt pointer.
+      if (!(dwFlags & AESWD_NODRAGDROP))
+      {
+        RevokeDragDrop(aeNew->hWndEdit);
+        RegisterDragDrop(aeNew->hWndEdit, (LPDROPTARGET)&aeNew->idt);
+      }
 
-    //Redraw edit window.
-    if (!(dwFlags & AESWD_NOSHOWSCROLLBARS))
-    {
-      if (aeNew->bHScrollShow != aeOld->bHScrollShow)
-        ShowScrollBar(aeNew->hWndEdit, SB_HORZ, aeNew->bHScrollShow);
-      if (aeNew->bVScrollShow != aeOld->bVScrollShow)
-        ShowScrollBar(aeNew->hWndEdit, SB_VERT, aeNew->bVScrollShow);
-    }
-    if (!(dwFlags & AESWD_NOUPDATESCROLLBARS))
-    {
-      AE_UpdateScrollBars(aeNew, SB_BOTH);
-    }
-    if (!(dwFlags & AESWD_NOUPDATECARET))
-    {
-      AE_UpdateCaret(aeNew, aeNew->bFocus);
-    }
-    if (!(dwFlags & AESWD_NOINVALIDATERECT))
-    {
-      InvalidateRect(aeNew->hWndEdit, NULL, TRUE);
+      //Redraw edit window.
+      if (!(dwFlags & AESWD_NOSHOWSCROLLBARS))
+      {
+        if (aeNew->bHScrollShow != aeOld->bHScrollShow)
+          ShowScrollBar(aeNew->hWndEdit, SB_HORZ, aeNew->bHScrollShow);
+        if (aeNew->bVScrollShow != aeOld->bVScrollShow)
+          ShowScrollBar(aeNew->hWndEdit, SB_VERT, aeNew->bVScrollShow);
+      }
+      if (!(dwFlags & AESWD_NOUPDATESCROLLBARS))
+      {
+        AE_UpdateScrollBars(aeNew, SB_BOTH);
+      }
+      if (!(dwFlags & AESWD_NOUPDATECARET))
+      {
+        AE_UpdateCaret(aeNew, aeNew->bFocus);
+      }
+      if (!(dwFlags & AESWD_NOINVALIDATERECT))
+      {
+        InvalidateRect(aeNew->hWndEdit, NULL, TRUE);
+      }
     }
   }
   return aeOld;
 }
 
-void AE_DestroyWindowData(AKELEDIT *ae)
+void AE_DeleteDocument(AKELEDIT *ae)
 {
   if (ae->hThreadMutex)
   {
@@ -5231,22 +5263,20 @@ void AE_DestroyWindowData(AKELEDIT *ae)
   {
     AE_StackLineFree(ae);
     AE_EmptyUndoBuffer(ae);
-    AE_UrlVisitFree(ae);
   }
 
   AE_HighlightDeleteTheme(ae, NULL);
   AE_StackFoldFree(ae);
   AE_StackPointFree(ae);
   AE_StackEraseFree(ae);
+  AE_PaintCallbackFree(ae);
+  AE_UrlVisitFree(ae);
 
   AE_HeapStackDelete(NULL, (stack **)&hAkelEditWindowsStack.first, (stack **)&hAkelEditWindowsStack.last, (stack *)ae);
 }
 
 HANDLE AE_HeapCreate(AKELEDIT *ae)
 {
-  //HeapDestroy should do the job, but without AE_StackEraseFree BoundsChecker report memory leak
-  AE_StackEraseFree(ae);
-
   //Free memory
   if (ae->ptxt->hHeap)
   {
@@ -5262,7 +5292,6 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
   {
     AE_StackLineFree(ae);
     AE_EmptyUndoBuffer(ae);
-    AE_UrlVisitFree(ae);
   }
 
   //Reset variables
@@ -5274,8 +5303,6 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
   ae->ptxt->lpSavePoint=NULL;
   ae->ptxt->bSavePointExist=TRUE;
   ae->ptxt->dwUndoCount=0;
-  ae->ptxt->hUrlVisitStack.first=0;
-  ae->ptxt->hUrlVisitStack.last=0;
   ae->ptxt->liMaxWidthLine.nLine=0;
   ae->ptxt->liMaxWidthLine.lpLine=NULL;
   ae->ptxt->liLineUnwrapLastCall.nLine=0;
@@ -5312,8 +5339,6 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
   ae->ptCaret.y=0;
   ae->nCaretHorzIndent=0;
   ae->bColumnSel=FALSE;
-  ae->hEraseStack.first=0;
-  ae->hEraseStack.last=0;
 
   //Create heap
   if (nAkelEditHeapCount < AEMAX_HEAPCREATE)
@@ -10766,13 +10791,13 @@ AEURLVISIT* AE_UrlVisitInsert(AKELEDIT *ae, const AECHARRANGE *crUrl)
 {
   AEURLVISIT *lpUrlVisit=NULL;
 
-  if (!AE_HeapStackInsertIndex(ae, (stack **)&ae->ptxt->hUrlVisitStack.first, (stack **)&ae->ptxt->hUrlVisitStack.last, (stack **)&lpUrlVisit, -1, sizeof(AEURLVISIT)))
+  if (!AE_HeapStackInsertIndex(NULL, (stack **)&ae->hUrlVisitStack.first, (stack **)&ae->hUrlVisitStack.last, (stack **)&lpUrlVisit, -1, sizeof(AEURLVISIT)))
   {
     if (crUrl)
     {
       if (lpUrlVisit->nUrlTextLen=AE_GetTextRange(ae, &crUrl->ciMin, &crUrl->ciMax, NULL, 0, AELB_ASIS, FALSE, FALSE))
       {
-        if (lpUrlVisit->pUrlText=(wchar_t *)AE_HeapAlloc(ae, 0, lpUrlVisit->nUrlTextLen * sizeof(wchar_t)))
+        if (lpUrlVisit->pUrlText=(wchar_t *)AE_HeapAlloc(NULL, 0, lpUrlVisit->nUrlTextLen * sizeof(wchar_t)))
         {
           lpUrlVisit->nUrlTextLen=AE_GetTextRange(ae, &crUrl->ciMin, &crUrl->ciMax, lpUrlVisit->pUrlText, (UINT_PTR)-1, AELB_ASIS, FALSE, FALSE);
         }
@@ -10790,7 +10815,7 @@ AEURLVISIT* AE_UrlVisitGetByRange(AKELEDIT *ae, const AECHARRANGE *crUrl)
 
   if (!crUrl) return NULL;
 
-  for (lpUrlVisit=ae->ptxt->hUrlVisitStack.first; lpUrlVisit; lpUrlVisit=lpUrlVisit->next)
+  for (lpUrlVisit=ae->hUrlVisitStack.first; lpUrlVisit; lpUrlVisit=lpUrlVisit->next)
   {
     if (!nUrlTextLen)
     {
@@ -10817,7 +10842,7 @@ AEURLVISIT* AE_UrlVisitGetByText(AKELEDIT *ae, const wchar_t *wpText)
   AEURLVISIT *lpUrlVisit;
   INT_PTR nUrlTextLen=xstrlenW(wpText);
 
-  for (lpUrlVisit=ae->ptxt->hUrlVisitStack.first; lpUrlVisit; lpUrlVisit=lpUrlVisit->next)
+  for (lpUrlVisit=ae->hUrlVisitStack.first; lpUrlVisit; lpUrlVisit=lpUrlVisit->next)
   {
     if (lpUrlVisit->nUrlTextLen == nUrlTextLen)
     {
@@ -10831,18 +10856,42 @@ AEURLVISIT* AE_UrlVisitGetByText(AKELEDIT *ae, const wchar_t *wpText)
 void AE_UrlVisitDelete(AKELEDIT *ae, AEURLVISIT *lpUrlVisit)
 {
   if (lpUrlVisit->pUrlText) AE_HeapFree(NULL, 0, (LPVOID)lpUrlVisit->pUrlText);
-  AE_HeapStackDelete(ae, (stack **)&ae->ptxt->hUrlVisitStack.first, (stack **)&ae->ptxt->hUrlVisitStack.last, (stack *)lpUrlVisit);
+  AE_HeapStackDelete(NULL, (stack **)&ae->hUrlVisitStack.first, (stack **)&ae->hUrlVisitStack.last, (stack *)lpUrlVisit);
 }
 
 void AE_UrlVisitFree(AKELEDIT *ae)
 {
   AEURLVISIT *lpUrlVisit;
 
-  for (lpUrlVisit=ae->ptxt->hUrlVisitStack.first; lpUrlVisit; lpUrlVisit=lpUrlVisit->next)
+  for (lpUrlVisit=ae->hUrlVisitStack.first; lpUrlVisit; lpUrlVisit=lpUrlVisit->next)
   {
     if (lpUrlVisit->pUrlText) AE_HeapFree(NULL, 0, (LPVOID)lpUrlVisit->pUrlText);
   }
-  AE_HeapStackClear(ae, (stack **)&ae->ptxt->hUrlVisitStack.first, (stack **)&ae->ptxt->hUrlVisitStack.last);
+  AE_HeapStackClear(NULL, (stack **)&ae->hUrlVisitStack.first, (stack **)&ae->hUrlVisitStack.last);
+}
+
+AEPAINTCALLBACK* AE_PaintCallbackInsert(AKELEDIT *ae, const AEPAINTCALLBACKADD *dca)
+{
+  AEPAINTCALLBACK *lpPaintCallback=NULL;
+
+  if (!AE_HeapStackInsertIndex(NULL, (stack **)&ae->hPaintCallbackStack.first, (stack **)&ae->hPaintCallbackStack.last, (stack **)&lpPaintCallback, -1, sizeof(AEPAINTCALLBACK)))
+  {
+    lpPaintCallback->hDoc=(AEHDOC)ae;
+    lpPaintCallback->hWnd=ae->hWndEdit;
+    lpPaintCallback->lpCallback=dca->lpCallback;
+    lpPaintCallback->dwCookie=dca->dwCookie;
+  }
+  return lpPaintCallback;
+}
+
+void AE_PaintCallbackDelete(AKELEDIT *ae, AEPAINTCALLBACK *lpPaintCallback)
+{
+  AE_HeapStackDelete(NULL, (stack **)&ae->hPaintCallbackStack.first, (stack **)&ae->hPaintCallbackStack.last, (stack *)lpPaintCallback);
+}
+
+void AE_PaintCallbackFree(AKELEDIT *ae)
+{
+  AE_HeapStackClear(NULL, (stack **)&ae->hPaintCallbackStack.first, (stack **)&ae->hPaintCallbackStack.last);
 }
 
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crRange)
@@ -14357,7 +14406,7 @@ void AE_Paint(AKELEDIT *ae, const RECT *lprcUpdate)
           rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
 
           //Send AEN_PAINT
-          if (ae->popt->dwEventMask & AENM_PAINT)
+          if (ae->hPaintCallbackStack.first)
           {
             pntNotify.ciMaxDraw=to.ciDrawLine;
             pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
@@ -15444,7 +15493,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
   }
 }
 
-void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar)
+void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, const AECHARINDEX *ciChar)
 {
   if (to->dwPrintFlags & AEPRN_COLOREDSELECTION)
   {
@@ -15541,9 +15590,9 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
   }
 }
 
-void AE_PaintCheckHighlightReset(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar)
+void AE_PaintCheckHighlightReset(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, const AECHARINDEX *ciChar)
 {
-  AECHARINDEX ciReset=*ciChar;
+  AECHARINDEX ciReset=*(AECHARINDEX *)ciChar;
 
   //Reset delimiters, word, quote when theme is changed.
   if (AEC_IndexCompare(&ciReset, &hlp->wm.crDelim1.ciMin) < 0)
@@ -20887,7 +20936,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
     }
 
     //Set horizontal caret
-    if (!bSetCaretHorzIndent)
+    if (!bSetCaretHorzIndent && !(ae->popt->dwOptionsEx & AECOE_NOCARETHORZINDENT))
     {
       ae->nCaretHorzIndent=nCaretHorzIndent;
     }
@@ -21343,7 +21392,7 @@ BOOL AE_EditCopyToClipboard(AKELEDIT *ae, AECHARRANGE *cr, int nNewLine, BOOL bC
           pDataInfo->dwUnicodeLen64=dwUnicodeLen?dwUnicodeLen - 1:0;
           pDataInfo->dwAnsiLen=(DWORD)pDataInfo->dwAnsiLen64;
           pDataInfo->dwUnicodeLen=(DWORD)pDataInfo->dwUnicodeLen64;
-          GlobalUnlock(pDataInfo);
+          GlobalUnlock(hDataInfo);
         }
         SetClipboardData(cfAkelEditText, hDataInfo);
       }
@@ -21387,7 +21436,7 @@ INT_PTR AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags, int nNewLine)
           dwAnsiLen=pDataInfo->dwAnsiLen;
           dwUnicodeLen=pDataInfo->dwUnicodeLen;
         #endif
-        GlobalUnlock(pDataInfo);
+        GlobalUnlock(hDataInfo);
       }
     }
 
@@ -22389,15 +22438,32 @@ void AE_NotifySetRect(AKELEDIT *ae)
 
 void AE_NotifyPaint(AKELEDIT *ae, DWORD dwType, AENPAINT *pnt)
 {
-  //Send AEN_PAINT
-  if (ae->popt->dwEventMask & AENM_PAINT)
+  if ((ae->popt->dwEventMask & AENM_PAINT) || ae->hPaintCallbackStack.first)
   {
     pnt->hdr.hwndFrom=ae->hWndEdit;
     pnt->hdr.idFrom=ae->nEditCtrlID;
     pnt->hdr.code=AEN_PAINT;
     pnt->hdr.docFrom=(AEHDOC)ae;
     pnt->dwType=dwType;
-    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)pnt);
+  }
+
+  if (ae->popt->dwEventMask & AENM_PAINT)
+  {
+    //Send AEN_PAINT for AEPNT_BEGIN, AEPNT_END
+    if (dwType == AEPNT_BEGIN || dwType == AEPNT_END)
+      AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)pnt);
+  }
+
+  if (ae->hPaintCallbackStack.first)
+  {
+    //Call callback for AEPNT_BEGIN, AEPNT_DRAWLINE, AEPNT_END
+    AEPAINTCALLBACK *lpPaintCallback;
+
+    for (lpPaintCallback=ae->hPaintCallbackStack.first; lpPaintCallback; lpPaintCallback=lpPaintCallback->next)
+    {
+      if (!lpPaintCallback->dwError || dwType == AEPNT_BEGIN)
+        lpPaintCallback->dwError=lpPaintCallback->lpCallback(lpPaintCallback->dwCookie, pnt);
+    }
   }
 }
 
