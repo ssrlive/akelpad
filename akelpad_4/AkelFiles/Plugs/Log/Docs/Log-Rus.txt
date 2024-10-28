@@ -1,8 +1,8 @@
 *****************************************************************
-***                  Log AkelPad plugin v5.5                  ***
+***                  Log AkelPad plugin v5.6                  ***
 *****************************************************************
 
-2012-2022 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
+2012-2024 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
 
 
 *** Описание ***
@@ -191,6 +191,18 @@ Call("Log::Output", 6)
       }
       return pStdOut;
     }
+
+Call("Log::Output::NextMatch")
+  Перейти к следующему вхождению.
+
+Call("Log::Output::PrevMatch")
+  Перейти к предыдущему вхождению.
+
+Call("Log::Output::RunCmd")
+  Выполнить команду.
+
+Call("Log::Output::RunCmdDlg")
+  Диалог выполнения команды.
 
 
 *** Внешний вызов Log::Settings ***

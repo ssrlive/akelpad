@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Coder AkelPad plugin v20.7                ***
+***                 Coder AkelPad plugin v20.8                ***
 *****************************************************************
 
 2007-2024 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
@@ -144,6 +144,45 @@ Call("Coder::CodeFold", 2)
   Параметры:
     2
       Перейти к правилу.
+
+Call("Coder::CodeFold::CurrentCollapse")
+  Свернуть текущий уровень.
+
+Call("Coder::CodeFold::CurrentGoBegin")
+  Перейти к началу текущего уровня.
+
+Call("Coder::CodeFold::CurrentGoEnd")
+  Перейти к концу текущего уровня.
+
+Call("Coder::CodeFold::CurrentSelect")
+  Выделить текущий уровень.
+
+Call("Coder::CodeFold::AllCollapse")
+  Свернуть все уровни.
+
+Call("Coder::CodeFold::AllNextLevel")
+  Перейти к следующему уровню.
+
+Call("Coder::CodeFold::AllPrevLevel")
+  Перейти к предыдующему уровню.
+
+Call("Coder::CodeFold::FindRootLevel")
+  Найти корневой уровень.
+
+
+*** Внешний вызов Coder::AutoComplete ***
+
+Call("Coder::AutoComplete::WithList")
+  Дополнить со списком.
+
+Call("Coder::AutoComplete::WithoutList")
+  Дополнить без списка.
+
+Call("Coder::AutoComplete::Next")
+  Перейти к следующей позиции.
+
+Call("Coder::AutoComplete::Prev")
+  Перейти к предыдующей позиции.
 
 
 *** Внешний вызов Coder::Settings ***

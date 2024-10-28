@@ -5154,62 +5154,45 @@ void InitCodeFold()
     {
       PLUGINADDW pa={0};
 
-      if (dwCurrentCollapse && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwCurrentCollapse))
-      {
-        pa.pFunction=L"Coder::CodeFold::CurrentCollapse";
-        pa.wHotkey=(WORD)dwCurrentCollapse;
-        pa.PluginProc=CurrentCollapseProc;
-        pfwCurrentCollapse=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwCurrentGoBegin && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwCurrentGoBegin))
-      {
-        pa.pFunction=L"Coder::CodeFold::CurrentGoBegin";
-        pa.wHotkey=(WORD)dwCurrentGoBegin;
-        pa.PluginProc=CurrentGoBeginProc;
-        pfwCurrentGoBegin=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwCurrentGoEnd && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwCurrentGoEnd))
-      {
-        pa.pFunction=L"Coder::CodeFold::CurrentGoEnd";
-        pa.wHotkey=(WORD)dwCurrentGoEnd;
-        pa.PluginProc=CurrentGoEndProc;
-        pfwCurrentGoEnd=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwCurrentSelect && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwCurrentSelect))
-      {
-        pa.pFunction=L"Coder::CodeFold::CurrentSelect";
-        pa.wHotkey=(WORD)dwCurrentSelect;
-        pa.PluginProc=CurrentSelectProc;
-        pfwCurrentSelect=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwAllCollapse && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwAllCollapse))
-      {
-        pa.pFunction=L"Coder::CodeFold::AllCollapse";
-        pa.wHotkey=(WORD)dwAllCollapse;
-        pa.PluginProc=AllCollapseProc;
-        pfwAllCollapse=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwAllNextLevel && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwAllNextLevel))
-      {
-        pa.pFunction=L"Coder::CodeFold::AllNextLevel";
-        pa.wHotkey=(WORD)dwAllNextLevel;
-        pa.PluginProc=AllNextLevelProc;
-        pfwAllNextLevel=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwAllPrevLevel && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwAllPrevLevel))
-      {
-        pa.pFunction=L"Coder::CodeFold::AllPrevLevel";
-        pa.wHotkey=(WORD)dwAllPrevLevel;
-        pa.PluginProc=AllPrevLevelProc;
-        pfwAllPrevLevel=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwFindRootLevel && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwFindRootLevel))
-      {
-        pa.pFunction=L"Coder::CodeFold::FindRootLevel";
-        pa.wHotkey=(WORD)dwFindRootLevel;
-        pa.PluginProc=FindRootLevelProc;
-        pfwFindRootLevel=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
+      pa.pFunction=L"Coder::CodeFold::CurrentCollapse";
+      pa.wHotkey=(WORD)dwCurrentCollapse;
+      pa.PluginProc=CurrentCollapseProc;
+      pfwCurrentCollapse=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"Coder::CodeFold::CurrentGoBegin";
+      pa.wHotkey=(WORD)dwCurrentGoBegin;
+      pa.PluginProc=CurrentGoBeginProc;
+      pfwCurrentGoBegin=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"Coder::CodeFold::CurrentGoEnd";
+      pa.wHotkey=(WORD)dwCurrentGoEnd;
+      pa.PluginProc=CurrentGoEndProc;
+      pfwCurrentGoEnd=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"Coder::CodeFold::CurrentSelect";
+      pa.wHotkey=(WORD)dwCurrentSelect;
+      pa.PluginProc=CurrentSelectProc;
+      pfwCurrentSelect=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"Coder::CodeFold::AllCollapse";
+      pa.wHotkey=(WORD)dwAllCollapse;
+      pa.PluginProc=AllCollapseProc;
+      pfwAllCollapse=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"Coder::CodeFold::AllNextLevel";
+      pa.wHotkey=(WORD)dwAllNextLevel;
+      pa.PluginProc=AllNextLevelProc;
+      pfwAllNextLevel=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"Coder::CodeFold::AllPrevLevel";
+      pa.wHotkey=(WORD)dwAllPrevLevel;
+      pa.PluginProc=AllPrevLevelProc;
+      pfwAllPrevLevel=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"Coder::CodeFold::FindRootLevel";
+      pa.wHotkey=(WORD)dwFindRootLevel;
+      pa.PluginProc=FindRootLevelProc;
+      pfwFindRootLevel=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
     }
   }
 }
