@@ -3772,34 +3772,25 @@ void InitOutput()
     {
       PLUGINADDW pa={0};
 
-      if (dwNextMatchKey && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwNextMatchKey))
-      {
-        pa.pFunction=L"Log::Output::NextMatch";
-        pa.wHotkey=(WORD)dwNextMatchKey;
-        pa.PluginProc=NextMatchProc;
-        pfwNextMatch=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwPrevMatchKey && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwPrevMatchKey))
-      {
-        pa.pFunction=L"Log::Output::PrevMatch";
-        pa.wHotkey=(WORD)dwPrevMatchKey;
-        pa.PluginProc=PrevMatchProc;
-        pfwPrevMatch=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwRunCmdKey && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwRunCmdKey))
-      {
-        pa.pFunction=L"Log::Output::RunCmd";
-        pa.wHotkey=(WORD)dwRunCmdKey;
-        pa.PluginProc=RunCmdProc;
-        pfwRunCmd=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwRunCmdDlgKey && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwRunCmdDlgKey))
-      {
-        pa.pFunction=L"Log::Output::RunCmdDlg";
-        pa.wHotkey=(WORD)dwRunCmdDlgKey;
-        pa.PluginProc=RunCmdDlgProc;
-        pfwRunCmdDlg=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
+      pa.pFunction=L"Log::Output::NextMatch";
+      pa.wHotkey=(WORD)dwNextMatchKey;
+      pa.PluginProc=NextMatchProc;
+      pfwNextMatch=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"Log::Output::PrevMatch";
+      pa.wHotkey=(WORD)dwPrevMatchKey;
+      pa.PluginProc=PrevMatchProc;
+      pfwPrevMatch=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"Log::Output::RunCmd";
+      pa.wHotkey=(WORD)dwRunCmdKey;
+      pa.PluginProc=RunCmdProc;
+      pfwRunCmd=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"Log::Output::RunCmdDlg";
+      pa.wHotkey=(WORD)dwRunCmdDlgKey;
+      pa.PluginProc=RunCmdDlgProc;
+      pfwRunCmdDlg=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
     }
   }
 }

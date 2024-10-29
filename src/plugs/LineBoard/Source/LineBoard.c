@@ -3355,48 +3355,35 @@ void InitMain()
     {
       PLUGINADDW pa={0};
 
-      if (dwSetBookmark && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwSetBookmark))
-      {
-        pa.pFunction=L"LineBoard::Main::SetBookmark";
-        pa.wHotkey=(WORD)dwSetBookmark;
-        pa.PluginProc=SetBookmarkProc;
-        pfwSetBookmark=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwDelBookmark && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwDelBookmark))
-      {
-        pa.pFunction=L"LineBoard::Main::DelBookmark";
-        pa.wHotkey=(WORD)dwDelBookmark;
-        pa.PluginProc=DelBookmarkProc;
-        pfwDelBookmark=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwDelAllBookmark && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwDelAllBookmark))
-      {
-        pa.pFunction=L"LineBoard::Main::DelAllBookmark";
-        pa.wHotkey=(WORD)dwDelAllBookmark;
-        pa.PluginProc=DelAllBookmarkProc;
-        pfwDelAllBookmark=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwBookmarkList && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwBookmarkList))
-      {
-        pa.pFunction=L"LineBoard::Main::BookmarkList";
-        pa.wHotkey=(WORD)dwBookmarkList;
-        pa.PluginProc=BookmarkListProc;
-        pfwBookmarkList=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwNextBookmark && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwNextBookmark))
-      {
-        pa.pFunction=L"LineBoard::Main::NextBookmark";
-        pa.wHotkey=(WORD)dwNextBookmark;
-        pa.PluginProc=NextBookmarkProc;
-        pfwNextBookmark=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
-      if (dwPrevBookmark && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwPrevBookmark))
-      {
-        pa.pFunction=L"LineBoard::Main::PrevBookmark";
-        pa.wHotkey=(WORD)dwPrevBookmark;
-        pa.PluginProc=PrevBookmarkProc;
-        pfwPrevBookmark=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-      }
+      pa.pFunction=L"LineBoard::Main::SetBookmark";
+      pa.wHotkey=(WORD)dwSetBookmark;
+      pa.PluginProc=SetBookmarkProc;
+      pfwSetBookmark=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"LineBoard::Main::DelBookmark";
+      pa.wHotkey=(WORD)dwDelBookmark;
+      pa.PluginProc=DelBookmarkProc;
+      pfwDelBookmark=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"LineBoard::Main::DelAllBookmark";
+      pa.wHotkey=(WORD)dwDelAllBookmark;
+      pa.PluginProc=DelAllBookmarkProc;
+      pfwDelAllBookmark=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"LineBoard::Main::BookmarkList";
+      pa.wHotkey=(WORD)dwBookmarkList;
+      pa.PluginProc=BookmarkListProc;
+      pfwBookmarkList=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"LineBoard::Main::NextBookmark";
+      pa.wHotkey=(WORD)dwNextBookmark;
+      pa.PluginProc=NextBookmarkProc;
+      pfwNextBookmark=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+      pa.pFunction=L"LineBoard::Main::PrevBookmark";
+      pa.wHotkey=(WORD)dwPrevBookmark;
+      pa.PluginProc=PrevBookmarkProc;
+      pfwPrevBookmark=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
     }
 
     //Subclass

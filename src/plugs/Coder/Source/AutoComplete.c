@@ -2807,34 +2807,25 @@ void InitAutoComplete()
     pa.bAutoLoad=FALSE;
     pa.lpParameter=0;
 
-    if (dwCompleteWithList && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwCompleteWithList))
-    {
-      pa.pFunction=L"Coder::AutoComplete::WithList";
-      pa.wHotkey=(WORD)dwCompleteWithList;
-      pa.PluginProc=CompleteWithListProc;
-      pfwCompleteWithList=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-    }
-    if (dwCompleteWithoutList && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwCompleteWithoutList))
-    {
-      pa.pFunction=L"Coder::AutoComplete::WithoutList";
-      pa.wHotkey=(WORD)dwCompleteWithoutList;
-      pa.PluginProc=CompleteWithoutListProc;
-      pfwCompleteWithoutList=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-    }
-    if (dwCompleteNext && !bOneWithoutListAndCompleteNext && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwCompleteNext))
-    {
-      pa.pFunction=L"Coder::AutoComplete::Next";
-      pa.wHotkey=(WORD)dwCompleteNext;
-      pa.PluginProc=CompleteNextProc;
-      pfwCompleteNext=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-    }
-    if (dwCompletePrev && !SendMessage(hMainWnd, AKD_DLLFINDW, (WPARAM)NULL, dwCompletePrev))
-    {
-      pa.pFunction=L"Coder::AutoComplete::Prev";
-      pa.wHotkey=(WORD)dwCompletePrev;
-      pa.PluginProc=CompletePrevProc;
-      pfwCompletePrev=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
-    }
+    pa.pFunction=L"Coder::AutoComplete::WithList";
+    pa.wHotkey=(WORD)dwCompleteWithList;
+    pa.PluginProc=CompleteWithListProc;
+    pfwCompleteWithList=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+    pa.pFunction=L"Coder::AutoComplete::WithoutList";
+    pa.wHotkey=(WORD)dwCompleteWithoutList;
+    pa.PluginProc=CompleteWithoutListProc;
+    pfwCompleteWithoutList=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+    pa.pFunction=L"Coder::AutoComplete::Next";
+    pa.wHotkey=(WORD)dwCompleteNext;
+    pa.PluginProc=CompleteNextProc;
+    pfwCompleteNext=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
+
+    pa.pFunction=L"Coder::AutoComplete::Prev";
+    pa.wHotkey=(WORD)dwCompletePrev;
+    pa.PluginProc=CompletePrevProc;
+    pfwCompletePrev=(PLUGINFUNCTION *)SendMessage(hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pa);
   }
 
   //Register AutoComplete class

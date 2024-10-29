@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Coder AkelPad plugin v20.7                ***
+***                 Coder AkelPad plugin v20.8                ***
 *****************************************************************
 
 2007-2024 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -143,6 +143,45 @@ Call("Coder::CodeFold", 2)
   Parameters:
     2
       Go to rule.
+
+Call("Coder::CodeFold::CurrentCollapse")
+  Collapse current level.
+
+Call("Coder::CodeFold::CurrentGoBegin")
+  Go to level beginning.
+
+Call("Coder::CodeFold::CurrentGoEnd")
+  Go to level ending.
+
+Call("Coder::CodeFold::CurrentSelect")
+  Select current level.
+
+Call("Coder::CodeFold::AllCollapse")
+  Collapse all levels.
+
+Call("Coder::CodeFold::AllNextLevel")
+  Go to next level.
+
+Call("Coder::CodeFold::AllPrevLevel")
+  Go to previous level.
+
+Call("Coder::CodeFold::FindRootLevel")
+  Find root level.
+
+
+*** External call Coder::AutoComplete ***
+
+Call("Coder::AutoComplete::WithList")
+  Complete with list.
+
+Call("Coder::AutoComplete::WithoutList")
+  Complete without list.
+
+Call("Coder::AutoComplete::Next")
+  Go to next position.
+
+Call("Coder::AutoComplete::Prev")
+  Go to previous position.
 
 
 *** External call Coder::Settings ***
