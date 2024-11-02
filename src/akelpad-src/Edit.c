@@ -14206,7 +14206,7 @@ void StackPluginCleanUp(STACKPLUGINFUNCTION *hStack, BOOL bDeleteNonExistentDLL)
   {
     pfNextElement=pfElement->next;
 
-    if (!pfElement->wHotkey && !pfElement->bAutoLoad && !pfElement->bRunning)
+    if (!pfElement->wHotkey && !pfElement->bAutoLoad && !pfElement->bRunning && !pfElement->PluginProc)
     {
       StackPluginDelete(hStack, pfElement);
       pfElement=NULL;

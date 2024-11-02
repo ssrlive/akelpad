@@ -1,9 +1,9 @@
 #ifndef __VERSION_H__
 #define __VERSION_H__
 
-#define RC_AKELPADID 4,9,9,0
-#define RC_AKELPADID_STR "4,9,9,0"
-#define AKEL_PAD_VERSION L"4.9.9"
+#define RC_AKELPADID 4,10,0,0
+#define RC_AKELPADID_STR "4,10,0,0"
+#define AKEL_PAD_VERSION L"4.10.0"
 
 #if !defined(RC_EXEVERSION_INCLUDED) && !defined(DLL_VERSION_INCLUDED)
   #if defined(RC_EXEVERSION)
