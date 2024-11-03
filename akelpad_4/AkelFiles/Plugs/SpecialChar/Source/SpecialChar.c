@@ -1435,7 +1435,6 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 DWORD CALLBACK PaintCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
 {
-  RECT rcDraw;
   static AECOLORS aec;
   static AESELECTION aes;
   static HBRUSH hbrSelBk;
@@ -1445,7 +1444,8 @@ DWORD CALLBACK PaintCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
   static int nInitTopEndLine;
   static int nPrevLine;
   static int nNextLine;
-  static int nLinesInPage;
+  static int nFirstVisibleLine;
+  static int nLastVisibleLine;
   static int nCharHeight;
   static int nCharHeightNoGap;
   static int nAveCharWidth;
@@ -1471,8 +1471,8 @@ DWORD CALLBACK PaintCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
         nIndentSpaces=nIndentLineSize;
       if (pscIndentLine)
       {
-        SendMessage(pnt->hdr.hwndFrom, AEM_GETRECT, 0, (LPARAM)&rcDraw);
-        nLinesInPage=(rcDraw.bottom - rcDraw.top) / nCharHeight;
+        nFirstVisibleLine=(int)SendMessage(pnt->hdr.hwndFrom, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0);
+        nLastVisibleLine=(int)SendMessage(pnt->hdr.hwndFrom, AEM_GETLINENUMBER, AEGL_LASTVISIBLELINE, 0);
       }
       SendMessage(pnt->hdr.hwndFrom, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&aes);
 
@@ -1528,7 +1528,7 @@ DWORD CALLBACK PaintCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
             ciCount=pnt->ciMinDraw;
             nMaxLineSpaces=0;
 
-            while (AEC_PrevLine(&ciCount) && pnt->ciMinDraw.nLine - ciCount.nLine <= nLinesInPage)
+            while (AEC_PrevLine(&ciCount) && ciCount.nLine >= nFirstVisibleLine)
             {
               ciCount.nCharInLine=ciCount.lpLine->nLineLen;
               if (!GetLineSpaces(&ciCount, nTabStopSize, &nPrevLineSpaces))
@@ -1543,7 +1543,7 @@ DWORD CALLBACK PaintCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
             ciCount=pnt->ciMinDraw;
             nMaxLineSpaces=0;
 
-            while (AEC_NextLine(&ciCount) && ciCount.nLine - pnt->ciMinDraw.nLine <= nLinesInPage)
+            while (AEC_NextLine(&ciCount) && ciCount.nLine <= nLastVisibleLine)
             {
               ciCount.nCharInLine=ciCount.lpLine->nLineLen;
               if (!GetLineSpaces(&ciCount, nTabStopSize, &nNextLineSpaces))
@@ -2009,7 +2009,9 @@ DWORD CALLBACK PaintCallback(UINT_PTR dwCookie, const AENPAINT *pnt)
           SendMessage(pnt->hdr.hwndFrom, AEM_REDRAWLINERANGE, (WPARAM)nInitTopStartLine, (LPARAM)nInitTopEndLine);
         if (nInitBottomEndLine >= 0 && nInitBottomStartLine <= nInitBottomEndLine)
           SendMessage(pnt->hdr.hwndFrom, AEM_REDRAWLINERANGE, (WPARAM)nInitBottomStartLine, (LPARAM)nInitBottomEndLine);
-        //UpdateWindow(pnt->hdr.hwndFrom);
+        //Update immediately. Because infinite loop: process AEPNT_DRAWLINE for second line in document and send AEM_REDRAWLINERANGE for first line,
+        //right after process AEPNT_DRAWLINE for first line in document and send AEM_REDRAWLINERANGE for second line and so on.
+        UpdateWindow(pnt->hdr.hwndFrom);
       }
       bIntCall=FALSE;
     }
