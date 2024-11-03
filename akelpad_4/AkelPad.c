@@ -3346,7 +3346,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
             case FI_RECTMARGINS:
             {
-              *lpdwData=(UINT_PTR)&lpFrame->rcEditMargins;
+              if (wParam > 0xFFFF)
+              {
+                dwSize=sizeof(RECT);
+                if (*lpdwData) xmemcpy((void *)*lpdwData, &lpFrame->rcEditMargins, dwSize);
+              }
+              else *lpdwData=(UINT_PTR)&lpFrame->rcEditMargins;
+
               break;
             }
             case FI_LINEGAP:
