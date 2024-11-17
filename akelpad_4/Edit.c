@@ -6417,40 +6417,40 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
   return FALSE;
 }
 
-BOOL GetPrinter(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
+BOOL GetPrinter(HWND hWndOwner, PRINTINFO *pi, BOOL bSilent)
 {
   if (bOldWindows)
-    return GetPrinterA(hWndOwner, prninfo, bSilent);
+    return GetPrinterA(hWndOwner, pi, bSilent);
   else
-    return GetPrinterW(hWndOwner, prninfo, bSilent);
+    return GetPrinterW(hWndOwner, pi, bSilent);
 }
 
-BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
+BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *pi, BOOL bSilent)
 {
   PRINTDLGA pdA;
 
   xmemset(&pdA, 0, sizeof(PRINTDLGA));
   pdA.lStructSize =sizeof(PRINTDLGA);
   pdA.hwndOwner   =hWndOwner;
-  pdA.Flags       =prninfo->dwPrintFlags;
+  pdA.Flags       =pi->dwPrintFlags;
   pdA.nMinPage    =1;
   pdA.nMaxPage    =9999;
-  pdA.nFromPage   =prninfo->nFromPage;
-  pdA.nToPage     =prninfo->nToPage;
-  pdA.nCopies     =prninfo->nCopies;
-  pdA.hDC         =prninfo->hDC;
-  pdA.hDevMode    =prninfo->hDevMode;
-  pdA.hDevNames   =prninfo->hDevNames;
+  pdA.nFromPage   =pi->nFromPage;
+  pdA.nToPage     =pi->nToPage;
+  pdA.nCopies     =pi->nCopies;
+  pdA.hDC         =pi->hDC;
+  pdA.hDevMode    =pi->hDevMode;
+  pdA.hDevNames   =pi->hDevNames;
 
   if (!bSilent)
   {
     //Display printer dialog
     if (!PrintDlgA(&pdA))
       return FALSE;
-    prninfo->dwPrintFlags=pdA.Flags;
-    prninfo->nFromPage=pdA.nFromPage;
-    prninfo->nToPage=pdA.nToPage;
-    prninfo->nCopies=pdA.nCopies;
+    pi->dwPrintFlags=pdA.Flags;
+    pi->nFromPage=pdA.nFromPage;
+    pi->nToPage=pdA.nToPage;
+    pi->nCopies=pdA.nCopies;
     //Go to next block to set dmCopies to 1, because on Win7 and higher
     //system make own copies even if PD_USEDEVMODECOPIESANDCOLLATE flag not set.
     bSilent=TRUE;
@@ -6486,38 +6486,38 @@ BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
         return FALSE;
     }
   }
-  prninfo->hDC=pdA.hDC;
-  prninfo->hDevMode=pdA.hDevMode;
-  prninfo->hDevNames=pdA.hDevNames;
+  pi->hDC=pdA.hDC;
+  pi->hDevMode=pdA.hDevMode;
+  pi->hDevNames=pdA.hDevNames;
   return TRUE;
 }
 
-BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
+BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *pi, BOOL bSilent)
 {
   PRINTDLGW pdW;
 
   xmemset(&pdW, 0, sizeof(PRINTDLGW));
   pdW.lStructSize =sizeof(PRINTDLGW);
   pdW.hwndOwner   =hWndOwner;
-  pdW.Flags       =prninfo->dwPrintFlags;
+  pdW.Flags       =pi->dwPrintFlags;
   pdW.nMinPage    =1;
   pdW.nMaxPage    =9999;
-  pdW.nFromPage   =prninfo->nFromPage;
-  pdW.nToPage     =prninfo->nToPage;
-  pdW.nCopies     =prninfo->nCopies;
-  pdW.hDC         =prninfo->hDC;
-  pdW.hDevMode    =prninfo->hDevMode;
-  pdW.hDevNames   =prninfo->hDevNames;
+  pdW.nFromPage   =pi->nFromPage;
+  pdW.nToPage     =pi->nToPage;
+  pdW.nCopies     =pi->nCopies;
+  pdW.hDC         =pi->hDC;
+  pdW.hDevMode    =pi->hDevMode;
+  pdW.hDevNames   =pi->hDevNames;
 
   if (!bSilent)
   {
     //Display printer dialog
     if (!PrintDlgW(&pdW))
       return FALSE;
-    prninfo->dwPrintFlags=pdW.Flags;
-    prninfo->nFromPage=pdW.nFromPage;
-    prninfo->nToPage=pdW.nToPage;
-    prninfo->nCopies=pdW.nCopies;
+    pi->dwPrintFlags=pdW.Flags;
+    pi->nFromPage=pdW.nFromPage;
+    pi->nToPage=pdW.nToPage;
+    pi->nCopies=pdW.nCopies;
     //Go to next block to set dmCopies to 1, because on Win7 and higher
     //system make own copies even if PD_USEDEVMODECOPIESANDCOLLATE flag not set.
     bSilent=TRUE;
@@ -6553,15 +6553,15 @@ BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
         return FALSE;
     }
   }
-  prninfo->hDC=pdW.hDC;
-  prninfo->hDevMode=pdW.hDevMode;
-  prninfo->hDevNames=pdW.hDevNames;
+  pi->hDC=pdW.hDC;
+  pi->hDevMode=pdW.hDevMode;
+  pi->hDevNames=pdW.hDevNames;
   return TRUE;
 }
 
 DWORD GetMappedPrintWidth(HWND hWnd)
 {
-  AEPRINT prn;
+  AEPRINT aep;
   AEHPRINT hPrintDoc;
   int nAveCharWidth;
   DWORD dwWidth=0;
@@ -6571,17 +6571,17 @@ DWORD GetMappedPrintWidth(HWND hWnd)
 
   if (prninfo.hDC)
   {
-    xmemset(&prn, 0, sizeof(AEPRINT));
-    prn.dwFlags=(prninfo.dwPageFlags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES);
-    prn.hPrinterDC=prninfo.hDC;
-    prn.rcMargins=prninfo.rtMargin;
-    prn.hEditFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0);
+    xmemset(&aep, 0, sizeof(AEPRINT));
+    aep.dwFlags=(prninfo.dwPageFlags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES);
+    aep.hPrinterDC=prninfo.hDC;
+    aep.rcMargins=prninfo.rtMargin;
+    aep.hEditFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0);
 
-    if (hPrintDoc=(AEHPRINT)SendMessage(hWnd, AEM_STARTPRINTDOC, 0, (LPARAM)&prn))
+    if (hPrintDoc=(AEHPRINT)SendMessage(hWnd, AEM_STARTPRINTDOC, 0, (LPARAM)&aep))
     {
       nAveCharWidth=(int)SendMessage(hWnd, AEM_GETCHARSIZE, AECS_AVEWIDTH, 0);
-      dwWidth=MulDiv(nAveCharWidth, prn.rcPageIn.right - prn.rcPageIn.left, prn.nAveCharWidth);
-      SendMessage(hWnd, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)&prn);
+      dwWidth=MulDiv(nAveCharWidth, aep.rcPageIn.right - aep.rcPageIn.left, aep.nAveCharWidth);
+      SendMessage(hWnd, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)&aep);
     }
     DeleteDC(prninfo.hDC);
     prninfo.hDC=NULL;
@@ -6607,7 +6607,7 @@ BOOL UpdateMappedPrintWidth(FRAMEDATA *lpFrame)
   return FALSE;
 }
 
-int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
+int PrintDocument(HWND hWnd, AEPRINT *pprn, DWORD dwFlags, int nInitPage)
 {
   DOCINFOW diW;
   POINT ptScreenDpi={0};
@@ -6626,7 +6626,7 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   WORD nCopies=1;
 
   //Set print settings
-  prn->dwFlags=((lpFrameCurrent->dwWrapType & AEWW_SYMBOL)?AEPRN_WRAPSYMBOL:AEPRN_WRAPWORD)|
+  pprn->dwFlags=((lpFrameCurrent->dwWrapType & AEWW_SYMBOL)?AEPRN_WRAPSYMBOL:AEPRN_WRAPWORD)|
                (prninfo.dwPageFlags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES)|
                (dwFlags & PRND_TEST?AEPRN_TEST:0)|
                (dwFlags & PRND_ANSI?AEPRN_ANSI:0)|
@@ -6639,21 +6639,21 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
     {
       if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
         return 0;
-      prn->crText.ciMin=crCurSel.ciMin;
-      prn->crText.ciMax=crCurSel.ciMax;
+      pprn->crText.ciMin=crCurSel.ciMin;
+      pprn->crText.ciMax=crCurSel.ciMax;
     }
     else if (dwFlags & PRND_ALLTEXT)
     {
-      SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&prn->crText.ciMin);
-      SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&prn->crText.ciMax);
+      SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&pprn->crText.ciMin);
+      SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&pprn->crText.ciMax);
     }
   }
-  xmemcpy(&crInitText, &prn->crText, sizeof(AECHARRANGE));
+  xmemcpy(&crInitText, &pprn->crText, sizeof(AECHARRANGE));
 
   if (moCur.bPrintFontEnable)
-    prn->hEditFont=CreateFontIndirectWide(&moCur.lfPrintFont);
+    pprn->hEditFont=CreateFontIndirectWide(&moCur.lfPrintFont);
   else
-    prn->hEditFont=CreateFontIndirectWide(&lpFrameCurrent->lf);
+    pprn->hEditFont=CreateFontIndirectWide(&lpFrameCurrent->lf);
 
   //Document properties
   if (dwFlags & PRND_REALPRINT)
@@ -6669,9 +6669,9 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
     diW.fwType=0;
   }
 
-  if (!(dwFlags & PRND_REALPRINT) || StartDocWide(prn->hPrinterDC, &diW) > 0)
+  if (!(dwFlags & PRND_REALPRINT) || StartDocWide(pprn->hPrinterDC, &diW) > 0)
   {
-    if (hPrintDoc=(AEHPRINT)SendMessage(hWnd, AEM_STARTPRINTDOC, 0, (LPARAM)prn))
+    if (hPrintDoc=(AEHPRINT)SendMessage(hWnd, AEM_STARTPRINTDOC, 0, (LPARAM)pprn))
     {
       if (dwFlags & PRND_TEST)
       {
@@ -6682,27 +6682,27 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
           ptScreenDpi.y=GetDeviceCaps(hScreenDC, LOGPIXELSY);
           ReleaseDC(hWndPreviewDlg, hScreenDC);
         }
-        ptPrintDpi.x=GetDeviceCaps(prn->hPrinterDC, LOGPIXELSX);
-        ptPrintDpi.y=GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY);
+        ptPrintDpi.x=GetDeviceCaps(pprn->hPrinterDC, LOGPIXELSX);
+        ptPrintDpi.y=GetDeviceCaps(pprn->hPrinterDC, LOGPIXELSY);
 
         //Paper in screen coordinates
         rcPreviewPaper.left=2;
         rcPreviewPaper.top=2;
-        rcPreviewPaper.right=rcPreviewPaper.left + MulDiv(ptScreenDpi.x, RectW(&prn->rcPageFull), ptPrintDpi.x);
-        rcPreviewPaper.bottom=rcPreviewPaper.top + MulDiv(ptScreenDpi.y, RectH(&prn->rcPageFull), ptPrintDpi.y);
+        rcPreviewPaper.right=rcPreviewPaper.left + MulDiv(ptScreenDpi.x, RectW(&pprn->rcPageFull), ptPrintDpi.x);
+        rcPreviewPaper.bottom=rcPreviewPaper.top + MulDiv(ptScreenDpi.y, RectH(&pprn->rcPageFull), ptPrintDpi.y);
       }
 
       if (moCur.bPrintHeaderEnable)
       {
-        rcHeader=prn->rcPageIn;
-        rcHeader.bottom=rcHeader.top + prn->nCharHeight;
-        prn->rcPageIn.top+=prn->nCharHeight;
+        rcHeader=pprn->rcPageIn;
+        rcHeader.bottom=rcHeader.top + pprn->nCharHeight;
+        pprn->rcPageIn.top+=pprn->nCharHeight;
       }
       if (moCur.bPrintFooterEnable)
       {
-        rcFooter=prn->rcPageIn;
-        rcFooter.top=rcFooter.bottom - prn->nCharHeight;
-        prn->rcPageIn.bottom-=prn->nCharHeight;
+        rcFooter=pprn->rcPageIn;
+        rcFooter.top=rcFooter.bottom - pprn->nCharHeight;
+        pprn->rcPageIn.bottom-=pprn->nCharHeight;
       }
 
       NextCopy:
@@ -6721,17 +6721,17 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
             }
             else if (nPageNumber < prninfo.nFromPage)
             {
-              prn->dwFlags|=AEPRN_TEST;
-              if (!SendMessage(hWnd, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)prn))
+              pprn->dwFlags|=AEPRN_TEST;
+              if (!SendMessage(hWnd, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)pprn))
                 bPrintStop=TRUE;
-              prn->dwFlags&=~AEPRN_TEST;
+              pprn->dwFlags&=~AEPRN_TEST;
               continue;
             }
           }
         }
 
         //Print page
-        if (!(dwFlags & PRND_REALPRINT) || StartPage(prn->hPrinterDC) > 0)
+        if (!(dwFlags & PRND_REALPRINT) || StartPage(pprn->hPrinterDC) > 0)
         {
           if (dwFlags & PRND_TEST)
           {
@@ -6739,44 +6739,44 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
             {
               if (lpPrintPage=StackPageInsert(&hPreviewSelPagesStack))
               {
-                lpPrintPage->crText.ciMin=prn->crText.ciMin;
-                lpPrintPage->crText.ciMax=prn->crText.ciMax;
+                lpPrintPage->crText.ciMin=pprn->crText.ciMin;
+                lpPrintPage->crText.ciMax=pprn->crText.ciMax;
               }
             }
             else
             {
               if (lpPrintPage=StackPageInsert(&hPreviewAllPagesStack))
               {
-                lpPrintPage->crText.ciMin=prn->crText.ciMin;
-                lpPrintPage->crText.ciMax=prn->crText.ciMax;
+                lpPrintPage->crText.ciMin=pprn->crText.ciMin;
+                lpPrintPage->crText.ciMax=pprn->crText.ciMax;
               }
             }
           }
           if ((dwFlags & PRND_REALPRINT) && !(prninfo.dwPrintFlags & PD_COLLATE) && nCopies == 1)
-            xmemcpy(&crInitPage, &prn->crText, sizeof(AECHARRANGE));
+            xmemcpy(&crInitPage, &pprn->crText, sizeof(AECHARRANGE));
 
           if (moCur.bPrintHeaderEnable)
           {
-            hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
-            if (!PrintHeadline(prn->hPrinterDC, &rcHeader, moCur.wszPrintHeader, nPageNumber))
+            hPrintFontOld=(HFONT)SelectObject(pprn->hPrinterDC, pprn->hPrintFont);
+            if (!PrintHeadline(pprn->hPrinterDC, &rcHeader, moCur.wszPrintHeader, nPageNumber))
               bPrintStop=TRUE;
-            if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
+            if (hPrintFontOld) SelectObject(pprn->hPrinterDC, hPrintFontOld);
           }
 
-          if (!SendMessage(hWnd, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)prn))
+          if (!SendMessage(hWnd, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)pprn))
             bPrintStop=TRUE;
 
           if (moCur.bPrintFooterEnable)
           {
-            hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
-            if (!PrintHeadline(prn->hPrinterDC, &rcFooter, moCur.wszPrintFooter, nPageNumber))
+            hPrintFontOld=(HFONT)SelectObject(pprn->hPrinterDC, pprn->hPrintFont);
+            if (!PrintHeadline(pprn->hPrinterDC, &rcFooter, moCur.wszPrintFooter, nPageNumber))
               bPrintStop=TRUE;
-            if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
+            if (hPrintFontOld) SelectObject(pprn->hPrinterDC, hPrintFontOld);
           }
 
           if (dwFlags & PRND_REALPRINT)
           {
-            if (EndPage(prn->hPrinterDC) <= 0)
+            if (EndPage(pprn->hPrinterDC) <= 0)
               bPrintError=TRUE;
           }
           if (dwFlags & PRND_ONEPAGE)
@@ -6788,7 +6788,7 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
         {
           if (nCopies < prninfo.nCopies)
           {
-            xmemcpy(&prn->crText, &crInitPage, sizeof(AECHARRANGE));
+            xmemcpy(&pprn->crText, &crInitPage, sizeof(AECHARRANGE));
             ++nCopies;
             --nPageNumber;
             bPrintStop=FALSE;
@@ -6798,15 +6798,15 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
       }
       if ((dwFlags & PRND_REALPRINT) && (prninfo.dwPrintFlags & PD_COLLATE) && nCopies < prninfo.nCopies)
       {
-        xmemcpy(&prn->crText, &crInitText, sizeof(AECHARRANGE));
+        xmemcpy(&pprn->crText, &crInitText, sizeof(AECHARRANGE));
         ++nCopies;
         nPageNumber=nInitPage;
         bPrintStop=FALSE;
         goto NextCopy;
       }
-      SendMessage(hWnd, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)prn);
+      SendMessage(hWnd, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)pprn);
     }
-    if (dwFlags & PRND_REALPRINT) EndDoc(prn->hPrinterDC);
+    if (dwFlags & PRND_REALPRINT) EndDoc(pprn->hPrinterDC);
   }
   else bPrintError=TRUE;
 
@@ -6815,10 +6815,10 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
     API_LoadString(hLangModule, MSG_ERROR_PRINT, wszMsg, BUFFER_SIZE);
     API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
   }
-  if (prn->hEditFont)
+  if (pprn->hEditFont)
   {
-    DeleteObject(prn->hEditFont);
-    prn->hEditFont=NULL;
+    DeleteObject(pprn->hEditFont);
+    pprn->hEditFont=NULL;
   }
   return nPageNumber;
 }
@@ -8304,34 +8304,34 @@ LRESULT CALLBACK NewFileParentProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
   return CallWindowProcWide(lpOldFileParentProc, hWnd, uMsg, wParam, lParam);
 }
 
-void FillComboboxCodepage(HWND hWnd, int *lpCodepageList)
+void FillComboboxCodepage(HWND hWnd, int *lpList)
 {
   int i;
 
-  if (lpCodepageList)
+  if (lpList)
   {
-    for (i=0; lpCodepageList[i]; ++i)
+    for (i=0; lpList[i]; ++i)
     {
       if (nModelessType == MLT_RECODE &&
-          (IsCodePageUnicode(lpCodepageList[i]) && lpCodepageList[i] != CP_UNICODE_UTF8))
+          (IsCodePageUnicode(lpList[i]) && lpList[i] != CP_UNICODE_UTF8))
       {
         continue;
       }
-      GetCodePageName(lpCodepageList[i], wbuf, BUFFER_SIZE);
+      GetCodePageName(lpList[i], wbuf, BUFFER_SIZE);
       ComboBox_AddStringWide(hWnd, wbuf);
     }
   }
 }
 
-void FillListBoxCodepage(HWND hWnd, int *lpCodepageList)
+void FillListBoxCodepage(HWND hWnd, int *lpList)
 {
   int i;
 
-  if (lpCodepageList)
+  if (lpList)
   {
-    for (i=0; lpCodepageList[i]; ++i)
+    for (i=0; lpList[i]; ++i)
     {
-      GetCodePageName(lpCodepageList[i], wbuf, BUFFER_SIZE);
+      GetCodePageName(lpList[i], wbuf, BUFFER_SIZE);
       ListBox_AddStringWide(hWnd, wbuf);
     }
   }
@@ -8405,7 +8405,7 @@ int SelectListBoxCodepage(HWND hWnd, int nCodepage)
   return nSelection;
 }
 
-void GetListBoxCodepageList(HWND hWnd, int **lpCodepageList)
+void GetListBoxCodepageList(HWND hWnd, int **lpList)
 {
   int *lpCodepageListCount;
   int nCount;
@@ -8413,7 +8413,7 @@ void GetListBoxCodepageList(HWND hWnd, int **lpCodepageList)
 
   if ((nCount=(int)SendMessage(hWnd, LB_GETCOUNT, 0, 0)) > 0)
   {
-    if (*lpCodepageList=lpCodepageListCount=(int *)API_HeapAlloc(hHeap, 0, sizeof(int) * (nCount + 1)))
+    if (*lpList=lpCodepageListCount=(int *)API_HeapAlloc(hHeap, 0, sizeof(int) * (nCount + 1)))
     {
       for (i=0; i < nCount; ++i)
       {
@@ -8426,7 +8426,7 @@ void GetListBoxCodepageList(HWND hWnd, int **lpCodepageList)
   }
 }
 
-int EnumCodepageList(int **lpCodepageList)
+int EnumCodepageList(int **lpList)
 {
   int *lpCodepageListCount;
   int i;
@@ -8452,7 +8452,7 @@ int EnumCodepageList(int **lpCodepageList)
     //0
     nCodepageTableCount+=9;
 
-    if (*lpCodepageList=lpCodepageListCount=(int *)API_HeapAlloc(hHeap, 0, sizeof(int) * nCodepageTableCount))
+    if (*lpList=lpCodepageListCount=(int *)API_HeapAlloc(hHeap, 0, sizeof(int) * nCodepageTableCount))
     {
       *lpCodepageListCount++=nAnsiCodePage;
       if (nAnsiCodePage != nOemCodePage)
@@ -8538,39 +8538,39 @@ BOOL CALLBACK EnumCodePagesProc(wchar_t *wpCodePage)
   return TRUE;
 }
 
-int CodepageListLen(int *lpCodepageList)
+int CodepageListLen(int *lpList)
 {
   int i;
 
-  if (lpCodepageList)
+  if (lpList)
   {
-    for (i=0; lpCodepageList[i]; ++i);
+    for (i=0; lpList[i]; ++i);
     return ++i;
   }
   return 0;
 }
 
-int CodepageListFind(int *lpCodepageList, int nCodePage)
+int CodepageListFind(int *lpList, int nCodePage)
 {
   int i;
 
-  if (lpCodepageList)
+  if (lpList)
   {
-    for (i=0; lpCodepageList[i]; ++i)
+    for (i=0; lpList[i]; ++i)
     {
-      if (lpCodepageList[i] == nCodePage)
+      if (lpList[i] == nCodePage)
         return i;
     }
   }
   return -1;
 }
 
-void CodepageListFree(int **lpCodepageList)
+void CodepageListFree(int **lpList)
 {
-  if (lpCodepageList && *lpCodepageList)
+  if (lpList && *lpList)
   {
-    API_HeapFree(hHeap, 0, (LPVOID)*lpCodepageList);
-    *lpCodepageList=NULL;
+    API_HeapFree(hHeap, 0, (LPVOID)*lpList);
+    *lpList=NULL;
   }
 }
 
@@ -12928,7 +12928,7 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndCancel;
   static int nCodePageFrom=-1;
   static int nCodePageTo=-1;
-  static BOOL bAutodetect=TRUE;
+  static BOOL bAuto=TRUE;
   static RESIZEDIALOG rds[]={{&hWndCodePageFromLabel,      0, 0},
                              {&hWndCodePageFromList,       RDS_SIZE|RDS_X, 0},
                              {&hWndCodePageToLabel,        0, 0},
@@ -12969,13 +12969,13 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     FillComboboxCodepage(hWndCodePageToList, lpCodepageList);
     if (nCodePageTo > 0) SelectComboboxCodepage(hWndCodePageToList, nCodePageTo);
 
-    if (nCodePageFrom <= 0 && nCodePageTo <= 0 && bAutodetect == FALSE)
+    if (nCodePageFrom <= 0 && nCodePageTo <= 0 && bAuto == FALSE)
     {
       nCodePageFrom=-1;
       nCodePageTo=-1;
-      bAutodetect=TRUE;
+      bAuto=TRUE;
     }
-    if (bAutodetect)
+    if (bAuto)
     {
       SendMessage(hWndCodePageAutodetect, BM_SETCHECK, BST_CHECKED, 0);
       EnableWindow(hWndCodePageFromList, FALSE);
@@ -13000,7 +13000,7 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == AKDLG_RECODEUPDATE)
   {
-    if (bAutodetect)
+    if (bAuto)
     {
       nCodePageFrom=-1;
       nCodePageTo=-1;
@@ -13022,7 +13022,7 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nCodePageFrom <= 0 && nCodePageTo <= 0)
       {
-        bAutodetect=FALSE;
+        bAuto=FALSE;
         SendMessage(hWndCodePageAutodetect, BM_SETCHECK, BST_UNCHECKED, 0);
         EnableWindow(hWndCodePageFromList, TRUE);
         EnableWindow(hWndCodePageToList, TRUE);
@@ -13043,9 +13043,9 @@ BOOL CALLBACK RecodeDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDC_RECODE_AUTODETECT)
     {
-      bAutodetect=(BOOL)SendMessage(hWndCodePageAutodetect, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndCodePageFromList, !bAutodetect);
-      EnableWindow(hWndCodePageToList, !bAutodetect);
+      bAuto=(BOOL)SendMessage(hWndCodePageAutodetect, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndCodePageFromList, !bAuto);
+      EnableWindow(hWndCodePageToList, !bAuto);
       PostMessage(hDlg, AKDLG_RECODEUPDATE, 0, 0);
     }
     else if (LOWORD(wParam) == IDC_SETREADONLY)
@@ -15134,7 +15134,7 @@ void FillPluginList(HWND hWnd)
   PLUGINLISTDATA pld={0};
   LVITEMW lvi;
   HANDLE hFind;
-  HMODULE hInstance;
+  HMODULE hInstanceDLL;
   wchar_t wszBaseName[MAX_PATH];
   const wchar_t *wpPluginExt=L"dll";
 
@@ -15152,15 +15152,15 @@ void FillPluginList(HWND hWnd)
 
       xprintfW(wbuf, L"%s\\AkelFiles\\%s\\%s", wszExeDir, wszPlugsDll, wfd.cFileName);
 
-      if (hInstance=LoadLibraryWide(wbuf))
+      if (hInstanceDLL=LoadLibraryWide(wbuf))
       {
-        if (GetProcAddress(hInstance, "DllAkelPadID"))
+        if (GetProcAddress(hInstanceDLL, "DllAkelPadID"))
         {
           GetBaseName(wfd.cFileName, -1, wszBaseName, MAX_PATH);
           pld.pBaseName=(unsigned char *)wszBaseName;
-          GetExportNames(hInstance, FillPluginListProc, (LPARAM)&pld);
+          GetExportNames(hInstanceDLL, FillPluginListProc, (LPARAM)&pld);
         }
-        FreeLibrary(hInstance);
+        FreeLibrary(hInstanceDLL);
       }
     }
     while (FindNextFileWide(hFind, &wfd));
@@ -15264,7 +15264,7 @@ void FreePluginList(STACKPLUGINLIST *hStack)
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-BOOL GetExportNames(HMODULE hInstance, EXPORTNAMESPROC lpExportNamesProc, LPARAM lParam)
+BOOL GetExportNames(HMODULE hInstanceDLL, EXPORTNAMESPROC lpExportNamesProc, LPARAM lParam)
 {
   PIMAGE_DOS_HEADER pDOSHead;
   PIMAGE_NT_HEADERS pPEHeader;
@@ -15273,23 +15273,23 @@ BOOL GetExportNames(HMODULE hInstance, EXPORTNAMESPROC lpExportNamesProc, LPARAM
   char *pName;
   DWORD i;
 
-  pDOSHead=(PIMAGE_DOS_HEADER)hInstance;
+  pDOSHead=(PIMAGE_DOS_HEADER)hInstanceDLL;
   if (pDOSHead->e_magic != IMAGE_DOS_SIGNATURE)
     return FALSE;
 
-  pPEHeader=(PIMAGE_NT_HEADERS)((UINT_PTR)hInstance + pDOSHead->e_lfanew);
+  pPEHeader=(PIMAGE_NT_HEADERS)((UINT_PTR)hInstanceDLL + pDOSHead->e_lfanew);
   if (pPEHeader->Signature != IMAGE_NT_SIGNATURE)
     return FALSE;
 
-  pImportDesc=(PIMAGE_EXPORT_DIRECTORY)((UINT_PTR)hInstance + pPEHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+  pImportDesc=(PIMAGE_EXPORT_DIRECTORY)((UINT_PTR)hInstanceDLL + pPEHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
   if (!pImportDesc->AddressOfNames)
     return FALSE;
 
-  pchName=(unsigned long *)((UINT_PTR)hInstance + pImportDesc->AddressOfNames);
+  pchName=(unsigned long *)((UINT_PTR)hInstanceDLL + pImportDesc->AddressOfNames);
 
   for (i=0; i < pImportDesc->NumberOfNames; ++i)
   {
-    pName=(char *)((UINT_PTR)hInstance + pchName[i]);
+    pName=(char *)((UINT_PTR)hInstanceDLL + pchName[i]);
     if ((*lpExportNamesProc)(pName, lParam) == FALSE) return TRUE;
   }
   return TRUE;
@@ -15928,7 +15928,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (bState && !(moCur.dwFileTypesAssociated & FTA_OPEN))
       {
         GetWindowTextWide(hWndFileTypesOpen, moCur.wszFileTypesOpen, MAX_PATH);
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_ASSOCIATE);
+        AssociateFileTypesW(moCur.wszFileTypesOpen, FTA_OPEN|FTA_ASSOCIATE);
         moCur.dwFileTypesAssociated|=FTA_OPEN;
         bShellRefresh=TRUE;
       }
@@ -15937,15 +15937,15 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         GetWindowTextWide(hWndFileTypesOpen, wszWindowText, MAX_PATH);
         if (xstrcmpiW(wszWindowText, moCur.wszFileTypesOpen))
         {
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
-          AssociateFileTypesW(hInstance, wszWindowText, FTA_OPEN|FTA_ASSOCIATE);
+          AssociateFileTypesW(moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
+          AssociateFileTypesW(wszWindowText, FTA_OPEN|FTA_ASSOCIATE);
           xstrcpynW(moCur.wszFileTypesOpen, wszWindowText, MAX_PATH);
         }
         bShellRefresh=TRUE;
       }
       else if (!bState && (moCur.dwFileTypesAssociated & FTA_OPEN))
       {
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
+        AssociateFileTypesW(moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
         moCur.dwFileTypesAssociated&=~FTA_OPEN;
         bShellRefresh=TRUE;
       }
@@ -15954,7 +15954,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (bState && !(moCur.dwFileTypesAssociated & FTA_EDIT))
       {
         GetWindowTextWide(hWndFileTypesEdit, moCur.wszFileTypesEdit, MAX_PATH);
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_ASSOCIATE);
+        AssociateFileTypesW(moCur.wszFileTypesEdit, FTA_EDIT|FTA_ASSOCIATE);
         moCur.dwFileTypesAssociated|=FTA_EDIT;
         bShellRefresh=TRUE;
       }
@@ -15963,15 +15963,15 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         GetWindowTextWide(hWndFileTypesEdit, wszWindowText, MAX_PATH);
         if (xstrcmpiW(wszWindowText, moCur.wszFileTypesEdit))
         {
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
-          AssociateFileTypesW(hInstance, wszWindowText, FTA_EDIT|FTA_ASSOCIATE);
+          AssociateFileTypesW(moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
+          AssociateFileTypesW(wszWindowText, FTA_EDIT|FTA_ASSOCIATE);
           xstrcpynW(moCur.wszFileTypesEdit, wszWindowText, MAX_PATH);
         }
         bShellRefresh=TRUE;
       }
       else if (!bState && (moCur.dwFileTypesAssociated & FTA_EDIT))
       {
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
+        AssociateFileTypesW(moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
         moCur.dwFileTypesAssociated&=~FTA_EDIT;
         bShellRefresh=TRUE;
       }
@@ -15980,7 +15980,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (bState && !(moCur.dwFileTypesAssociated & FTA_PRINT))
       {
         GetWindowTextWide(hWndFileTypesPrint, moCur.wszFileTypesPrint, MAX_PATH);
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_ASSOCIATE);
+        AssociateFileTypesW(moCur.wszFileTypesPrint, FTA_PRINT|FTA_ASSOCIATE);
         moCur.dwFileTypesAssociated|=FTA_PRINT;
         bShellRefresh=TRUE;
       }
@@ -15989,15 +15989,15 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         GetWindowTextWide(hWndFileTypesPrint, wszWindowText, MAX_PATH);
         if (xstrcmpiW(wszWindowText, moCur.wszFileTypesPrint))
         {
-          AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
-          AssociateFileTypesW(hInstance, wszWindowText, FTA_PRINT|FTA_ASSOCIATE);
+          AssociateFileTypesW(moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
+          AssociateFileTypesW(wszWindowText, FTA_PRINT|FTA_ASSOCIATE);
           xstrcpynW(moCur.wszFileTypesPrint, wszWindowText, MAX_PATH);
         }
         bShellRefresh=TRUE;
       }
       else if (!bState && (moCur.dwFileTypesAssociated & FTA_PRINT))
       {
-        AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
+        AssociateFileTypesW(moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
         moCur.dwFileTypesAssociated&=~FTA_PRINT;
         bShellRefresh=TRUE;
       }
@@ -16662,10 +16662,11 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                             -1,
                             IDC_MDILIST_INVERTSELECTION,
                             0};
-  int nItem;
 
   if (uMsg == WM_INITDIALOG)
   {
+    int nItem;
+
     NotifyInitDialogBegin(IDT_MDILIST, hDlg, lParam);
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
@@ -16735,6 +16736,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       POINT ptScreen;
       HWND hWndControl;
+      int nItem;
       BOOL bEnable;
 
       if (lParam == -1)
@@ -16767,6 +16769,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (HIWORD(wParam) == EN_CHANGE)
       {
         wchar_t wszSearch[MAX_PATH];
+        int nItem;
 
         SendMessage(hWndList, LB_SETSEL, FALSE, -1);
 
@@ -16912,6 +16915,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int *lpSelItems;
       int nItemNew;
       int nItemOld;
+      int nItem;
       INT_PTR nData;
 
       if (!nModifyFilter && bListChanged)
@@ -17526,7 +17530,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
   return FALSE;
 }
 
-BOOL GetDialogUnits(HDC hDC, HFONT hFont, POINT *ptUnitCur, POINT *ptUnit96)
+BOOL GetDialogUnits(HDC hDC, HFONT hFont, POINT *lpUnitCur, POINT *lpUnit96)
 {
   TEXTMETRICA tmGui;
   HFONT hFontOld;
@@ -17550,12 +17554,12 @@ BOOL GetDialogUnits(HDC hDC, HFONT hFont, POINT *ptUnitCur, POINT *ptUnit96)
     {
       //Current dialog base unit
       GetTextExtentPoint32A(hDC, pStr, nStrLen, &sizeWidth);
-      ptUnitCur->x=(sizeWidth.cx / 26 + 1) / 2;
-      ptUnitCur->y=tmGui.tmHeight;
+      lpUnitCur->x=(sizeWidth.cx / 26 + 1) / 2;
+      lpUnitCur->y=tmGui.tmHeight;
 
       //Normal unit (without screen scale)
-      ptUnit96->x=MulDiv(ptUnitCur->x, 96, GetDeviceCaps(hDC, LOGPIXELSX));
-      ptUnit96->y=MulDiv(ptUnitCur->y, 96, GetDeviceCaps(hDC, LOGPIXELSY));
+      lpUnit96->x=MulDiv(lpUnitCur->x, 96, GetDeviceCaps(hDC, LOGPIXELSX));
+      lpUnit96->y=MulDiv(lpUnitCur->y, 96, GetDeviceCaps(hDC, LOGPIXELSY));
 
       bResult=TRUE;
     }
@@ -19238,9 +19242,8 @@ const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, i
   return NULL;
 }
 
-void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD dwFlags)
+void AssociateFileTypesW(const wchar_t *wpFileTypes, DWORD dwFlags)
 {
-  wchar_t wszModule[MAX_PATH];
   wchar_t wszAssocKey[MAX_PATH];
   wchar_t wszTypeKey[16];
   wchar_t wszExt[16];
@@ -19249,8 +19252,6 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
   HKEY hKey;
   DWORD dwType;
   DWORD dwSize;
-
-  GetModuleFileNameWide(hInstance, wszModule, MAX_PATH);
 
   if (dwFlags & FTA_OPEN) xstrcpyW(wszTypeKey, L"Open");
   else if (dwFlags & FTA_EDIT) xstrcpyW(wszTypeKey, L"Edit");
@@ -19293,11 +19294,11 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
           dwSize=BUFFER_SIZE * sizeof(wchar_t);
           if (RegQueryValueExWide(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) != ERROR_SUCCESS || !*wbuf2)
           {
-            if (dwFlags & FTA_ASSOCIATE) RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wszModule, BytesInString(wszModule));
+            if (dwFlags & FTA_ASSOCIATE) RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wszExeFile, BytesInString(wszExeFile));
           }
           else if (dwFlags & FTA_DEASSOCIATE)
           {
-            if (!xstrcmpiW(wbuf2, wszModule)) RegDeleteValueWide(hKey, L"");
+            if (!xstrcmpiW(wbuf2, wszExeFile)) RegDeleteValueWide(hKey, L"");
           }
           RegCloseKey(hKey);
         }
@@ -19305,7 +19306,7 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
 
       //Associate command
       xprintfW(wbuf2, L"%s\\Shell\\%s\\Command", wszAssocKey, wszTypeKey);
-      xprintfW(wbuf, L"\"%s\"%s \"%%1\"", wszModule, (dwFlags & FTA_PRINT)?L" /p":L"");
+      xprintfW(wbuf, L"\"%s\"%s \"%%1\"", wszExeFile, (dwFlags & FTA_PRINT)?L" /p":L"");
 
       if (RegCreateKeyExWide(HKEY_CLASSES_ROOT, wbuf2, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
       {
@@ -19598,12 +19599,12 @@ BOOL AkelAdminInit(const wchar_t *wpFile)
         wchar_t wszParams[MAX_PATH];
         SHELLEXECUTEINFOW sei;
         HANDLE lpHandles[2];
-        HANDLE hMutex;
+        HANDLE hMutexAdmin;
 
         //Pipe server doesn't exist
-        if (hMutex=CreateEventW(NULL, FALSE, FALSE, STR_AKELADMINW))
+        if (hMutexAdmin=CreateEventW(NULL, FALSE, FALSE, STR_AKELADMINW))
         {
-          //Set security for hMutex. It required under limited user of WinXP.
+          //Set security for hMutexAdmin. It required under limited user of WinXP.
           if (SetSecurityInfoPtr && SetEntriesInAclWPtr)
           {
             ACL *pNewACL=NULL;
@@ -19625,7 +19626,7 @@ BOOL AkelAdminInit(const wchar_t *wpFile)
 
               if ((*SetEntriesInAclWPtr)(1, eal, NULL, &pNewACL) == ERROR_SUCCESS)
               {
-                (*SetSecurityInfoPtr)(hMutex, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewACL, NULL);
+                (*SetSecurityInfoPtr)(hMutexAdmin, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewACL, NULL);
                 LocalFree(pNewACL);
               }
               FreeSid(pSIDEveryone);
@@ -19647,7 +19648,7 @@ BOOL AkelAdminInit(const wchar_t *wpFile)
 
             if ((*ShellExecuteExWPtr)(&sei))
             {
-              lpHandles[0]=hMutex;
+              lpHandles[0]=hMutexAdmin;
               lpHandles[1]=sei.hProcess;
 
               //Wait for mutex signal or process exit
@@ -19662,7 +19663,7 @@ BOOL AkelAdminInit(const wchar_t *wpFile)
               CloseHandle(sei.hProcess);
             }
           }
-          CloseHandle(hMutex);
+          CloseHandle(hMutexAdmin);
         }
       }
       return bPipeInitAkelAdmin;
@@ -19918,22 +19919,22 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType, DWORD dwFlags)
         if (!xstrcmpiW(wszCmdArg, L"/REASSOC"))
         {
           if (moCur.dwFileTypesAssociated & FTA_OPEN)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_ASSOCIATE);
+            AssociateFileTypesW(moCur.wszFileTypesOpen, FTA_OPEN|FTA_ASSOCIATE);
           if (moCur.dwFileTypesAssociated & FTA_EDIT)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_ASSOCIATE);
+            AssociateFileTypesW(moCur.wszFileTypesEdit, FTA_EDIT|FTA_ASSOCIATE);
           if (moCur.dwFileTypesAssociated & FTA_PRINT)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_ASSOCIATE);
+            AssociateFileTypesW(moCur.wszFileTypesPrint, FTA_PRINT|FTA_ASSOCIATE);
           if (moCur.dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
           continue;
         }
         if (!xstrcmpiW(wszCmdArg, L"/DEASSOC"))
         {
           if (moCur.dwFileTypesAssociated & FTA_OPEN)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
+            AssociateFileTypesW(moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
           if (moCur.dwFileTypesAssociated & FTA_EDIT)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
+            AssociateFileTypesW(moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
           if (moCur.dwFileTypesAssociated & FTA_PRINT)
-            AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
+            AssociateFileTypesW(moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
           if (moCur.dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
           continue;
         }
@@ -20339,9 +20340,9 @@ int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
 
   if (!xstrcmpinW(L"Show(", wpMethod, (UINT_PTR)-1))
   {
-    DWORD dwCmdShow=(DWORD)xatoiW(wpMethod + 5, NULL);
+    DWORD dwShow=(DWORD)xatoiW(wpMethod + 5, NULL);
 
-    ShowWindow(hMainWnd, dwCmdShow);
+    ShowWindow(hMainWnd, dwShow);
   }
   else if (!xstrcmpinW(L"Command(", wpMethod, (UINT_PTR)-1))
   {
@@ -22604,13 +22605,13 @@ BOOL CALLBACK EnumAkelCopyProc(HWND hWnd, LPARAM lParam)
   return TRUE;
 }
 
-int GetAkelPadExe(HWND hWnd, wchar_t *szExeFile, int nExeFileMax)
+int GetAkelPadExe(HWND hWnd, wchar_t *szFile, int nFileMax)
 {
   HANDLE hMemRemote;
   HANDLE hMemLocal;
   wchar_t *wszMemRemote;
   wchar_t *wszMemLocal;
-  DWORD dwMemSize=nExeFileMax * sizeof(wchar_t);
+  DWORD dwMemSize=nFileMax * sizeof(wchar_t);
   int nResult=0;
 
   //Current AkelPad process must have privileges to send AKD_* messages
@@ -22625,7 +22626,7 @@ int GetAkelPadExe(HWND hWnd, wchar_t *szExeFile, int nExeFileMax)
       {
         if (wszMemLocal=(wchar_t *)MemMap(hMemLocal, dwMemSize))
         {
-          nResult=(int)xstrcpynW(szExeFile, wszMemLocal, nExeFileMax);
+          nResult=(int)xstrcpynW(szFile, wszMemLocal, nFileMax);
           MemUnmap(wszMemLocal);
         }
         MemClose(hMemLocal);
@@ -23602,11 +23603,11 @@ BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, UINT_PTR nNumberOfBytesToWrit
   return TRUE;
 }
 
-LPVOID API_HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes)
+LPVOID API_HeapAlloc(HANDLE hHandle, DWORD dwFlags, SIZE_T dwBytes)
 {
   LPVOID lpResult;
 
-  if (!(lpResult=HeapAlloc(hHeap, dwFlags, dwBytes)))
+  if (!(lpResult=HeapAlloc(hHandle, dwFlags, dwBytes)))
   {
     API_LoadString(hLangModule, MSG_ERROR_NOT_ENOUGH_MEMORY, wszMsg, BUFFER_SIZE);
     API_MessageBox(hMainWnd, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
@@ -23615,11 +23616,11 @@ LPVOID API_HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes)
   return lpResult;
 }
 
-BOOL API_HeapFree(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem)
+BOOL API_HeapFree(HANDLE hHandle, DWORD dwFlags, LPVOID lpMem)
 {
   BOOL bResult;
 
-  bResult=HeapFree(hHeap, dwFlags, lpMem);
+  bResult=HeapFree(hHandle, dwFlags, lpMem);
 
   return bResult;
 }

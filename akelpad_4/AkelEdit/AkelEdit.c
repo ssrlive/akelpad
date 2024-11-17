@@ -5631,62 +5631,62 @@ void AE_StackWindowFree(AESTACKEDIT *hStack)
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-void AE_CloneActivate(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae)
+void AE_CloneActivate(AKELEDIT *lpPrev, AKELEDIT *ae)
 {
-  if (lpAkelEditPrev && ae->hWndEdit != lpAkelEditPrev->hWndEdit)
+  if (lpPrev && ae->hWndEdit != lpPrev->hWndEdit)
   {
     //Save previous window info
-    if (lpAkelEditPrev->nCloneCount > 0 || lpAkelEditPrev->lpMaster)
+    if (lpPrev->nCloneCount > 0 || lpPrev->lpMaster)
     {
       AKELEDIT *aeSource;
 
-      if (lpAkelEditPrev->lpMaster)
-        aeSource=lpAkelEditPrev->lpMaster;
+      if (lpPrev->lpMaster)
+        aeSource=lpPrev->lpMaster;
       else
-        aeSource=lpAkelEditPrev;
+        aeSource=lpPrev;
 
       if (aeSource)
       {
-        if (!lpAkelEditPrev->lpSelStartPoint)
+        if (!lpPrev->lpSelStartPoint)
         {
           //Get selection start from master
-          lpAkelEditPrev->lpSelStartPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelStartIndex);
+          lpPrev->lpSelStartPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelStartIndex);
         }
         else
         {
-          AE_StackPointDelete(lpAkelEditPrev, lpAkelEditPrev->lpSelStartPoint);
-          lpAkelEditPrev->lpSelStartPoint=AE_StackPointInsert(lpAkelEditPrev, &lpAkelEditPrev->ciSelStartIndex);
+          AE_StackPointDelete(lpPrev, lpPrev->lpSelStartPoint);
+          lpPrev->lpSelStartPoint=AE_StackPointInsert(lpPrev, &lpPrev->ciSelStartIndex);
         }
 
-        if (!lpAkelEditPrev->lpSelEndPoint)
+        if (!lpPrev->lpSelEndPoint)
         {
           //Get selection end from master
-          lpAkelEditPrev->lpSelEndPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelEndIndex);
+          lpPrev->lpSelEndPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelEndIndex);
         }
         else
         {
-          AE_StackPointDelete(lpAkelEditPrev, lpAkelEditPrev->lpSelEndPoint);
-          lpAkelEditPrev->lpSelEndPoint=AE_StackPointInsert(lpAkelEditPrev, &lpAkelEditPrev->ciSelEndIndex);
+          AE_StackPointDelete(lpPrev, lpPrev->lpSelEndPoint);
+          lpPrev->lpSelEndPoint=AE_StackPointInsert(lpPrev, &lpPrev->ciSelEndIndex);
         }
 
-        if (!lpAkelEditPrev->lpCaretPoint)
+        if (!lpPrev->lpCaretPoint)
         {
           //Get caret index from master
-          lpAkelEditPrev->lpCaretPoint=AE_StackPointInsert(aeSource, &aeSource->ciCaretIndex);
+          lpPrev->lpCaretPoint=AE_StackPointInsert(aeSource, &aeSource->ciCaretIndex);
         }
         else
         {
-          AE_StackPointDelete(lpAkelEditPrev, lpAkelEditPrev->lpCaretPoint);
-          lpAkelEditPrev->lpCaretPoint=AE_StackPointInsert(lpAkelEditPrev, &lpAkelEditPrev->ciCaretIndex);
+          AE_StackPointDelete(lpPrev, lpPrev->lpCaretPoint);
+          lpPrev->lpCaretPoint=AE_StackPointInsert(lpPrev, &lpPrev->ciCaretIndex);
         }
 
         //Clear lines selection
-        AE_ClearSelLines(&lpAkelEditPrev->ciSelStartIndex, &lpAkelEditPrev->ciSelEndIndex);
+        AE_ClearSelLines(&lpPrev->ciSelStartIndex, &lpPrev->ciSelEndIndex);
       }
     }
   }
 
-  if (!lpAkelEditPrev || ae->hWndEdit != lpAkelEditPrev->hWndEdit)
+  if (!lpPrev || ae->hWndEdit != lpPrev->hWndEdit)
   {
     //Set current window info
     if (ae->nCloneCount > 0 || ae->lpMaster)
