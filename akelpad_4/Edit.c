@@ -20067,7 +20067,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType, DWORD dwFlags)
               if (nType == PCL_ONLOAD)
                 *wpCmdParamsEnd=L'\0';
               SendCmdLineToProcess(hWndFriend, wpCmdLine, TRUE, 0);
-              if (nType == PCL_ONLOAD)
+              if (nType == PCL_ONLOAD || nType == PCL_ONSHOW)
                 nResult=PCLE_QUIT;
               else
                 nResult=PCLE_PASS;
