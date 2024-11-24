@@ -140,7 +140,7 @@ extern BOOL bMenuPopupCodepage;
 extern BOOL bMenuRecentFiles;
 extern BOOL bMenuLanguage;
 extern BOOL bEnterMenuLoop;
-extern BOOL bMainOnStart;
+extern int nMainOnStart;
 extern BOOL bMainCheckIdle;
 extern int nMainOnFinish;
 extern BOOL bEditOnFinish;
@@ -2863,7 +2863,7 @@ void DoSettingsWatchFile(BOOL bState)
   CheckMenuItem(hMainMenu, IDM_OPTIONS_WATCHFILE, bState?MF_CHECKED:MF_UNCHECKED);
   moCur.bWatchFile=bState;
 
-  if (moCur.bWatchFile && !bMainOnStart)
+  if (moCur.bWatchFile && !nMainOnStart)
     PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CHECKWRITETIME, (LPARAM)lpFrameCurrent);
 }
 

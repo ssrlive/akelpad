@@ -352,7 +352,7 @@ BOOL bMenuPopupCodepage=TRUE;
 BOOL bMenuRecentFiles=FALSE;
 BOOL bMenuLanguage=FALSE;
 BOOL bEnterMenuLoop=FALSE;
-BOOL bMainOnStart=FALSE;
+int nMainOnStart=MOS_NONE;
 BOOL bMainCheckIdle=FALSE;
 int nMainOnFinish=MOF_NONE;
 BOOL bEditOnFinish=FALSE;
@@ -1803,7 +1803,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wchar_t *wpFileName;
         int i=0;
 
-        bMainOnStart=TRUE;
+        nMainOnStart=MOS_ONSTART;
 
         //Call plugins on start
         CallPluginsOnStart(&hPluginsStack);
@@ -1902,6 +1902,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nms.dwShow=&dwCmdShow;
         nms.bProcess=TRUE;
         SendMessage(hMainWnd, AKDN_MAIN_ONSTART_PRESHOW, 0, (LPARAM)&nms);
+        nMainOnStart=MOS_PRESHOW;
+
         if (nms.bProcess)
         {
           if (!(mc.dwStyle & WS_VISIBLE))
@@ -1940,6 +1942,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           UpdateWindow(hMainWnd);
         }
         SendMessage(hMainWnd, AKDN_MAIN_ONSTART_SHOW, 0, 0);
+        nMainOnStart=MOS_SHOW;
 
         //Parse commmand line on show
         if (wpCmdLineDo)
@@ -1962,7 +1965,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         #endif
 
         SendMessage(hMainWnd, AKDN_MAIN_ONSTART_FINISH, 0, 0);
-        bMainOnStart=FALSE;
+        nMainOnStart=MOS_NONE;
         bMainCheckIdle=TRUE;
         return 0;
       }
@@ -2527,7 +2530,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           case MI_LANGIDMODULE:
             return (LRESULT)dwLangModule;
           case MI_ONSTART:
-            return bMainOnStart;
+            return nMainOnStart;
           case MI_ONFINISH:
             return nMainOnFinish;
           case MI_AKELEXEA:
