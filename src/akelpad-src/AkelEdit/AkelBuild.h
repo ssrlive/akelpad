@@ -802,7 +802,7 @@ void AE_StackWindowFree(AESTACKEDIT *hStack);
 AECLONE* AE_StackCloneIndex(AKELEDIT *ae, DWORD dwIndex);
 AECLONE* AE_StackCloneGet(AKELEDIT *aeMaster, AKELEDIT *aeClone);
 AECLONE* AE_StackCloneAdd(AKELEDIT *aeMaster, AKELEDIT *aeClone);
-void AE_CloneActivate(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae);
+void AE_CloneActivate(AKELEDIT *lpPrev, AKELEDIT *ae);
 void AE_CloneRestoreSelection(AKELEDIT *ae);
 void AE_StackCloneDelete(AECLONE *aec);
 void AE_StackCloneDeleteAll(AKELEDIT *ae);

@@ -1750,8 +1750,8 @@ HighLight_FontSize 0\r\
 HighLight_FaceName \"\"\r\
 HighLight_BasicTextColor #586E75\r\
 HighLight_BasicBkColor #FDF6E3\r\
-HighLight_SelTextColor #586E75\r\
-HighLight_SelBkColor #FFFFFF\r\
+HighLight_SelTextColor #FDF6E3\r\
+HighLight_SelBkColor #586E75\r\
 HighLight_LineTextColor #586E75\r\
 HighLight_LineBkColor #EEE8D5\r\
 HighLight_LineBorderColor #EEEAD5\r\
@@ -1759,7 +1759,7 @@ HighLight_AltTextColor #586E75\r\
 HighLight_AltBkColor #FEF9E9\r\
 HighLight_AltBorderColor #FDF2DB\r\
 HighLight_ColumnColor #839496\r\
-HighLight_MarkerColor #839496\r\
+HighLight_MarkerColor #D0D0D0\r\
 HighLight_CaretColor #000000\r\
 HighLight_UrlColor #06A2FF\r\
 HighLight_ActiveUrlColor #0087EA\r\
@@ -1804,8 +1804,8 @@ AutoComplete_ListDocWordIcon \"\"\r\
 AutoComplete_ListDocWordIconMargins 0;1\r\
 AutoComplete_ListBasicTextColor #586E75\r\
 AutoComplete_ListBasicBkColor #FDF6E3\r\
-AutoComplete_ListSelTextColor #586E75\r\
-AutoComplete_ListSelBkColor #FFFFFF\r\
+AutoComplete_ListSelTextColor #FDF6E3\r\
+AutoComplete_ListSelBkColor #586E75\r\
 AutoComplete_Indent \"  \"\r"
 
 #define TXT_SOLARIZEDLIGHT_VARTHEME_LINEBOARD \
@@ -1864,7 +1864,7 @@ HighLight_AltTextColor #839496\r\
 HighLight_AltBkColor #002833\r\
 HighLight_AltBorderColor #002631\r\
 HighLight_ColumnColor #839496\r\
-HighLight_MarkerColor #839496\r\
+HighLight_MarkerColor #485858\r\
 HighLight_CaretColor #91EAB9\r\
 HighLight_UrlColor #06A2FF\r\
 HighLight_ActiveUrlColor #75C1FF\r\

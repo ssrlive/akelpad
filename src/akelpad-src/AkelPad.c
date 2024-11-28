@@ -355,7 +355,7 @@ BOOL bMenuPopupCodepage=TRUE;
 BOOL bMenuRecentFiles=FALSE;
 BOOL bMenuLanguage=FALSE;
 BOOL bEnterMenuLoop=FALSE;
-BOOL bMainOnStart=FALSE;
+int nMainOnStart=MOS_NONE;
 BOOL bMainCheckIdle=FALSE;
 int nMainOnFinish=MOF_NONE;
 BOOL bEditOnFinish=FALSE;
@@ -566,7 +566,6 @@ DWORD dwMdiFrameActivating=0;
 RECT rcMdiListMinMaxDialog={221, 463, 0, 0};
 WNDPROC lpOldMdiClientProc;
 WNDPROC lpOldTabProc;
-FRAMEDATA *lpFrame;
 
 //GetProcAddress
 HMONITOR (WINAPI *MonitorFromPointPtr)(POINT, DWORD);
@@ -1810,7 +1809,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wchar_t *wpFileName;
         int i=0;
 
-        bMainOnStart=TRUE;
+        nMainOnStart=MOS_ONSTART;
 
         //Call plugins on start
         CallPluginsOnStart(&hPluginsStack);
@@ -1909,6 +1908,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nms.dwShow=&dwCmdShow;
         nms.bProcess=TRUE;
         SendMessage(hMainWnd, AKDN_MAIN_ONSTART_PRESHOW, 0, (LPARAM)&nms);
+        nMainOnStart=MOS_PRESHOW;
+
         if (nms.bProcess)
         {
           if (!(mc.dwStyle & WS_VISIBLE))
@@ -1947,6 +1948,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           UpdateWindow(hMainWnd);
         }
         SendMessage(hMainWnd, AKDN_MAIN_ONSTART_SHOW, 0, 0);
+        nMainOnStart=MOS_SHOW;
 
         //Parse commmand line on show
         if (wpCmdLineDo)
@@ -1969,7 +1971,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         #endif
 
         SendMessage(hMainWnd, AKDN_MAIN_ONSTART_FINISH, 0, 0);
-        bMainOnStart=FALSE;
+        nMainOnStart=MOS_NONE;
         bMainCheckIdle=TRUE;
         return 0;
       }
@@ -2128,12 +2130,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Text retrieval and modification
       case AKD_DETECTCASE:
       {
-        HWND hWnd=(HWND)wParam;
+        HWND hWndEdit=(HWND)wParam;
 
-        if (!hWnd)
-          hWnd=lpFrameCurrent->ei.hWndEdit;
+        if (!hWndEdit)
+          hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
-        return DetectCase(hWnd, (AECHARRANGE *)lParam);
+        return DetectCase(hWndEdit, (AECHARRANGE *)lParam);
       }
       case AKD_CONVERTCASE:
       {
@@ -2246,27 +2248,27 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       case AKD_GETTEXTLENGTH:
       {
-        HWND hWnd=(HWND)wParam;
+        HWND hWndEdit=(HWND)wParam;
 
-        if (!hWnd)
-          hWnd=lpFrameCurrent->ei.hWndEdit;
+        if (!hWndEdit)
+          hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
-        return GetTextLength(hWnd);
+        return GetTextLength(hWndEdit);
       }
       case AKD_GETTEXTRANGE:
       case AKD_GETTEXTRANGEA:
       case AKD_GETTEXTRANGEW:
       {
         GETTEXTRANGE *gtr=(GETTEXTRANGE *)lParam;
-        HWND hWnd=(HWND)wParam;
+        HWND hWndEdit=(HWND)wParam;
 
-        if (!hWnd)
-          hWnd=lpFrameCurrent->ei.hWndEdit;
+        if (!hWndEdit)
+          hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
         if (uMsg == AKD_GETTEXTRANGEA || (bOldWindows && uMsg == AKD_GETTEXTRANGE))
-          return GetRangeTextA(hWnd, gtr->cpMin, gtr->cpMax, (char **)&gtr->pText);
+          return GetRangeTextA(hWndEdit, gtr->cpMin, gtr->cpMax, (char **)&gtr->pText);
         else
-          return GetRangeTextW(hWnd, gtr->cpMin, gtr->cpMax, (wchar_t **)&gtr->pText);
+          return GetRangeTextW(hWndEdit, gtr->cpMin, gtr->cpMax, (wchar_t **)&gtr->pText);
       }
       case AKD_GETSELTEXTW:
       {
@@ -2274,14 +2276,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wchar_t *wpText=NULL;
         INT_PTR nTextLen;
         BOOL bColumnSel=FALSE;
-        HWND hWnd=(HWND)wParam;
+        HWND hWndEdit=(HWND)wParam;
         INT_PTR *nResultLen=(INT_PTR *)lParam;
 
-        if (!hWnd)
-          hWnd=lpFrameCurrent->ei.hWndEdit;
+        if (!hWndEdit)
+          hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
-        GetSel(hWnd, &cr, &bColumnSel, NULL);
-        nTextLen=ExGetRangeTextW(hWnd, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R, TRUE);
+        GetSel(hWndEdit, &cr, &bColumnSel, NULL);
+        nTextLen=ExGetRangeTextW(hWndEdit, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R, TRUE);
         if (nResultLen) *nResultLen=nTextLen;
         return (LRESULT)wpText;
       }
@@ -2293,42 +2295,42 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       case AKD_REPLACESELA:
       case AKD_REPLACESELW:
       {
-        HWND hWnd=(HWND)wParam;
+        HWND hWndEdit=(HWND)wParam;
 
-        if (!hWnd)
-          hWnd=lpFrameCurrent->ei.hWndEdit;
+        if (!hWndEdit)
+          hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
         if (uMsg == AKD_REPLACESELA || (bOldWindows && uMsg == AKD_REPLACESEL))
-          ReplaceSelA(hWnd, (char *)lParam, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
+          ReplaceSelA(hWndEdit, (char *)lParam, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
         else
-          ReplaceSelW(hWnd, (wchar_t *)lParam, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
+          ReplaceSelW(hWndEdit, (wchar_t *)lParam, -1, AELB_ASINPUT, AEREPT_COLUMNASIS, NULL, NULL);
         return 0;
       }
       case AKD_PASTE:
       {
-        HWND hWnd=(HWND)wParam;
+        HWND hWndEdit=(HWND)wParam;
         DWORD dwFlags=(DWORD)(lParam % 100000);
         int nNewLine=(int)(lParam / 100000);
 
-        if (!hWnd)
-          hWnd=lpFrameCurrent->ei.hWndEdit;
+        if (!hWndEdit)
+          hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
         if (lParam & PASTE_CASE)
-          return PasteCase(hWnd, (DWORD)(lParam & PASTE_ANSI));
+          return PasteCase(hWndEdit, (DWORD)(lParam & PASTE_ANSI));
         if (lParam & PASTE_SINGLELINE)
-          return PasteInEditAsRichEdit(hWnd, 0);
-        return DoEditPaste(hWnd, dwFlags, nNewLine);
+          return PasteInEditAsRichEdit(hWndEdit, 0);
+        return DoEditPaste(hWndEdit, dwFlags, nNewLine);
       }
       case AKD_COPY:
       {
-        HWND hWnd=(HWND)wParam;
+        HWND hWndEdit=(HWND)wParam;
         DWORD dwFlags=(DWORD)(lParam % 100000);
         int nNewLine=(int)(lParam / 100000);
 
-        if (!hWnd)
-          hWnd=lpFrameCurrent->ei.hWndEdit;
+        if (!hWndEdit)
+          hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
-        return DoEditCopy(hWnd, dwFlags, nNewLine);
+        return DoEditCopy(hWndEdit, dwFlags, nNewLine);
       }
       case AKD_TEXTFIND:
       case AKD_TEXTFINDA:
@@ -2534,7 +2536,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           case MI_LANGIDMODULE:
             return (LRESULT)dwLangModule;
           case MI_ONSTART:
-            return bMainOnStart;
+            return nMainOnStart;
           case MI_ONFINISH:
             return nMainOnFinish;
           case MI_AKELEXEA:
@@ -3009,19 +3011,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           case MIS_FILETYPESASSOCIATED:
           {
             if (lParam & FTA_OPEN)
-              AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_ASSOCIATE);
+              AssociateFileTypesW(moCur.wszFileTypesOpen, FTA_OPEN|FTA_ASSOCIATE);
             else
-              AssociateFileTypesW(hInstance, moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
+              AssociateFileTypesW(moCur.wszFileTypesOpen, FTA_OPEN|FTA_DEASSOCIATE);
 
             if (lParam & FTA_EDIT)
-              AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_ASSOCIATE);
+              AssociateFileTypesW(moCur.wszFileTypesEdit, FTA_EDIT|FTA_ASSOCIATE);
             else
-              AssociateFileTypesW(hInstance, moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
+              AssociateFileTypesW(moCur.wszFileTypesEdit, FTA_EDIT|FTA_DEASSOCIATE);
 
             if (lParam & FTA_PRINT)
-              AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_ASSOCIATE);
+              AssociateFileTypesW(moCur.wszFileTypesPrint, FTA_PRINT|FTA_ASSOCIATE);
             else
-              AssociateFileTypesW(hInstance, moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
+              AssociateFileTypesW(moCur.wszFileTypesPrint, FTA_PRINT|FTA_DEASSOCIATE);
 
             return SetOption(lParam, &moCur.dwFileTypesAssociated, sizeof(DWORD), INI_DWORD);
           }
@@ -3566,18 +3568,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       case AKD_SETFONTA:
       case AKD_SETFONTW:
       {
-        HWND hWnd=(HWND)wParam;
+        HWND hWndEdit=(HWND)wParam;
         FRAMEDATA *lpFrame;
         LOGFONTW lfW;
+
+        if (!hWndEdit)
+          hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
         if (uMsg == AKD_SETFONTA || (bOldWindows && uMsg == AKD_SETFONT))
           LogFontAtoW((LOGFONTA *)lParam, &lfW);
         else
           xmemcpy(&lfW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
 
-        if (SetChosenFont(hWnd, &lfW))
+        if (SetChosenFont(hWndEdit, &lfW))
         {
-          if (lpFrame=GetFrameDataFromEditWindow(hWnd))
+          if (lpFrame=GetFrameDataFromEditWindow(hWndEdit))
           {
             xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
             UpdateMappedPrintWidth(lpFrame);
@@ -4527,27 +4532,27 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //AkelPad 4.x only messages
       case AKD_EXGETTEXTLENGTH:
       {
-        HWND hWnd=(HWND)wParam;
+        HWND hWndEdit=(HWND)wParam;
 
-        if (!hWnd)
-          hWnd=lpFrameCurrent->ei.hWndEdit;
+        if (!hWndEdit)
+          hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
-        return -IndexSubtract(hWnd, NULL, NULL, (int)lParam, FALSE);
+        return -IndexSubtract(hWndEdit, NULL, NULL, (int)lParam, FALSE);
       }
       case AKD_EXGETTEXTRANGE:
       case AKD_EXGETTEXTRANGEA:
       case AKD_EXGETTEXTRANGEW:
       {
         EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
-        HWND hWnd=(HWND)wParam;
+        HWND hWndEdit=(HWND)wParam;
 
-        if (!hWnd)
-          hWnd=lpFrameCurrent->ei.hWndEdit;
+        if (!hWndEdit)
+          hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
         if (uMsg == AKD_EXGETTEXTRANGEA || (bOldWindows && uMsg == AKD_EXGETTEXTRANGE))
-          return ExGetRangeTextA(hWnd, tr->nCodePage, tr->lpDefaultChar, tr->lpUsedDefChar, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
+          return ExGetRangeTextA(hWndEdit, tr->nCodePage, tr->lpDefaultChar, tr->lpUsedDefChar, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
         else
-          return ExGetRangeTextW(hWnd, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
+          return ExGetRangeTextW(hWndEdit, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
       }
     }
   }
@@ -6458,15 +6463,12 @@ LRESULT CALLBACK CommonFrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
 LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  FRAMEDATA *lpFrame;
-
   if (uMsg == WM_CREATE)
   {
+    FRAMEDATA *lpFrame=lpFrameCurrent;
     //CREATESTRUCT *cs=(CREATESTRUCT *)lParam;
     //MDICREATESTRUCT *mcs=(MDICREATESTRUCT *)cs->lpCreateParams;
     //lpFrame=(FRAMEDATA *)mcs->lParam
-
-    lpFrame=lpFrameCurrent;
 
     if (lpFrame=CreateFrameData(hWnd, lpFrame))
     {
@@ -6575,6 +6577,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_WINDOW_FRAMECLONE,
                      IDM_WINDOW_COPYPATH,
                      0};
+    FRAMEDATA *lpFrame;
     int i;
 
     if (!lParam)
@@ -6683,6 +6686,8 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_SETFOCUS)
   {
+    FRAMEDATA *lpFrame;
+
     //Change current frame handle in WM_SETFOCUS because WM_MDIACTIVATE sended later.
     if (lpFrame=(FRAMEDATA *)GetWindowLongPtrWide(hWnd, GWLP_USERDATA))
       lpFrameCurrent=lpFrame;
