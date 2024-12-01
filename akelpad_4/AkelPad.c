@@ -515,8 +515,8 @@ AEPRINT prn;
 PRINTINFO prninfo={0};
 
 //Zooming factor
-POINT ptUnitCur={0};
-POINT ptUnit96={0};
+SCALE scMain={0};
+SCALE scMsg={0};
 
 //Edit state
 AECHARRANGE crCurSel={0};
@@ -548,6 +548,7 @@ HWND hMdiClient=NULL;
 BOOL bMdiMaximize=-1;
 BOOL bMdiNoWindows=FALSE;
 HWND hTab=NULL;
+int nTabHeight=TAB_HEIGHT;
 UINT_PTR dwTabOpenTimer=0;
 int nTabOpenItem=-1;
 int nDocumentsCount=0;
@@ -1654,6 +1655,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hMenu=GetSubMenu(hMainMenu, MENU_VIEW_POSITION);
     hMenuLanguage=GetSubMenu(hMenu, MENU_VIEW_LANGUAGE_4X);
 
+    GetDialogUnits(NULL, NULL, &scMain);
+
     if (!nMDI)
     {
       DeleteMenu(hMainMenu, IDM_FILE_SAVEALL, MF_BYCOMMAND);
@@ -1719,12 +1722,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Tab Control
+      nTabHeight=ScaleY(&scMain, nTabHeight);
       hTab=CreateWindowExWide(0,
                               L"SysTabControl32",
                               NULL,
                               WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|TCS_SINGLELINE|TCS_FOCUSNEVER|TCS_HOTTRACK|
                                 ((moCur.dwTabOptionsMDI & TAB_TYPE_STANDARD)?TCS_TABS:(TCS_BUTTONS|TCS_FLATBUTTONS)),
-                              rcRect.left, rcRect.top, rcRect.right, TAB_HEIGHT,
+                              rcRect.left, rcRect.top, rcRect.right, nTabHeight,
                               hWnd,
                               (HMENU)(UINT_PTR)ID_TAB,
                               hInstance,

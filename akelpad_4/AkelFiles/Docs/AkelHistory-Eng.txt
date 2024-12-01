@@ -1,4 +1,9 @@
 
+AkelPad 4.10.0 ()
+-----------------
+Changed: statusbar parts width and tabs height now take into account Windows scale percent.
+
+
 AkelPad 4.9.9 (Oct 16, 2024)
 ----------------------------
 Changed: during codepage recognition character "\xF1" now refers to 1251.
