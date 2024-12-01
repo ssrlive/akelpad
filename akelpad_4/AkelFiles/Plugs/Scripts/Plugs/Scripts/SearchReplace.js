@@ -1,5 +1,5 @@
 // http://akelpad.sourceforge.net/en/plugins.php#Scripts
-// Version: 2.1
+// Version: 2.2
 // Author: Shengalts Aleksander aka Instructor
 //
 //
@@ -981,7 +981,7 @@ function RdsFree(lpRds)
 
   if (lpRds)
   {
-    for (lpItem=lpRds; lpWnd=AkelPad.MemRead(lpItem, _PtrAdd(lpItem, 0) /*offsetof(RESIZEDIALOG, lpWnd)*/); lpItem=_PtrAdd(lpItem, _X64?16:12) /*sizeof(RESIZEDIALOG)*/)
+    for (lpItem=lpRds; lpWnd=AkelPad.MemRead(_PtrAdd(lpItem, 0) /*offsetof(RESIZEDIALOG, lpWnd)*/, 2 /*DT_QWORD*/); lpItem=_PtrAdd(lpItem, _X64?16:12) /*sizeof(RESIZEDIALOG)*/)
     {
       AkelPad.MemFree(lpWnd);
     }
