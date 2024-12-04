@@ -287,8 +287,8 @@ extern AEPRINT prn;
 extern PRINTINFO prninfo;
 
 //Zooming factor
-extern POINT ptUnitCur;
-extern POINT ptUnit96;
+extern SCALE scMain;
+extern SCALE scMsg;
 
 //Edit state
 extern AECHARRANGE crCurSel;
@@ -320,6 +320,7 @@ extern HWND hMdiClient;
 extern BOOL bMdiMaximize;
 extern BOOL bMdiNoWindows;
 extern HWND hTab;
+extern int nTabHeight;
 extern UINT_PTR dwTabOpenTimer;
 extern int nTabOpenItem;
 extern int nDocumentsCount;
@@ -3074,17 +3075,17 @@ void DoWindowTabType(DWORD dwNewType, BOOL bInit)
     if (moCur.dwTabOptionsMDI & TAB_TYPE_STANDARD)
     {
       SetWindowLongPtrWide(hTab, GWL_STYLE, (dwCurStyle | TCS_TABS) & ~TCS_BUTTONS & ~TCS_FLATBUTTONS);
-      SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT - 4));
+      SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, nTabHeight - 4));
     }
     else if (moCur.dwTabOptionsMDI & TAB_TYPE_BUTTONS)
     {
       SetWindowLongPtrWide(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS) & ~TCS_TABS & ~TCS_FLATBUTTONS);
-      SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
+      SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, nTabHeight));
     }
     else if (moCur.dwTabOptionsMDI & TAB_TYPE_FLATBUTTONS)
     {
       SetWindowLongPtrWide(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS | TCS_FLATBUTTONS) & ~TCS_TABS);
-      SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
+      SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, nTabHeight));
     }
   }
 }
@@ -6093,9 +6094,8 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
     hWndPrinter=GetDlgItem(hDlg, IDC_PSD_PRINTER_BUTTON);
 
-    //Get scale factor for ScaleX and ScaleY
-    GetDialogUnits(NULL, hGuiFont, &ptUnitCur, &ptUnit96);
-    nExtend=ScaleY(155);
+    //Use scale factor
+    nExtend=ScaleY(&scMain, 155);
 
     GetWindowRect(hDlg, &rcDlg);
     rcDlg.right-=rcDlg.left;
@@ -6127,7 +6127,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|BS_GROUPBOX,
-                         ScaleX(12), rcControl.top - ScaleY(6), ScaleX(96), ScaleY(70),
+                         ScaleX(&scMain, 12), rcControl.top - ScaleY(&scMain, 6), ScaleX(&scMain, 96), ScaleY(&scMain, 70),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_FONT_GROUP,
                          hInstance,
@@ -6137,7 +6137,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
-                         ScaleX(24), rcControl.top + ScaleY(26), ScaleX(16), ScaleY(16),
+                         ScaleX(&scMain, 24), rcControl.top + ScaleY(&scMain, 26), ScaleX(&scMain, 16), ScaleY(&scMain, 16),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_FONT_CHECK,
                          hInstance,
@@ -6147,7 +6147,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP,
-                         ScaleX(46), rcControl.top + ScaleY(22), ScaleX(46), ScaleY(23),
+                         ScaleX(&scMain, 46), rcControl.top + ScaleY(&scMain, 22), ScaleX(&scMain, 46), ScaleY(&scMain, 23),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_FONT_BUTTON,
                          hInstance,
@@ -6157,7 +6157,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|BS_GROUPBOX,
-                         ScaleX(120), rcControl.top - ScaleY(6), ScaleX(228), ScaleY(70),
+                         ScaleX(&scMain, 120), rcControl.top - ScaleY(&scMain, 6), ScaleX(&scMain, 228), ScaleY(&scMain, 70),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_COLOR_GROUP,
                          hInstance,
@@ -6167,7 +6167,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
-                         ScaleX(136), rcControl.top + ScaleY(16), ScaleX(200), ScaleY(16),
+                         ScaleX(&scMain, 136), rcControl.top + ScaleY(&scMain, 16), ScaleX(&scMain, 200), ScaleY(&scMain, 16),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_COLOR_TEXT_CHECK,
                          hInstance,
@@ -6177,7 +6177,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
-                         ScaleX(136), rcControl.top + ScaleY(36), ScaleX(200), ScaleY(16),
+                         ScaleX(&scMain, 136), rcControl.top + ScaleY(&scMain, 36), ScaleX(&scMain, 200), ScaleY(&scMain, 16),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_COLOR_BACKGROUND_CHECK,
                          hInstance,
@@ -6187,7 +6187,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|BS_GROUPBOX,
-                         ScaleX(12), rcControl.top + ScaleY(71), ScaleX(336), ScaleY(70),
+                         ScaleX(&scMain, 12), rcControl.top + ScaleY(&scMain, 71), ScaleX(&scMain, 336), ScaleY(&scMain, 70),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_GROUP,
                          hInstance,
@@ -6197,7 +6197,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX|BS_RIGHTBUTTON,
-                         ScaleX(18), rcControl.top + ScaleY(93), ScaleX(76), ScaleY(16),
+                         ScaleX(&scMain, 18), rcControl.top + ScaleY(&scMain, 93), ScaleX(&scMain, 76), ScaleY(&scMain, 16),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_HEADER_CHECK,
                          hInstance,
@@ -6207,7 +6207,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"EDIT",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL,
-                         ScaleX(102), rcControl.top + ScaleY(91), ScaleX(216), ScaleY(18),
+                         ScaleX(&scMain, 102), rcControl.top + ScaleY(&scMain, 91), ScaleX(&scMain, 216), ScaleY(&scMain, 18),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_HEADER_EDIT,
                          hInstance,
@@ -6217,7 +6217,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_OWNERDRAW,
-                         ScaleX(320), rcControl.top + ScaleY(91), ScaleX(18), ScaleY(18),
+                         ScaleX(&scMain, 320), rcControl.top + ScaleY(&scMain, 91), ScaleX(&scMain, 18), ScaleY(&scMain, 18),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_HEADER_HELP,
                          hInstance,
@@ -6227,7 +6227,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX|BS_RIGHTBUTTON,
-                         ScaleX(18), rcControl.top + ScaleY(113), ScaleX(76), ScaleY(16),
+                         ScaleX(&scMain, 18), rcControl.top + ScaleY(&scMain, 113), ScaleX(&scMain, 76), ScaleY(&scMain, 16),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_FOOTER_CHECK,
                          hInstance,
@@ -6237,7 +6237,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"EDIT",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL,
-                         ScaleX(102), rcControl.top + ScaleY(111), ScaleX(216), ScaleY(18),
+                         ScaleX(&scMain, 102), rcControl.top + ScaleY(&scMain, 111), ScaleX(&scMain, 216), ScaleY(&scMain, 18),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_FOOTER_EDIT,
                          hInstance,
@@ -6247,7 +6247,7 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_OWNERDRAW,
-                         ScaleX(320), rcControl.top + ScaleY(111), ScaleX(18), ScaleY(18),
+                         ScaleX(&scMain, 320), rcControl.top + ScaleY(&scMain, 111), ScaleX(&scMain, 18), ScaleY(&scMain, 18),
                          hDlg,
                          (HMENU)(UINT_PTR)IDC_PSD_HEADLINE_FOOTER_HELP,
                          hInstance,
@@ -7009,10 +7009,9 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     dwStyle=(DWORD)GetWindowLongPtrWide(hWndZoomEdit, GWL_STYLE);
     SetWindowLongPtrWide(hWndZoomEdit, GWL_STYLE, dwStyle|ES_NUMBER);
 
-    //Get scale factor for ScaleX and ScaleY
-    GetDialogUnits(NULL, NULL, &ptUnitCur, &ptUnit96);
-    rcPreviewWindow.left=ScaleX(10);
-    rcPreviewWindow.top=ScaleY(50);
+    //Use scale factor
+    rcPreviewWindow.left=ScaleX(&scMain, 10);
+    rcPreviewWindow.top=ScaleY(&scMain, 50);
 
     //Positioning dialog
     if (rcPreviewDialog.right && rcPreviewDialog.bottom)
@@ -17384,12 +17383,13 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
         ++nButtonsCount;
       }
 
-      //Get scale factor for ScaleX and ScaleY
-      GetDialogUnits(hDC, hFont, &ptUnitCur, &ptUnit96);
-      nButtonWidth=max(nButtonWidth, ScaleX(75));
-      nButtonHeight=ScaleY(23);
-      nButtonEdge=ScaleX(6);
-      nButtonOffset=ScaleX(16);
+      //Use scale factor
+      if (!scMsg.ptUnitCur.x)
+        GetDialogUnits(hDC, hFont, &scMsg);
+      nButtonWidth=max(nButtonWidth, ScaleX(&scMsg, 75));
+      nButtonHeight=ScaleY(&scMsg, 23);
+      nButtonEdge=ScaleX(&scMsg, 6);
+      nButtonOffset=ScaleX(&scMsg, 16);
 
       //MessageBox title
       SetWindowTextWide(hDlg, lpDialog->wpCaption);
@@ -17416,7 +17416,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       if (hIcon)
       {
-        hWndIcon=CreateWindowExWide(0, L"STATIC", NULL, WS_CHILD|WS_VISIBLE|SS_ICON|SS_REALSIZEIMAGE, ScaleX(11), ScaleY(11), 32, 32, hDlg, (HMENU)(UINT_PTR)-1, hInstance, NULL);
+        hWndIcon=CreateWindowExWide(0, L"STATIC", NULL, WS_CHILD|WS_VISIBLE|SS_ICON|SS_REALSIZEIMAGE, ScaleX(&scMsg, 11), ScaleY(&scMsg, 11), 32, 32, hDlg, (HMENU)(UINT_PTR)-1, hInstance, NULL);
         SendMessage(hWndIcon, STM_SETICON, (WPARAM)hIcon, 0);
       }
 
@@ -17425,8 +17425,8 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       nButtonsWidth=(nButtonsWidth / 2) * 2;
 
       //MessageBox text
-      rcTextOut.left=hIcon?ScaleY(60):nButtonOffset;
-      rcTextOut.right=max(nButtonsWidth + nButtonOffset * 2, ScaleX(GetSystemMetrics(SM_CXSCREEN) / 6 * 4)) - nButtonOffset;
+      rcTextOut.left=hIcon?ScaleY(&scMsg, 60):nButtonOffset;
+      rcTextOut.right=max(nButtonsWidth + nButtonOffset * 2, ScaleX(&scMsg, GetSystemMetrics(SM_CXSCREEN) / 6 * 4)) - nButtonOffset;
       rcTextOut.top=0;
       rcTextOut.bottom=0;
 
@@ -17438,9 +17438,9 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
       else DrawTextW(hDC, lpDialog->wpText, -1, &rcTextOut, DT_CALCRECT|DT_WORDBREAK|DT_NOPREFIX|DT_EDITCONTROL);
 
       if (hIcon)
-        rcTextOut.top=max(ScaleY(11 + 16) - RectH(&rcTextOut) / 2, ScaleY(11));
+        rcTextOut.top=max(ScaleY(&scMsg, 11 + 16) - RectH(&rcTextOut) / 2, ScaleY(&scMsg, 11));
       else
-        rcTextOut.top=ScaleY(11);
+        rcTextOut.top=ScaleY(&scMsg, 11);
       rcTextOut.bottom+=rcTextOut.top;
 
       ReleaseDC(hDlg, hDC);
@@ -17454,11 +17454,11 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
 
     //Get button client Y position
-    nButtonY=rcTextOut.bottom + ScaleY(17);
+    nButtonY=rcTextOut.bottom + ScaleY(&scMsg, 17);
     if (hIcon)
     {
-      if (ScaleY(11 + 32) > rcTextOut.bottom)
-        nButtonY=ScaleY(60);
+      if (ScaleY(&scMsg, 11 + 32) > rcTextOut.bottom)
+        nButtonY=ScaleY(&scMsg, 60);
     }
 
     //MessageBox position
@@ -17530,7 +17530,7 @@ BOOL CALLBACK MessageBoxDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
   return FALSE;
 }
 
-BOOL GetDialogUnits(HDC hDC, HFONT hFont, POINT *lpUnitCur, POINT *lpUnit96)
+BOOL GetDialogUnits(HDC hDC, HFONT hFont, SCALE *sc)
 {
   TEXTMETRICA tmGui;
   HFONT hFontOld;
@@ -17554,12 +17554,12 @@ BOOL GetDialogUnits(HDC hDC, HFONT hFont, POINT *lpUnitCur, POINT *lpUnit96)
     {
       //Current dialog base unit
       GetTextExtentPoint32A(hDC, pStr, nStrLen, &sizeWidth);
-      lpUnitCur->x=(sizeWidth.cx / 26 + 1) / 2;
-      lpUnitCur->y=tmGui.tmHeight;
+      sc->ptUnitCur.x=(sizeWidth.cx / 26 + 1) / 2;
+      sc->ptUnitCur.y=tmGui.tmHeight;
 
       //Normal unit (without screen scale)
-      lpUnit96->x=MulDiv(lpUnitCur->x, 96, GetDeviceCaps(hDC, LOGPIXELSX));
-      lpUnit96->y=MulDiv(lpUnitCur->y, 96, GetDeviceCaps(hDC, LOGPIXELSY));
+      sc->ptUnit96.x=MulDiv(sc->ptUnitCur.x, 96, GetDeviceCaps(hDC, LOGPIXELSX));
+      sc->ptUnit96.y=MulDiv(sc->ptUnitCur.y, 96, GetDeviceCaps(hDC, LOGPIXELSY));
 
       bResult=TRUE;
     }
@@ -17569,17 +17569,17 @@ BOOL GetDialogUnits(HDC hDC, HFONT hFont, POINT *lpUnitCur, POINT *lpUnit96)
   return bResult;
 }
 
-int ScaleX(int x)
+int ScaleX(SCALE *sc, int x)
 {
-  if (ptUnitCur.x)
-    x=MulDiv(x, ptUnitCur.x, ptUnit96.x);
+  if (sc->ptUnitCur.x)
+    x=MulDiv(x, sc->ptUnitCur.x, sc->ptUnit96.x);
   return x;
 }
 
-int ScaleY(int y)
+int ScaleY(SCALE *sc, int y)
 {
-  if (ptUnitCur.y)
-    y=MulDiv(y, ptUnitCur.y, ptUnit96.y);
+  if (sc->ptUnitCur.y)
+    y=MulDiv(y, sc->ptUnitCur.y, sc->ptUnit96.y);
   return y;
 }
 
@@ -19083,10 +19083,10 @@ int* SetStatusParts(STACKSTATUSPART *lpStatusStack)
 
   if (lpSBParts=(int *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, nStatusParts * sizeof(int)))
   {
-    lpSBParts[SBP_POSITION]=110;
-    lpSBParts[SBP_MODIFY]=220;
-    lpSBParts[SBP_INSERT]=250;
-    lpSBParts[SBP_NEWLINE]=280;
+    lpSBParts[SBP_POSITION]=ScaleX(&scMain, 110);
+    lpSBParts[SBP_MODIFY]=ScaleX(&scMain, 220);
+    lpSBParts[SBP_INSERT]=ScaleX(&scMain, 250);
+    lpSBParts[SBP_NEWLINE]=ScaleX(&scMain, 280);
     lpSBParts[SBP_CODEPAGE]=-1;
 
     //Set user parts
@@ -19096,7 +19096,7 @@ int* SetStatusParts(STACKSTATUSPART *lpStatusStack)
       int nPartIndex=SBP_USER;
       int nPartSize;
 
-      lpSBParts[SBP_CODEPAGE]=560;
+      lpSBParts[SBP_CODEPAGE]=ScaleX(&scMain, 450);
       nPartSize=lpSBParts[SBP_CODEPAGE];
 
       for (sp=lpStatusStack->first; sp; sp=sp->next)
@@ -22754,8 +22754,8 @@ HWND NextClone(BOOL bPrevious)
 void UpdateSize()
 {
   HDWP hDwp;
-  int nTabHeight;
-  int nEditHeight;
+  int nTabHt;
+  int nEditHt;
   BOOL bStatusBar=FALSE;
   static BOOL bSizing;
 
@@ -22779,25 +22779,25 @@ void UpdateSize()
 
       //Edits
       if (!nMDI || (moCur.dwTabOptionsMDI & TAB_VIEW_NONE) || !IsWindowVisible(hTab))
-        nTabHeight=0;
+        nTabHt=0;
       else
-        nTabHeight=TAB_HEIGHT;
-      nEditHeight=nsSize.rcCurrent.bottom - nTabHeight;
+        nTabHt=nTabHeight;
+      nEditHt=nsSize.rcCurrent.bottom - nTabHt;
 
       if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
       {
         fdDefault.rcEditWindow.left=nsSize.rcCurrent.left;
-        fdDefault.rcEditWindow.top=nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0);
+        fdDefault.rcEditWindow.top=nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHt:0);
         fdDefault.rcEditWindow.right=nsSize.rcCurrent.right;
-        fdDefault.rcEditWindow.bottom=nEditHeight;
+        fdDefault.rcEditWindow.bottom=nEditHt;
         ResizeEditWindow(lpFrameCurrent, 0);
       }
       if (nMDI)
       {
-        if (nTabHeight && ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP) || (moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)))
-          hDwp=DeferWindowPos(hDwp, hTab, 0, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nEditHeight:0), nsSize.rcCurrent.right, nTabHeight, SWP_NOZORDER|SWP_NOACTIVATE);
+        if (nTabHt && ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP) || (moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)))
+          hDwp=DeferWindowPos(hDwp, hTab, 0, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nEditHt:0), nsSize.rcCurrent.right, nTabHt, SWP_NOZORDER|SWP_NOACTIVATE);
         if (nMDI == WMD_MDI)
-          hDwp=DeferWindowPos(hDwp, hMdiClient, 0, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0), nsSize.rcCurrent.right, nEditHeight, SWP_NOZORDER|SWP_NOACTIVATE);
+          hDwp=DeferWindowPos(hDwp, hMdiClient, 0, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHt:0), nsSize.rcCurrent.right, nEditHt, SWP_NOZORDER|SWP_NOACTIVATE);
       }
       if (bStatusBar)
       {
