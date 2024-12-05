@@ -404,7 +404,7 @@ void StackFreeSysParams(SYSPARAMSTACK *hStack)
 }
 
 #ifndef _WIN64
-int __declspec(naked) AsmCallSysFunc(SYSPARAMSTACK *hCurStack, SYSPARAMSTACK *hSaveStack, FARPROC lpProcedure)
+INT_PTR __declspec(naked) AsmCallSysFunc(SYSPARAMSTACK *hCurStack, SYSPARAMSTACK *hSaveStack, FARPROC lpProcedure)
 {
   SYSPARAMITEM *lpSysParam;
   DWORD dwValue;

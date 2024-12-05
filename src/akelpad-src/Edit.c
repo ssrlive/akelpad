@@ -19106,7 +19106,7 @@ int* SetStatusParts(STACKSTATUSPART *lpStatusStack)
           lpSBParts[nPartIndex++]=-1;
           break;
         }
-        nPartSize+=sp->nPartSize;
+        nPartSize+=ScaleX(&scMain, sp->nPartSize);
         lpSBParts[nPartIndex++]=nPartSize;
       }
     }

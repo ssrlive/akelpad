@@ -69,7 +69,7 @@ HHOOK hHookMessageBox;
 HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine)
 {
   SCRIPTTHREAD *st=(SCRIPTTHREAD *)lpScriptThread;
-  HRESULT nCoInit;
+  HRESULT nCoInit=E_FAIL;
   HRESULT nResult=E_FAIL;
   DWORD dwDebugApplicationCookie=0;
   MYDWORD_PTR dwDebugSourceContext=0;
@@ -429,7 +429,7 @@ HRESULT STDMETHODCALLTYPE OnScriptError(IActiveScriptSite *This, IActiveScriptEr
           if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei))
           {
             CHARRANGE64 cr;
-            int nLockScroll;
+            int nLockScroll=0;
 
             if (bAkelEdit)
             {

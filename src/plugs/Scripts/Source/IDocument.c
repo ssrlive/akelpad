@@ -516,7 +516,7 @@ HRESULT STDMETHODCALLTYPE Document_SendMessage(IDocument *This, VARIANT vtWnd, U
   VARIANT *pvtLParam=&vtLParam;
   WPARAM wParam;
   LPARAM lParam;
-  LRESULT lResult;
+  LRESULT lResult=0;
 
   if (lpScriptThread->bLockSendMessage)
   {

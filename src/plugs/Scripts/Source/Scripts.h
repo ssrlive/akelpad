@@ -224,7 +224,7 @@ typedef struct {
 typedef struct {
   const wchar_t *wpKey;
   INT_PTR nKeyLen;
-  wchar_t **wppValue;
+  const wchar_t **wppValue;
   INT_PTR *lpnValueLen;
 } CONTENTKEY;
 

@@ -35,20 +35,34 @@ AsmCallSysFunc proc
   mov hSaveStack, rdx  ; SYSPARAMSTACK *hSaveStack
   mov lpProcedure, r8  ; FARPROC lpProcedure
 
-  ;Prolog (LocalSize=hCurStack->nElements * sizeof QWORD * 2 + 32)
+  ;Prolog
   push rbp
   mov rbp, rsp
+
+  ;LocalSize=min(hCurStack->nElements * sizeof QWORD, 32)
   mov r10, hCurStack
   mov r10, (SYSPARAMSTACK ptr [r10]).nElements
-  ;rsp must be aligned to 16 (sizeof QWORD * 2)
-  imul r10, r10, 16
+  imul r10, r10, 8
   ;nElements can be 0, so reserve space for at least four parameters (sizeof QWORD * 4).
-  add r10, 32
+  cmp r10, 32
+  jge @over4
+  mov r10, 32
+  @over4:
+  ;Allocate LocalSize
   sub rsp, r10
-  ;Here rsp is aligned to 16, because:
-  ;rsp+0            will be first function parameter
-  ;rsp+LocalSize+0  saved rbp in prolog
-  ;rsp+LocalSize+8  AsmCallSysFunc return address
+  ;rsp must be aligned to 16
+  and rsp, -10
+  ;Stack structure:
+  ;rsp+0            "home area" for first function parameter
+  ;rsp+8            "home area" for second function parameter
+  ;rsp+16           "home area" for third function parameter
+  ;rsp+24           "home area" for fourth function parameter
+  ;rsp+32           fifth function parameter
+  ;rsp+40           sixth function parameter
+  ;rsp+x            last function parameter
+  ;--aligned space--
+  ;rbp-8            saved old rbp in prolog
+  ;rbp              AsmCallSysFunc return address
 
   ;Push parameters. Items in SYSPARAMSTACK arranged in reverse order.
   mov r10, hCurStack
@@ -82,6 +96,8 @@ AsmCallSysFunc proc
 
   ;Call system function
   call lpProcedure
+
+  ;return in rax
 
   ;Epilog
   mov  rsp, rbp
