@@ -51,8 +51,6 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;Explorer_EXPORTS"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				BufferSecurityCheck="false"
 				PrecompiledHeaderFile=".\Debug/Explorer.pch"
@@ -61,7 +59,7 @@
 				ProgramDataBaseFileName=".\Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -84,6 +82,7 @@
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/Explorer.pdb"
+				EntryPointSymbol="DllMain"
 				ImportLibrary=".\Debug/Explorer.lib"
 				TargetMachine="1"
 			/>
@@ -149,8 +148,6 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;Explorer_EXPORTS"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				BufferSecurityCheck="false"
 				PrecompiledHeaderFile=".\Debug/Explorer.pch"
@@ -182,6 +179,7 @@
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/Explorer.pdb"
+				EntryPointSymbol="DllMain"
 				ImportLibrary=".\Debug/Explorer.lib"
 				TargetMachine="17"
 			/>
