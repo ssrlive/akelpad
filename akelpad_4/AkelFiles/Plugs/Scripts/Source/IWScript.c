@@ -294,7 +294,7 @@ HRESULT STDMETHODCALLTYPE WScript_ConnectObject(IWScript *this, IDispatch *objCo
     }
   }
 
-  if (!(hr=objConnectTo->lpVtbl->QueryInterface(objConnectTo, &IID_IConnectionPointContainer, &objISink->objConnectionPointContainer)))
+  if (!(hr=objConnectTo->lpVtbl->QueryInterface(objConnectTo, &IID_IConnectionPointContainer, (void **)&objISink->objConnectionPointContainer)))
   {
     if (objISink->piidConnect)
     {

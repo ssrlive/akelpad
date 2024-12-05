@@ -282,10 +282,10 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
     else if (nAction == DLLA_SCRIPTS_HANDLEBYNAME ||
              nAction == DLLA_SCRIPTS_HANDLEBYTHREAD)
     {
-      SCRIPTTHREAD *lpScriptThread;
+      SCRIPTTHREAD *lpScriptThread=NULL;
       unsigned char *pScript=NULL;
       wchar_t *wpScript=NULL;
-      int nOperation;
+      int nOperation=0;
       INT_PTR *lpnResult=NULL;
 
       if (IsExtCallParamValid(pd->lParam, 2))
@@ -1150,7 +1150,7 @@ BOOL CALLBACK ColumnsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
         }
       }
-      else if ((int)((NMHDR *)lParam)->code == NM_CUSTOMDRAW)
+      else if (((NMHDR *)lParam)->code == (UINT)NM_CUSTOMDRAW)
       {
         LPNMLVCUSTOMDRAW lplvcd=(LPNMLVCUSTOMDRAW)lParam;
         LRESULT lResult;
@@ -1658,16 +1658,16 @@ void StackFillListItem(STACKLISTITEM *hStack, LISTCOLUMN *lpColumns)
   const wchar_t *wpExt;
   wchar_t *wpCount;
   wchar_t *wpMaxCount;
-  wchar_t *wpValue;
+  const wchar_t *wpValue;
   wchar_t *wpValueEnd;
   wchar_t *wpLineEnd;
   wchar_t *wszContentBuffer=NULL;
   wchar_t *wpContent=NULL;
   wchar_t *wpMaxContent;
-  static wchar_t *wpVersion;
-  static wchar_t *wpDescription;
-  static wchar_t *wpAuthor;
-  static wchar_t *wpSite;
+  static const wchar_t *wpVersion;
+  static const wchar_t *wpDescription;
+  static const wchar_t *wpAuthor;
+  static const wchar_t *wpSite;
   const wchar_t *wpComment;
   const wchar_t *wpStatus;
   INT_PTR nContentLen;
@@ -2157,7 +2157,7 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
     if (es->wpArguments)
     {
       SCRIPTARG *lpScriptArg;
-      wchar_t *wpArgument;
+      const wchar_t *wpArgument;
       wchar_t *wpCount;
       int nArgLen;
 

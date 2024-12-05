@@ -77,7 +77,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_UnregisterCallback(ISystemFunction *thi
 SYSPARAMITEM* StackInsertSysParam(SYSPARAMSTACK *hStack);
 void StackSaveSysParam(SYSPARAMSTACK *hFromStack, SYSPARAMSTACK *hToStack);
 void StackFreeSysParams(SYSPARAMSTACK *hStack);
-int AsmCallSysFunc(SYSPARAMSTACK *hCurStack, SYSPARAMSTACK *hSaveStack, FARPROC lpProcedure);
+INT_PTR AsmCallSysFunc(SYSPARAMSTACK *hCurStack, SYSPARAMSTACK *hSaveStack, FARPROC lpProcedure);
 LRESULT AsmCallback1Proc();
 LRESULT AsmCallback2Proc();
 LRESULT AsmCallback3Proc();
