@@ -2,7 +2,7 @@
   !define PRODUCT_NAME "AkelPad"
 !endif
 !ifndef PRODUCT_VERSION
-  !define PRODUCT_VERSION "4.9.8"
+  !define PRODUCT_VERSION "4.10.0"
 !endif
 !ifndef PRODUCT_BIT
   !define PRODUCT_BIT "32"
@@ -26,6 +26,10 @@ SubCaption 3 ' '
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 RequestExecutionLevel admin
 
+!searchparse ${NSIS_VERSION} v VER_MAJOR .
+!if ${VER_MAJOR} > 2
+  ManifestDPIAware True
+!endif
 
 ############  Functions  ############
 !include "LogicLib.nsh"
@@ -51,7 +55,9 @@ RequestExecutionLevel admin
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
 !define MUI_HEADERIMAGE_BITMAP "Graphics\HeaderInstall.bmp"
+!define MUI_HEADERIMAGE_BITMAP_NOSTRETCH
 !define MUI_HEADERIMAGE_UNBITMAP "Graphics\HeaderUninstall.bmp"
+!define MUI_HEADERIMAGE_UNBITMAP_NOSTRETCH
 !define MUI_WELCOMEFINISHPAGE_BITMAP "Graphics\WizardFinish.bmp"
 !define MUI_FINISHPAGE_RUN "$SETUPEXE"
 
@@ -134,8 +140,8 @@ LangString Help ${LANG_ENGLISH} 'Help'
 LangString Help ${LANG_RUSSIAN} 'Справка'
 LangString Delete ${LANG_ENGLISH} 'Uninstall'
 LangString Delete ${LANG_RUSSIAN} 'Удалить'
-LangString WelcomeInfoTitle ${LANG_ENGLISH} 'Welcome to the $(^Name) Setup Wizard'
-LangString WelcomeInfoTitle ${LANG_RUSSIAN} 'Вас приветствует мастер установки $(^Name)'
+LangString WelcomeInfoTitle ${LANG_ENGLISH} '$(^Name) Setup Wizard'
+LangString WelcomeInfoTitle ${LANG_RUSSIAN} 'Мастер установки $(^Name)'
 LangString WelcomeInfoText ${LANG_ENGLISH} 'Choose install type.'
 LangString WelcomeInfoText ${LANG_RUSSIAN} 'Выберите тип установки.'
 LangString TypeStandard ${LANG_ENGLISH} 'Standard install'
@@ -246,18 +252,21 @@ Function .onInit
   StrCpy $SHORTCUT 0
 
   ${GetOptions} $PARAMETERS "/TYPE=" $0
-  IfErrors +2
-  StrCpy $INSTTYPE $0
+  ${IfNot} ${Errors}
+    StrCpy $INSTTYPE $0
+  ${EndIf}
 
   ${If} $INSTDIR == ''
     ${GetOptions} $PARAMETERS "/DIR=" $0
-    IfErrors +2
-    StrCpy $INSTDIR $0
+    ${IfNot} ${Errors}
+      StrCpy $INSTDIR $0
+    ${EndIf}
   ${EndIf}
 
   ${GetOptions} $PARAMETERS "/SHORTCUT=" $0
-  IfErrors +2
-  StrCpy $SHORTCUT $0
+  ${IfNot} ${Errors}
+    StrCpy $SHORTCUT $0
+  ${EndIf}
 
   #Environment variables
   ReadEnvStr $COMSPEC COMSPEC
@@ -742,6 +751,19 @@ Section
     ExecWait '"$SETUPDIR\AkelPad.exe" /reassoc /quit'
 
     WriteRegStr HKLM "Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" "Debugger" `"$SETUPDIR\AkelPad.exe" /z`
+
+    #Windows 11
+    ReadRegDWORD $0 HKLM "Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" "UseFilter"
+    ${If} $0 == 1
+      WriteRegDWORD HKLM "Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" "UseFilter_AkelUndo" "$0"
+      WriteRegDWORD HKLM "Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" "UseFilter" "0"
+    ${EndIf}
+    ClearErrors
+    ReadRegStr $0 HKCR "Applications\notepad.exe" "NoOpenWith"
+    ${IfNot} ${Errors}
+      WriteRegStr HKCR "Applications\notepad.exe" "NoOpenWith_AkelUndo" ""
+      DeleteRegValue HKCR "Applications\notepad.exe" "NoOpenWith"
+    ${EndIf}
   ${EndIf}
 
   RegInfo:
@@ -754,48 +776,47 @@ Section
 
   ClearErrors
   ReadRegStr $0 HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule"
-  IfErrors 0 end
-  ${If} $SYSLANGUAGE == ${LANG_RUSSIAN}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Russian.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_UKRAINIAN}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Ukrainian.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_BELORUSSIAN}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Belorussian.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_GERMAN}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "German.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_SPANISH}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Spanish.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_FRENCH}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "French.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_JAPANESE}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Japanese.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_BRAZILIAN}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Brazilian.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_ITALIAN}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Italian.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_KOREAN}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Korean.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_CHINESE_TRADITIONAL}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Chinese (Traditional).dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_CHINESE_SIMPLIFIED}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Chinese (Simplified).dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_SLOVAK}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Slovak.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_ROMANIAN}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Romanian.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_DUTCH}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Dutch.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_FINNISH}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Finnish.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_POLISH}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Polish.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_CZECH}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Czech.dll"
-  ${ElseIf} $SYSLANGUAGE == ${LANG_HUNGARIAN}
-    WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Hungarian.dll"
+  ${If} ${Errors}
+    ${If} $SYSLANGUAGE == ${LANG_RUSSIAN}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Russian.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_UKRAINIAN}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Ukrainian.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_BELORUSSIAN}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Belorussian.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_GERMAN}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "German.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_SPANISH}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Spanish.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_FRENCH}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "French.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_JAPANESE}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Japanese.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_BRAZILIAN}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Brazilian.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_ITALIAN}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Italian.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_KOREAN}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Korean.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_CHINESE_TRADITIONAL}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Chinese (Traditional).dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_CHINESE_SIMPLIFIED}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Chinese (Simplified).dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_SLOVAK}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Slovak.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_ROMANIAN}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Romanian.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_DUTCH}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Dutch.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_FINNISH}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Finnish.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_POLISH}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Polish.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_CZECH}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Czech.dll"
+    ${ElseIf} $SYSLANGUAGE == ${LANG_HUNGARIAN}
+      WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Hungarian.dll"
+    ${EndIf}
   ${EndIf}
-
-  end:
 SectionEnd
 
 
@@ -1003,13 +1024,25 @@ Section un.install
   ${If} $0 == `"$SETUPDIR\AkelPad.exe" /z`
     DeleteRegValue HKLM "Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" "Debugger"
   ${EndIf}
+
+  #Windows 11
+  ClearErrors
+  ReadRegDWORD $0 HKLM "Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" "UseFilter_AkelUndo"
+  ${IfNot} ${Errors}
+    WriteRegDWORD HKLM "Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" "UseFilter" "$0"
+  ${EndIf}
+  ReadRegStr $0 HKCR "Applications\notepad.exe" "NoOpenWith_AkelUndo"
+  ${IfNot} ${Errors}
+    WriteRegStr HKCR "Applications\notepad.exe" "NoOpenWith" "$0"
+  ${EndIf}
+
   ExecWait '"$SETUPDIR\AkelPad.exe" /deassoc /quit'
 
   DeleteFiles:
   Delete "$SETUPDIR\AkelFiles\Plugs\Coder\cache"
 
   ;Generate file list and include it in script at compile-time
-  !execute 'unList\unList.exe /DATE=0 /INSTDIR="${PRODUCT_DIR}" /LOG=unList.txt /UNDIR_VAR=$SETUPDIR /MB=0'
+  !system 'unList\unList.exe /DATE=0 /INSTDIR="${PRODUCT_DIR}" /LOG=unList.txt /UNDIR_VAR=$SETUPDIR /MB=0'
   !include 'unList\unList.txt'
   !delfile 'unList\unList.txt'
   RMDir "$SETUPDIR"
