@@ -46,7 +46,7 @@ rc %RCFLAGS% /R /DRC_VERSIONBIT=%BIT% /Fo"Scripts.res" "Resources\Scripts.rc"
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 ML64 /c ISystemFunction64.asm
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
-cl %CLFLAGS% /DSCRIPTS_MAXHANDLE=0x7FFFFFFF Scripts.c IServer.c IWScript.c IWArguments.c IDocument.c IGlobal.c IScriptSettings.c ISystemFunction.c IConstants.c IActiveScriptSite.c Scripts.res Scripts.def /LD /link ISystemFunction64.obj kernel32.lib user32.lib gdi32.lib advapi32.lib oleaut32.lib ole32.lib shell32.lib uuid.lib %LINKFLAGS% /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain /OUT:"Scripts.dll"
+cl %CLFLAGS% Scripts.c IServer.c IWScript.c IWArguments.c IDocument.c IGlobal.c IScriptSettings.c ISystemFunction.c IConstants.c IActiveScriptSite.c Scripts.res Scripts.def /LD /link ISystemFunction64.obj kernel32.lib user32.lib gdi32.lib advapi32.lib oleaut32.lib ole32.lib shell32.lib uuid.lib %LINKFLAGS% /OPT:NOWIN98 /MACHINE:%MACHINE% /NODEFAULTLIB /ENTRY:DllMain /OUT:"Scripts.dll"
 if not %ERRORLEVEL% == 0 set EXITCODE=%ERRORLEVEL%
 
 ::### Clean up ###::
