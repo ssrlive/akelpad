@@ -1,13 +1,13 @@
 /*****************************************************************
- *              String functions header v5.0                     *
+ *              String functions header v6.2                     *
  *                                                               *
- * 2011 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions:                                                     *
  * WideCharLower, WideCharUpper, xmemcpy, xmemcmp, xmemset,      *
- * xarraysizeA, xarraysizeW, xstrlenA, xstrlenW,                 *
- * xstrcmpA, xstrcmpW, xstrcmpiA, xstrcmpiW,                     *
+ * xarrlenA, xarrlenW, xarrcpynA, xarrcpynW,                     *
+ * xstrlenA, xstrlenW, xstrcmpA, xstrcmpW, xstrcmpiA, xstrcmpiW, *
  * xstrcmpnA, xstrcmpnW, xstrcmpinA, xstrcmpinW,                 *
  * xstrcpyA, xstrcpyW, xstrcpynA, xstrcpynW,                     *
  * xstrstrA, xstrstrW, xstrrepA, xstrrepW                        *
@@ -15,7 +15,8 @@
  * xatoiA, xatoiW, xatoi64A, xatoi64W,                           *
  * xitoaA, xitoaW, xuitoaA, xuitoaW, xi64toaA, xi64toaW,         *
  * hex2decA, hex2decW, dec2hexA, dec2hexW,                       *
- * bin2hexA, bin2hexW, hex2binA, hex2binW, xprintfA, xprintfW    *
+ * bin2hexA, bin2hexW, hex2binA, hex2binW,                       *
+ * xnprintfA, xnprintfW, xprintfA, xprintfW                      *
  *                                                               *
  * UTF16toUTF8, UTF8toUTF16, UTF32toUTF16, UTF16toUTF32          *
  *****************************************************************/
@@ -28,8 +29,10 @@ wchar_t WideCharUpper(wchar_t c);
 void* xmemcpy(void *dest, const void *src, UINT_PTR count);
 int xmemcmp(const void *buf1, const void *buf2, UINT_PTR count);
 void* xmemset(void *dest, int c, UINT_PTR count);
-INT_PTR xarraysizeA(const char *pString, int *nElements);
-INT_PTR xarraysizeW(const wchar_t *wpString, int *nElements);
+INT_PTR xarrlenA(const char *pString, int *nElements);
+INT_PTR xarrlenW(const wchar_t *wpString, int *nElements);
+INT_PTR xarrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength);
+INT_PTR xarrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLength);
 INT_PTR xstrlenA(const char *pString);
 INT_PTR xstrlenW(const wchar_t *wpString);
 int xstrcmpA(const char *pString1, const char *pString2);
@@ -44,8 +47,8 @@ INT_PTR xstrcpyA(char *pString1, const char *pString2);
 INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2);
 INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength);
 INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLength);
-BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen, BOOL bSensitive, char **pStrBegin, char **pStrEnd);
-BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int nStrLen, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd);
+BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen, BOOL bSensitive, const char **pStrBegin, const char **pStrEnd);
+BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int nStrLen, BOOL bSensitive, const wchar_t **wpStrBegin, const wchar_t **wpStrEnd);
 int xstrrepA(const char *pText, INT_PTR nTextLen, const char *pIt, int nItLen, const char *pWith, int nWithLen, BOOL bSensitive, char *szResult, INT_PTR *nResultLen);
 int xstrrepW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, BOOL bSensitive, wchar_t *wszResult, INT_PTR *nResultLen);
 
@@ -59,15 +62,19 @@ int xuitoaA(UINT_PTR nNumber, char *szStr);
 int xuitoaW(UINT_PTR nNumber, wchar_t *wszStr);
 int xi64toaA(__int64 nNumber, char *szStr);
 int xi64toaW(__int64 nNumber, wchar_t *wszStr);
-INT_PTR hex2decA(const char *pStrHex);
-INT_PTR hex2decW(const wchar_t *wpStrHex);
+INT_PTR hex2decA(const char *pStr, INT_PTR nStrLen, const char **pNext);
+INT_PTR hex2decW(const wchar_t *wpStr, INT_PTR nStrLen, const wchar_t **wpNext);
 int dec2hexA(UINT_PTR nDec, char *szStrHex, unsigned int nWidth, BOOL bLowerCase);
 int dec2hexW(UINT_PTR nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bLowerCase);
 INT_PTR bin2hexA(const unsigned char *pData, INT_PTR nBytes, char *szStrHex, INT_PTR nStrHexMax, BOOL bLowerCase);
 INT_PTR bin2hexW(const unsigned char *pData, INT_PTR nBytes, wchar_t *wszStrHex, INT_PTR nStrHexMax, BOOL bLowerCase);
 INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax);
 INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax);
+INT_PTR xprintfCommonA(char *szOutput, const char *pFormat, va_list argList);
+INT_PTR xnprintfA(char *szOutput, UINT_PTR dwOutputMax, const char *pFormat, ...);
 INT_PTR xprintfA(char *szOutput, const char *pFormat, ...);
+INT_PTR xprintfCommonW(wchar_t *wszOutput, const wchar_t *wpFormat, va_list argList);
+INT_PTR xnprintfW(wchar_t *wszOutput, UINT_PTR dwOutputMax, const wchar_t *wpFormat, ...);
 INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...);
 
 UINT_PTR UTF16toUTF8(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned char *szTarget, UINT_PTR nTargetMax);
@@ -102,15 +109,33 @@ UINT_PTR UTF16toUTF32(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_P
 #undef WideCharLower
 wchar_t WideCharLower(wchar_t c)
 {
+  #ifdef WideCharLower_LINGUISTICCASING
+    static WORD wLangID;
+
+    if (!wLangID)
+      wLangID=PRIMARYLANGID(GetUserDefaultLangID());
+  #endif
+
+  //return (wchar_t)(UINT_PTR)CharLowerW((wchar_t *)(UINT_PTR)(WORD)c);
+
   if (c < 0x100)
   {
+    if (c == 0x00d7)
+      return c;
+
     if ((c >= 0x0041 && c <= 0x005a) ||
         (c >= 0x00c0 && c <= 0x00de))
+    {
+      #ifdef WideCharLower_LINGUISTICCASING
+        if (c == 0x0049)
+        {
+          if (wLangID == LANG_TURKISH ||
+              wLangID == LANG_AZERI)
+            return 0x0131;
+        }
+      #endif
       return (c + 0x20);
-
-    if (c == 0x00b5)
-      return 0x03bc;
-
+    }
     return c;
   }
   else if (c < 0x300)
@@ -119,23 +144,34 @@ wchar_t WideCharLower(wchar_t c)
         (c >= 0x0132 && c <= 0x0136) ||
         (c >= 0x014a && c <= 0x0176) ||
         (c >= 0x01de && c <= 0x01ee) ||
-        (c >= 0x01f8 && c <= 0x021e) ||
-        (c >= 0x0222 && c <= 0x0232))
+        (c >= 0x01fa && c <= 0x0217))
     {
       if (!(c & 0x01))
         return (c + 1);
       return c;
     }
 
+    #ifdef WideCharLower_LINGUISTICCASING
+      if (c == 0x0130)
+      {
+        if (wLangID == LANG_TURKISH ||
+            wLangID == LANG_AZERI)
+          return 0x0069;
+      }
+    #endif
+
+    if (c == 0x01dd || c == 0x01ef)
+      return c;
+
     if ((c >= 0x0139 && c <= 0x0147) ||
-        (c >= 0x01cd && c <= 0x91db))
+        (c >= 0x01cd && c <= 0x01db))
     {
       if (c & 0x01)
         return (c + 1);
       return c;
     }
 
-    if (c >= 0x178 && c <= 0x01f7)
+    if (c >= 0x0178 && c <= 0x01f7)
     {
       wchar_t k;
 
@@ -163,9 +199,6 @@ wchar_t WideCharLower(wchar_t c)
         case 0x01b5:
         case 0x01b8:
         case 0x01bc:
-        case 0x01c5:
-        case 0x01c8:
-        case 0x01cb:
         case 0x01cd:
         case 0x01cf:
         case 0x01d1:
@@ -174,12 +207,8 @@ wchar_t WideCharLower(wchar_t c)
         case 0x01d7:
         case 0x01d9:
         case 0x01db:
-        case 0x01f2:
         case 0x01f4:
           k=c + 1;
-          break;
-        case 0x017f:
-          k=0x0073;
           break;
         case 0x0181:
           k=0x0253;
@@ -223,9 +252,6 @@ wchar_t WideCharLower(wchar_t c)
         case 0x019f:
           k=0x0275;
           break;
-        case 0x01a6:
-          k=0x0280;
-          break;
         case 0x01a9:
           k=0x0283;
           break;
@@ -247,26 +273,18 @@ wchar_t WideCharLower(wchar_t c)
         case 0x01f1:
           k=c + 2;
           break;
-        case 0x01f6:
-          k=0x0195;
-          break;
-        case 0x01f7:
-          k=0x01bf;
-          break;
         default:
           k=0;
       }
       if (k != 0)
         return k;
     }
-    if (c == 0x0220)
-      return 0x019e;
   }
   else if (c < 0x0400)
   {
     if (c >= 0x0391 && c <= 0x03ab && c != 0x03a2)
       return (c + 0x20);
-    if (c >= 0x03d8 && c <= 0x03ee && !(c & 0x01))
+    if (c >= 0x03e2 && c <= 0x03ee && !(c & 0x01))
       return (c + 1);
     if (c >= 0x0386 && c <= 0x03f5)
     {
@@ -293,37 +311,7 @@ wchar_t WideCharLower(wchar_t c)
           k=0x03cd;
           break;
         case 0x038f:
-          k=0x038f;
-          break;
-        case 0x03c2:
-          k=0x03c3;
-          break;
-        case 0x03d0:
-          k=0x03b2;
-          break;
-        case 0x03d1:
-          k=0x03b8;
-          break;
-        case 0x03d5:
-          k=0x03c6;
-          break;
-        case 0x03d6:
-          k=0x03c0;
-          break;
-        case 0x03f0:
-          k=0x03ba;
-          break;
-        case 0x03f1:
-          k=0x03c1;
-          break;
-        case 0x03f2:
-          k=0x03c3;
-          break;
-        case 0x03f4:
-          k=0x03b8;
-          break;
-        case 0x03f5:
-          k=0x03b5;
+          k=0x03ce;
           break;
         default:
           k=0;
@@ -331,19 +319,23 @@ wchar_t WideCharLower(wchar_t c)
       if (k != 0)
         return k;
     }
-    if (c == 0x0345)
-      return 0x03b9;
   }
   else if (c < 0x500)
   {
-    if (c >= 0x0400 && c <= 0x040f)
+    if (c == 0x040d)
+      return c;
+
+    if (c >= 0x0401 && c <= 0x040f)
       return (c + 0x50);
 
     if (c >= 0x0410 && c <= 0x042f)
       return (c + 0x20);
 
+    if (c == 0x04ec)
+      return c;
+
     if ((c >= 0x0460 && c <= 0x0480) ||
-        (c >= 0x048a && c <= 0x04be) ||
+        (c >= 0x0490 && c <= 0x04be) ||
         (c >= 0x04d0 && c <= 0x04f4) ||
         (c == 0x04f8))
     {
@@ -352,7 +344,10 @@ wchar_t WideCharLower(wchar_t c)
       return c;
     }
 
-    if (c >= 0x04c1 && c <= 0x04cd)
+    if (c == 0x04c5 || c == 0x04c9)
+      return c;
+
+    if (c >= 0x04c1 && c <= 0x04cc)
     {
       if (c & 0x01)
         return (c + 1);
@@ -361,8 +356,7 @@ wchar_t WideCharLower(wchar_t c)
   }
   else if (c < 0x1f00)
   {
-    if ((c >= 0x0500 && c <= 0x050e) ||
-        (c >= 0x1e00 && c <= 0x1e94) ||
+    if ((c >= 0x1e00 && c <= 0x1e94) ||
         (c >= 0x1ea0 && c <= 0x1ef8))
     {
       if (!(c & 0x01))
@@ -370,11 +364,9 @@ wchar_t WideCharLower(wchar_t c)
       return c;
     }
 
-    if (c >= 0x0531 && c <= 0x0556)
+    if ((c >= 0x0531 && c <= 0x0556) ||
+        (c >= 0x10a0 && c <= 0x10c5))
       return (c + 0x30);
-
-    if (c == 0x1e9b)
-      return 0x1e61;
   }
   else if (c < 0x2000)
   {
@@ -383,10 +375,7 @@ wchar_t WideCharLower(wchar_t c)
         (c >= 0x1f28 && c <= 0x1f2f) ||
         (c >= 0x1f38 && c <= 0x1f3f) ||
         (c >= 0x1f48 && c <= 0x1f4d) ||
-        (c >= 0x1f68 && c <= 0x1f6f) ||
-        (c >= 0x1f88 && c <= 0x1f8f) ||
-        (c >= 0x1f98 && c <= 0x1f9f) ||
-        (c >= 0x1fa8 && c <= 0x1faf))
+        (c >= 0x1f68 && c <= 0x1f6f))
       return (c - 0x08);
 
     if (c >= 0x1f59 && c <= 0x1f5f)
@@ -414,20 +403,11 @@ wchar_t WideCharLower(wchar_t c)
         case 0x1fbb:
           k=c - 0x4a;
           break;
-        case 0x1fbc:
-          k=0x1fb3;
-          break;
-        case 0x1fbe:
-          k=0x03b9;
-          break;
         case 0x1fc8:
         case 0x1fc9:
         case 0x1fca:
         case 0x1fcb:
           k=c - 0x56;
-          break;
-        case 0x1fcc:
-          k=0x1fc3;
           break;
         case 0x1fda:
         case 0x1fdb:
@@ -440,12 +420,15 @@ wchar_t WideCharLower(wchar_t c)
         case 0x1fec:
           k=0x1fe5;
           break;
+        case 0x1ff8:
+          k=0x1f78;
+          break;
+        case 0x1ff9:
+          k=0x1f79;
+          break;
         case 0x1ffa:
         case 0x1ffb:
           k=c - 0x7e;
-          break;
-        case 0x1ffc:
-          k=0x1ff3;
           break;
         default:
           k=0;
@@ -464,16 +447,6 @@ wchar_t WideCharLower(wchar_t c)
 
     if (c >= 0xff21 && c <= 0xff3a)
       return (c + 0x20);
-
-    //if (c >= 0x10400 && c <= 0x10425)
-    //  return (c + 0x28);
-
-    if (c == 0x2126)
-      return 0x03c9;
-    if (c == 0x212a)
-      return 0x006b;
-    if (c == 0x212b)
-      return 0x00e5;
   }
   return c;
 }
@@ -494,16 +467,35 @@ wchar_t WideCharLower(wchar_t c)
 #undef WideCharUpper
 wchar_t WideCharUpper(wchar_t c)
 {
+  #ifdef WideCharUpper_LINGUISTICCASING
+    static WORD wLangID;
+
+    if (!wLangID)
+      wLangID=PRIMARYLANGID(GetUserDefaultLangID());
+  #endif
+
+  //return (wchar_t)(UINT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)c);
+
   if (c < 0x100)
   {
+    if (c == 0x00f7)
+      return c;
+
     if ((c >= 0x0061 && c <= 0x007a) ||
         (c >= 0x00e0 && c <= 0x00fe))
+    {
+      #ifdef WideCharUpper_LINGUISTICCASING
+        if (c == 0x0069)
+        {
+          if (wLangID == LANG_TURKISH ||
+              wLangID == LANG_AZERI)
+            return 0x0130;
+        }
+      #endif
       return (c - 0x20);
+    }
 
-    if (c == 0x00b5)
-      return 0x039c;
-
-    if (c == 0xff)
+    if (c == 0x00ff)
       return 0x0178;
 
     return c;
@@ -514,13 +506,21 @@ wchar_t WideCharUpper(wchar_t c)
         (c >= 0x0133 && c <= 0x0137) ||
         (c >= 0x014b && c <= 0x0177) ||
         (c >= 0x01df && c <= 0x01ef) ||
-        (c >= 0x01f9 && c <= 0x021f) ||
-        (c >= 0x0223 && c <= 0x0233))
+        (c >= 0x01fa && c <= 0x0218))
     {
       if (c & 0x01)
         return (c - 1);
       return c;
     }
+
+    #ifdef WideCharUpper_LINGUISTICCASING
+      if (c == 0x0131)
+      {
+        if (wLangID == LANG_TURKISH ||
+            wLangID == LANG_AZERI)
+          return 0x0049;
+      }
+    #endif
 
     if ((c >= 0x013a && c <= 0x0148) ||
         (c >= 0x01ce && c <= 0x1dc))
@@ -529,9 +529,6 @@ wchar_t WideCharUpper(wchar_t c)
         return (c - 1);
       return c;
     }
-
-    if (c == 0x0131)
-      return 0x0049;
 
     if (c == 0x017a || c == 0x017c || c == 0x017e)
       return (c - 1);
@@ -542,9 +539,6 @@ wchar_t WideCharUpper(wchar_t c)
 
       switch (c)
       {
-        case 0x017f:
-          k=0x0053;
-          break;
         case 0x0183:
           k=0x0182;
           break;
@@ -560,14 +554,8 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x0192:
           k=0x0191;
           break;
-        case 0x0195:
-          k=0x01f6;
-          break;
         case 0x0199:
           k=0x0198;
-          break;
-        case 0x019e:
-          k=0x0220;
           break;
         case 0x01a1:
         case 0x01a3:
@@ -579,15 +567,8 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x01b6:
         case 0x01b9:
         case 0x01bd:
-        case 0x01c5:
-        case 0x01c8:
-        case 0x01cb:
-        case 0x01f2:
         case 0x01f5:
           k=c - 1;
-          break;
-        case 0x01bf:
-          k=0x01f7;
           break;
         case 0x01c6:
         case 0x01c9:
@@ -639,9 +620,6 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x0275:
           k=0x019f;
           break;
-        case 0x0280:
-          k=0x01a6;
-          break;
         case 0x0283:
           k=0x01a9;
           break;
@@ -669,14 +647,14 @@ wchar_t WideCharUpper(wchar_t c)
     if (c == 0x03ac)
       return 0x0386;
 
-    if ((c & 0xfff0) == 0x03a0 && c >= 0x03ad)
-      return (c - 0x15);
-
-    if (c >= 0x03b1 && c <= 0x03cb && c != 0x03c2)
-      return (c - 0x20);
-
     if (c == 0x03c2)
       return 0x03a3;
+
+    if (c >= 0x03ad && c <= 0x03af)
+      return (c - 0x25);
+
+    if (c >= 0x03b1 && c <= 0x03cb)
+      return (c - 0x20);
 
     if (c >= 0x03cc && c <= 0x03f5)
     {
@@ -691,23 +669,6 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x03ce:
           k=c - 0x3f;
           break;
-        case 0x03d0:
-          k=0x0392;
-          break;
-        case 0x03d1:
-          k=0x0398;
-          break;
-        case 0x03d5:
-          k=0x03a6;
-          break;
-        case 0x03d6:
-          k=0x03a0;
-          break;
-        case 0x03d9:
-        case 0x03db:
-        case 0x03dd:
-        case 0x03df:
-        case 0x03e1:
         case 0x03e3:
         case 0x03e5:
         case 0x03e7:
@@ -716,18 +677,6 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x03ed:
         case 0x03ef:
           k=c - 1;
-          break;
-        case 0x03f0:
-          k=0x039a;
-          break;
-        case 0x03f1:
-          k=0x03a1;
-          break;
-        case 0x03f2:
-          k=0x03a3;
-          break;
-        case 0x03f5:
-          k=0x0395;
           break;
         default:
           k=0;
@@ -738,20 +687,29 @@ wchar_t WideCharUpper(wchar_t c)
   }
   else if (c < 0x500)
   {
-    if (c >= 0x0450 && c <= 0x045f)
+    if (c == 0x045d)
+      return c;
+
+    if (c >= 0x0451 && c <= 0x045f)
       return (c - 0x50);
 
     if (c >= 0x0430 && c <= 0x044f)
       return (c - 0x20);
 
+    if (c == 0x04ed)
+      return c;
+
     if ((c >= 0x0461 && c <= 0x0481) ||
-        (c >= 0x048b && c <= 0x04bf) ||
+        (c >= 0x0491 && c <= 0x04bf) ||
         (c >= 0x04d1 && c <= 0x04f5))
     {
       if (c & 0x01)
         return (c - 1);
       return c;
     }
+
+    if (c == 0x04c6 || c == 0x04ca || c == 0x04ce)
+      return c;
 
     if (c >= 0x04c2 && c <= 0x04ce)
     {
@@ -765,8 +723,7 @@ wchar_t WideCharUpper(wchar_t c)
   }
   else if (c < 0x1f00)
   {
-    if ((c >= 0x0501 && c <= 0x050f) ||
-        (c >= 0x1e01 && c <= 0x1e95) ||
+    if ((c >= 0x1e01 && c <= 0x1e95) ||
         (c >= 0x1ea1 && c <= 0x1ef9))
     {
       if (c & 0x01)
@@ -776,9 +733,6 @@ wchar_t WideCharUpper(wchar_t c)
 
     if (c >= 0x0561 && c <= 0x0586)
       return (c - 0x30);
-
-    if (c == 0x1e9b)
-      return 0x1e60;
   }
   else if (c < 0x2000)
   {
@@ -787,10 +741,7 @@ wchar_t WideCharUpper(wchar_t c)
         (c >= 0x1f20 && c <= 0x1f27) ||
         (c >= 0x1f30 && c <= 0x1f37) ||
         (c >= 0x1f40 && c <= 0x1f45) ||
-        (c >= 0x1f60 && c <= 0x1f67) ||
-        (c >= 0x1f80 && c <= 0x1f87) ||
-        (c >= 0x1f90 && c <= 0x1f97) ||
-        (c >= 0x1fa0 && c <= 0x1fa7))
+        (c >= 0x1f60 && c <= 0x1f67))
       return (c + 0x08);
 
     if (c >= 0x1f51 && c <= 0x1f57 && (c & 0x01))
@@ -813,12 +764,6 @@ wchar_t WideCharUpper(wchar_t c)
           break;
         case 0x1f71:
           k=0x1fbb;
-          break;
-        case 0x1fb3:
-          k=0x1fbc;
-          break;
-        case 0x1fbe:
-          k=0x0399;
           break;
         case 0x1f72:
           k=0x1fc8;
@@ -871,9 +816,6 @@ wchar_t WideCharUpper(wchar_t c)
         case 0x1f7d:
           k=0x1ffb;
           break;
-        case 0x1ff3:
-          k=0x1ffc;
-          break;
         default:
           k=0;
       }
@@ -891,9 +833,6 @@ wchar_t WideCharUpper(wchar_t c)
 
     if (c >= 0xff41 && c <= 0xff5a)
       return (c - 0x20);
-
-//    if (c >= 0x10428 && c <= 0x1044d)
-//      return (c - 0x28);
   }
   return c;
 }
@@ -909,22 +848,43 @@ wchar_t WideCharUpper(wchar_t c)
  * [in] const void *src  Buffer to copy from.
  * [in] UINT_PTR count   Number of bytes to copy.
  *
- *Returns:  the value of dest.
+ *Returns: the value of dest.
  ********************************************************************/
 #if defined xmemcpy || defined ALLSTRFUNC
 #define xmemcpy_INCLUDED
 #undef xmemcpy
 void* xmemcpy(void *dest, const void *src, UINT_PTR count)
 {
-  unsigned char *byte_dest=(unsigned char *)dest;
-  unsigned char *byte_src=(unsigned char *)src;
-
   //Special form of memcpy implementation to avoid
   //compiler from replace this code with memcpy call.
-  if (byte_dest != byte_src)
+  if (dest != src)
   {
+    unsigned int *uint_dest=(unsigned int *)dest;
+    unsigned int *uint_src=(unsigned int *)src;
+    unsigned char *byte_dest;
+    unsigned char *byte_src;
+
+    if (count >= sizeof(unsigned int))
+    {
+      for (;;)
+      {
+        *uint_dest=*uint_src;
+        count-=sizeof(unsigned int);
+        if (count < sizeof(unsigned int))
+        {
+          ++uint_dest;
+          ++uint_src;
+          break;
+        }
+        ++uint_dest;
+        ++uint_src;
+      }
+    }
     if (count)
     {
+      byte_dest=(unsigned char *)uint_dest;
+      byte_src=(unsigned char *)uint_src;
+
       for (;;)
       {
         *byte_dest=*byte_src;
@@ -948,9 +908,9 @@ void* xmemcpy(void *dest, const void *src, UINT_PTR count)
  *[in] const void *buf2  Second buffer.
  *[in] UINT_PTR count    Number of bytes.
  *
- *Returns:  -1 buf1 less than buf2.
- *           0 buf1 identical to buf2.
- *           1 buf1 greater than buf2.
+ *Returns: -1 buf1 less than buf2.
+ *          0 buf1 identical to buf2.
+ *          1 buf1 greater than buf2.
  ********************************************************************/
 #if defined xmemcmp || defined ALLSTRFUNC
 #define xmemcmp_INCLUDED
@@ -990,7 +950,7 @@ int xmemcmp(const void *buf1, const void *buf2, UINT_PTR count)
  * [in] int c           Character to set.
  * [in] UINT_PTR count  Number of characters.
  *
- *Returns:  the value of dest.
+ *Returns: the value of dest.
  ********************************************************************/
 #if defined xmemset || defined ALLSTRFUNC
 #define xmemset_INCLUDED
@@ -1016,19 +976,19 @@ void* xmemset(void *dest, int c, UINT_PTR count)
 
 /********************************************************************
  *
- *  xarraysizeA
+ *  xarrlenA
  *
  *Retrieves size of the string that is terminated with two NULL characters.
  *
  *[in]  const char *pString  Pointer to a string terminated with two NULL characters.
  *[out] int *nElements       Number of elements in array, each element separated by NULL character. Can be NULL.
  *
- *Returns:  number of characters, including two NULL characters.
+ *Returns: number of characters, including two NULL characters.
  ********************************************************************/
-#if defined xarraysizeA || defined ALLSTRFUNC
-#define xarraysizeA_INCLUDED
-#undef xarraysizeA
-INT_PTR xarraysizeA(const char *pString, int *nElements)
+#if defined xarrlenA || defined ALLSTRFUNC
+#define xarrlenA_INCLUDED
+#undef xarrlenA
+INT_PTR xarrlenA(const char *pString, int *nElements)
 {
   const char *pCount=pString;
   int nCount=1;
@@ -1052,19 +1012,19 @@ INT_PTR xarraysizeA(const char *pString, int *nElements)
 
 /********************************************************************
  *
- *  xarraysizeW
+ *  xarrlenW
  *
  *Retrieves size of the string that is terminated with two NULL characters.
  *
  *[in]  const wchar_t *wpString  Pointer to a string terminated with two NULL characters.
  *[out] int *nElements           Number of elements in array, each element separated by NULL character. Can be NULL.
  *
- *Returns:  number of characters, including two NULL characters.
+ *Returns: number of characters, including two NULL characters.
  ********************************************************************/
-#if defined xarraysizeW || defined ALLSTRFUNC
-#define xarraysizeW_INCLUDED
-#undef xarraysizeW
-INT_PTR xarraysizeW(const wchar_t *wpString, int *nElements)
+#if defined xarrlenW || defined ALLSTRFUNC
+#define xarrlenW_INCLUDED
+#undef xarrlenW
+INT_PTR xarrlenW(const wchar_t *wpString, int *nElements)
 {
   const wchar_t *wpCount=wpString;
   int nCount=1;
@@ -1088,13 +1048,91 @@ INT_PTR xarraysizeW(const wchar_t *wpString, int *nElements)
 
 /********************************************************************
  *
+ *  xarrcpynA
+ *
+ *Copies a specified number of characters from a source string into a buffer.
+ *
+ *[in] char *pString1       Pointer to a buffer into which the function copies characters.
+ *                           The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
+ *                           including room for a terminating two null character. Can be NULL, if dwMaxLength isn't zero.
+ *[in] char *pString2       Pointer to a two null-terminated string from which the function copies characters.
+ *[in] UINT_PTR dwMaxLength Specifies the number of TCHAR values to be copied from the string pointed to by pString2 into the buffer pointed to by pString1,
+ *                           including a terminating two null character.
+ *
+ *Returns:  number of characters copied, including the terminating two null character.
+ *
+ *Note:
+ *  xarrcpynA uses xarrlenA.
+ ********************************************************************/
+#if defined xarrcpynA || defined ALLSTRFUNC
+#define xarrcpynA_INCLUDED
+#undef xarrcpynA
+INT_PTR xarrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
+{
+  char *pDest=pString1;
+  char *pSrc=(char *)pString2;
+
+  if (!pSrc || dwMaxLength < 2)
+    return 0;
+  if (!pDest)
+    return min(dwMaxLength, (UINT_PTR)xarrlenA(pSrc, NULL));
+
+  while ((*pSrc || *(pSrc + 1)) && --dwMaxLength > 1)
+    *pDest++=*pSrc++;
+  *pDest++=L'\0';
+  *pDest++=L'\0';
+  return pDest - pString1;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xarrcpynW
+ *
+ *Copies a specified number of unicode characters from a source string into a buffer.
+ *
+ *[in] wchar_t *wpString1   Pointer to a buffer into which the function copies characters.
+ *                           The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
+ *                           including room for a terminating two null character. Can be NULL, if dwMaxLength isn't zero.
+ *[in] wchar_t *wpString2   Pointer to a two null-terminated string from which the function copies characters.
+ *[in] UINT_PTR dwMaxLength Specifies the number of TCHAR values to be copied from the string pointed to by wpString2 into the buffer pointed to by wpString1,
+ *                           including a terminating two null character.
+ *
+ *Returns:  number of characters copied, including the terminating two null character.
+ *
+ *Note:
+ *  xarrcpynW uses xarrlenW.
+ ********************************************************************/
+#if defined xarrcpynW || defined ALLSTRFUNC
+#define xarrcpynW_INCLUDED
+#undef xarrcpynW
+INT_PTR xarrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLength)
+{
+  wchar_t *wpDest=wpString1;
+  wchar_t *wpSrc=(wchar_t *)wpString2;
+
+  if (!wpSrc || dwMaxLength < 2)
+    return 0;
+  if (!wpDest)
+    return min(dwMaxLength, (UINT_PTR)xarrlenW(wpSrc, NULL));
+
+  while ((*wpSrc || *(wpSrc + 1)) && --dwMaxLength > 1)
+    *wpDest++=*wpSrc++;
+  *wpDest++=L'\0';
+  *wpDest++=L'\0';
+  return wpDest - wpString1;
+}
+#endif
+
+/********************************************************************
+ *
  *  xstrlenA
  *
  *Retrieves length of the string that is terminated with NULL character.
  *
  *[in] const char *pString   Pointer to a string terminated with NULL character.
  *
- *Returns:  number of characters, not including the terminating NULL character.
+ *Returns: number of characters, not including the terminating NULL character.
  ********************************************************************/
 #if defined xstrlenA || defined ALLSTRFUNC
 #define xstrlenA_INCLUDED
@@ -1117,7 +1155,7 @@ INT_PTR xstrlenA(const char *pString)
  *
  *[in] const wchar_t *wpString   Pointer to a string terminated with NULL character.
  *
- *Returns:  number of characters, not including the terminating NULL character.
+ *Returns: number of characters, not including the terminating NULL character.
  ********************************************************************/
 #if defined xstrlenW || defined ALLSTRFUNC
 #define xstrlenW_INCLUDED
@@ -1141,15 +1179,26 @@ INT_PTR xstrlenW(const wchar_t *wpString)
  *[in] char *pString1  First string to compare.
  *[in] char *pString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpA || defined ALLSTRFUNC
 #define xstrcmpA_INCLUDED
 #undef xstrcmpA
 int xstrcmpA(const char *pString1, const char *pString2)
 {
+  if (!pString1)
+  {
+    if (!pString2) return 0;
+    return -1;
+  }
+  if (!pString2)
+  {
+    if (!pString1) return 0;
+    return 1;
+  }
+
   while (*pString1)
   {
     if (*pString1 != *pString2)
@@ -1174,15 +1223,26 @@ int xstrcmpA(const char *pString1, const char *pString2)
  *[in] wchar_t *wpString1  First string to compare.
  *[in] wchar_t *wpString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpW || defined ALLSTRFUNC
 #define xstrcmpW_INCLUDED
 #undef xstrcmpW
 int xstrcmpW(const wchar_t *wpString1, const wchar_t *wpString2)
 {
+  if (!wpString1)
+  {
+    if (!wpString2) return 0;
+    return -1;
+  }
+  if (!wpString2)
+  {
+    if (!wpString1) return 0;
+    return 1;
+  }
+
   while (*wpString1)
   {
     if (*wpString1 != *wpString2)
@@ -1207,9 +1267,9 @@ int xstrcmpW(const wchar_t *wpString1, const wchar_t *wpString2)
  *[in] char *pString1  First string to compare.
  *[in] char *pString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpiA || defined ALLSTRFUNC
 #define xstrcmpiA_INCLUDED
@@ -1218,11 +1278,24 @@ int xstrcmpiA(const char *pString1, const char *pString2)
 {
   INT_PTR nCompare;
 
+  if (!pString1)
+  {
+    if (!pString2) return 0;
+    return -1;
+  }
+  if (!pString2)
+  {
+    if (!pString1) return 0;
+    return 1;
+  }
+
   while (*pString1)
   {
-    if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
-      return (nCompare > 0)?1:-1;
-
+    if (*pString1 != *pString2)
+    {
+      if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
+        return (nCompare > 0)?1:-1;
+    }
     ++pString1;
     ++pString2;
   }
@@ -1242,9 +1315,9 @@ int xstrcmpiA(const char *pString1, const char *pString2)
  *[in] wchar_t *wpString1  First string to compare.
  *[in] wchar_t *wpString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  *
  *Note:
  *  xstrcmpiW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
@@ -1256,20 +1329,33 @@ int xstrcmpiW(const wchar_t *wpString1, const wchar_t *wpString2)
 {
   INT_PTR nCompare;
 
+  if (!wpString1)
+  {
+    if (!wpString2) return 0;
+    return -1;
+  }
+  if (!wpString2)
+  {
+    if (!wpString1) return 0;
+    return 1;
+  }
+
   while (*wpString1)
   {
-    #if defined WideCharLower_INCLUDED
-      if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #elif defined WideCharUpper_INCLUDED
-      if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #else
-      #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpiW will not work on Win95/98/Me.")
-      if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
-        return (nCompare > 0)?1:-1;
-    #endif
-
+    if (*wpString1 != *wpString2)
+    {
+      #if defined WideCharLower_INCLUDED
+        if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #elif defined WideCharUpper_INCLUDED
+        if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #else
+        #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpiW will not work on Win95/98/Me.")
+        if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
+          return (nCompare > 0)?1:-1;
+      #endif
+    }
     ++wpString1;
     ++wpString2;
   }
@@ -1286,14 +1372,14 @@ int xstrcmpiW(const wchar_t *wpString1, const wchar_t *wpString2)
  *
  *Case sensitive comparison specified number of characters of two strings.
  *
- *[in] char *pString1     First string to compare.
- *[in] char *pString2     Second string to compare.
- *[in] DWORD dwMaxLength  Number of characters to compare,
- *                         -1 compare until NULL character in pString1.
+ *[in] char *pString1        First string to compare.
+ *[in] char *pString2        Second string to compare.
+ *[in] UINT_PTR dwMaxLength  Number of characters to compare,
+ *                            -1 compare until NULL character in pString1.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpnA || defined ALLSTRFUNC
 #define xstrcmpnA_INCLUDED
@@ -1306,6 +1392,7 @@ int xstrcmpnA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
   {
     if (*pString1 != *pString2)
       return ((WORD)*pString1 > (WORD)*pString2)?1:-1;
+
     ++pString1;
     ++pString2;
     --dwCount;
@@ -1322,14 +1409,14 @@ int xstrcmpnA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *
  *Case sensitive comparison specified number of characters of two unicode strings.
  *
- *[in] wchar_t *wpString1  First string to compare.
- *[in] wchar_t *wpString2  Second string to compare.
- *[in] DWORD dwMaxLength   Number of characters to compare,
- *                          -1 compare until NULL character in wpString1.
+ *[in] wchar_t *wpString1     First string to compare.
+ *[in] wchar_t *wpString2     Second string to compare.
+ *[in] UINT_PTR dwMaxLength   Number of characters to compare,
+ *                             -1 compare until NULL character in wpString1.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpnW || defined ALLSTRFUNC
 #define xstrcmpnW_INCLUDED
@@ -1359,14 +1446,14 @@ int xstrcmpnW(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMax
  *
  *Case insensitive comparison specified number of characters of two strings.
  *
- *[in] char *pString1     First string to compare.
- *[in] char *pString2     Second string to compare.
- *[in] DWORD dwMaxLength  Number of characters to compare,
- *                         -1 compare until NULL character in pString1.
+ *[in] char *pString1        First string to compare.
+ *[in] char *pString2        Second string to compare.
+ *[in] UINT_PTR dwMaxLength  Number of characters to compare,
+ *                            -1 compare until NULL character in pString1.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpinA || defined ALLSTRFUNC
 #define xstrcmpinA_INCLUDED
@@ -1378,9 +1465,11 @@ int xstrcmpinA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
 
   while (dwCount && *pString1)
   {
-    if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
-      return (nCompare > 0)?1:-1;
-
+    if (*pString1 != *pString2)
+    {
+      if (nCompare=(INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString1) - (INT_PTR)CharUpperA((char *)(UINT_PTR)(WORD)*pString2))
+        return (nCompare > 0)?1:-1;
+    }
     ++pString1;
     ++pString2;
     --dwCount;
@@ -1397,14 +1486,14 @@ int xstrcmpinA(const char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *
  *Case insensitive comparison specified number of characters of two unicode strings.
  *
- *[in] wchar_t *wpString1  First string to compare.
- *[in] wchar_t *wpString2  Second string to compare.
- *[in] DWORD dwMaxLength   Number of characters to compare,
- *                          -1 compare until NULL character in wpString1.
+ *[in] wchar_t *wpString1     First string to compare.
+ *[in] wchar_t *wpString2     Second string to compare.
+ *[in] UINT_PTR dwMaxLength   Number of characters to compare,
+ *                             -1 compare until NULL character in wpString1.
  *
- *Returns:  -1 string1 less than string2.
- *           0 string1 identical to string2.
- *           1 string1 greater than string2.
+ *Returns: -1 string1 less than string2.
+ *          0 string1 identical to string2.
+ *          1 string1 greater than string2.
  *
  *Note:
  *  xstrcmpinW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
@@ -1419,18 +1508,20 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMa
 
   while (dwCount && *wpString1)
   {
-    #if defined WideCharLower_INCLUDED
-      if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #elif defined WideCharUpper_INCLUDED
-      if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
-        return (nCompare > 0)?1:-1;
-    #else
-      #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpinW will not work on Win95/98/Me.")
-      if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
-        return (nCompare > 0)?1:-1;
-    #endif
-
+    if (*wpString1 != *wpString2)
+    {
+      #if defined WideCharLower_INCLUDED
+        if (nCompare=WideCharLower(*wpString1) - WideCharLower(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #elif defined WideCharUpper_INCLUDED
+        if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
+          return (nCompare > 0)?1:-1;
+      #else
+        #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpinW will not work on Win95/98/Me.")
+        if (nCompare=(INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString1) - (INT_PTR)CharUpperW((wchar_t *)(UINT_PTR)(WORD)*wpString2))
+          return (nCompare > 0)?1:-1;
+      #endif
+    }
     ++wpString1;
     ++wpString2;
     --dwCount;
@@ -1452,7 +1543,7 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMa
  *                      including the terminating null character. Can be NULL.
  *[in] char *pString2  Pointer to a null-terminated string from which the function copies characters.
  *
- *Returns:  number of characters copied, not including the terminating null character.
+ *Returns: number of characters copied, not including the terminating null character.
  *
  *Note:
  *  xstrcpyA uses xstrlenA.
@@ -1465,6 +1556,8 @@ INT_PTR xstrcpyA(char *pString1, const char *pString2)
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
 
+  if (!pSrc)
+    return 0;
   if (!pDest)
     return xstrlenA(pSrc) + 1;
   if (pDest == pSrc)
@@ -1488,7 +1581,7 @@ INT_PTR xstrcpyA(char *pString1, const char *pString2)
  *                          including the terminating null character. Can be NULL.
  *[in] wchar_t *wpString2  Pointer to a null-terminated string from which the function copies characters.
  *
- *Returns:  number of characters copied, not including the terminating null character.
+ *Returns: number of characters copied, not including the terminating null character.
  *
  *Note:
  *  xstrcpyW uses xstrlenW.
@@ -1501,6 +1594,8 @@ INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
 
+  if (!wpSrc)
+    return 0;
   if (!wpDest)
     return xstrlenW(wpSrc) + 1;
   if (wpDest == wpSrc)
@@ -1526,7 +1621,7 @@ INT_PTR xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
  *[in] UINT_PTR dwMaxLength  Specifies the number of TCHAR values to be copied from the string pointed to by pString2 into the buffer pointed to by pString1,
  *                            including a terminating null character.
  *
- *Returns:  number of characters copied, not including the terminating null character.
+ *Returns: number of characters copied, not including the terminating null character.
  *
  *Note:
  *  xstrcpynA uses xstrlenA.
@@ -1539,10 +1634,10 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
 
+  if (!pSrc || !dwMaxLength)
+    return 0;
   if (!pDest)
-    return xstrlenA(pSrc) + 1;
-  if (pDest == pSrc)
-    return xstrlenA(pSrc);
+    return min(dwMaxLength, (UINT_PTR)xstrlenA(pSrc) + 1);
 
   while (*pSrc && --dwMaxLength)
     *pDest++=*pSrc++;
@@ -1559,12 +1654,12 @@ INT_PTR xstrcpynA(char *pString1, const char *pString2, UINT_PTR dwMaxLength)
  *
  *[in] wchar_t *wpString1   Pointer to a buffer into which the function copies characters.
  *                           The buffer must be large enough to contain the number of TCHAR values specified by dwMaxLength,
- *                           including room for a terminating null character. Can be NULL, if dwMaxLength isn't zero. 
+ *                           including room for a terminating null character. Can be NULL, if dwMaxLength isn't zero.
  *[in] wchar_t *wpString2   Pointer to a null-terminated string from which the function copies characters.
  *[in] UINT_PTR dwMaxLength Specifies the number of TCHAR values to be copied from the string pointed to by wpString2 into the buffer pointed to by wpString1,
  *                           including a terminating null character.
  *
- *Returns:  number of characters copied, not including the terminating null character.
+ *Returns: number of characters copied, not including the terminating null character.
  *
  *Note:
  *  xstrcpynW uses xstrlenW.
@@ -1577,10 +1672,10 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
 
+  if (!wpSrc || !dwMaxLength)
+    return 0;
   if (!wpDest)
-    return xstrlenW(wpSrc) + 1;
-  if (wpDest == wpSrc)
-    return xstrlenW(wpSrc);
+    return min(dwMaxLength, (UINT_PTR)xstrlenW(wpSrc) + 1);
 
   while (*wpSrc && --dwMaxLength)
     *wpDest++=*wpSrc++;
@@ -1595,21 +1690,21 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
  *
  *Find substring in string.
  *
- * [in] const char *pText  Text.
- * [in] INT_PTR nTextLen   Text length.
- *                          If this value is -1, the string is assumed to be null-terminated
- *                          and the length is calculated automatically.
- * [in] const char *pStr   Find it.
- * [in] int nStrLen        Find it length.
- *                          If this value is -1, the string is assumed to be null-terminated
- *                          and the length is calculated automatically.
- * [in] BOOL bSensitive    TRUE   case sensitive.
- *                         FALSE  case insensitive.
- *[out] char **pStrBegin   Pointer to the first char of pStr, can be NULL.
- *[out] char **pStrEnd     Pointer to the first char after pStr, can be NULL.
+ * [in] const char *pText       Text.
+ * [in] INT_PTR nTextLen        Text length.
+ *                               If this value is -1, the string is assumed to be null-terminated
+ *                               and the length is calculated automatically.
+ * [in] const char *pStr        Find it.
+ * [in] int nStrLen             Find it length.
+ *                               If this value is -1, the string is assumed to be null-terminated
+ *                               and the length is calculated automatically.
+ * [in] BOOL bSensitive         TRUE   case sensitive.
+ *                              FALSE  case insensitive.
+ *[out] const char **pStrBegin  Pointer to the first char of pStr, can be NULL.
+ *[out] const char **pStrEnd    Pointer to the first char after pStr, can be NULL.
  *
- *Returns:  TRUE  pStr is founded.
- *          FALSE pStr isn't founded.
+ *Returns: TRUE  pStr is found.
+ *         FALSE pStr isn't found.
  *
  *Note:
  *  xstrstrA uses xstrlenA.
@@ -1617,7 +1712,7 @@ INT_PTR xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, UINT_PTR dwMaxLe
 #if defined xstrstrA || defined ALLSTRFUNC
 #define xstrstrA_INCLUDED
 #undef xstrstrA
-BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen, BOOL bSensitive, char **pStrBegin, char **pStrEnd)
+BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen, BOOL bSensitive, const char **pStrBegin, const char **pStrEnd)
 {
   const char *pTextMax;
   const char *pTextCount;
@@ -1625,12 +1720,14 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
   const char *pStrMax;
   const char *pStrCount;
 
-  if (nTextLen == -1)
-    nTextLen=xstrlenA(pText) + 1;
   if (nStrLen == -1)
     nStrLen=(int)xstrlenA(pStr);
-  pTextMax=pText + nTextLen;
+  if (!pText || !nStrLen)
+    return FALSE;
+  if (nTextLen == -1)
+    nTextLen=xstrlenA(pText) + 1;
   pStrMax=pStr + nStrLen;
+  pTextMax=pText + nTextLen;
 
   for (pTextCount=pText; pTextCount < pTextMax; ++pTextCount)
   {
@@ -1642,13 +1739,15 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
     {
       if (++pStrCount >= pStrMax)
       {
-        if (pStrBegin) *pStrBegin=(char *)pTextCount;
-        if (pStrEnd) *pStrEnd=(char *)pMatchCount + 1;
+        if (pStrBegin) *pStrBegin=pTextCount;
+        if (pStrEnd) *pStrEnd=pMatchCount + 1;
         return TRUE;
       }
       if (++pMatchCount >= pTextMax) break;
     }
   }
+  if (pStrBegin) *pStrBegin=pTextMax;
+  if (pStrEnd) *pStrEnd=pTextMax;
   return FALSE;
 }
 #endif
@@ -1659,21 +1758,21 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
  *
  *Find substring in unicode string.
  *
- * [in] const wchar_t *wpText  Text.
- * [in] INT_PTR nTextLen       Text length.
- *                              If this value is -1, the string is assumed to be null-terminated
- *                              and the length is calculated automatically.
- * [in] const wchar_t *wpStr   Find it.
- * [in] int nStrLen            Find it length.
- *                              If this value is -1, the string is assumed to be null-terminated
- *                              and the length is calculated automatically.
- * [in] BOOL bSensitive        TRUE   case sensitive.
- *                             FALSE  case insensitive.
- *[out] wchar_t **wpStrBegin   Pointer to the first char of wpStr, can be NULL.
- *[out] wchar_t **wpStrEnd     Pointer to the first char after wpStr, can be NULL.
+ * [in] const wchar_t *wpText       Text.
+ * [in] INT_PTR nTextLen            Text length.
+ *                                   If this value is -1, the string is assumed to be null-terminated
+ *                                   and the length is calculated automatically.
+ * [in] const wchar_t *wpStr        Find it.
+ * [in] int nStrLen                 Find it length.
+ *                                   If this value is -1, the string is assumed to be null-terminated
+ *                                   and the length is calculated automatically.
+ * [in] BOOL bSensitive             TRUE   case sensitive.
+ *                                  FALSE  case insensitive.
+ *[out] const wchar_t **wpStrBegin  Pointer to the first char of wpStr, can be NULL.
+ *[out] const wchar_t **wpStrEnd    Pointer to the first char after wpStr, can be NULL.
  *
- *Returns:  TRUE  wpStr is founded.
- *          FALSE wpStr isn't founded.
+ *Returns: TRUE  wpStr is found.
+ *         FALSE wpStr isn't found.
  *
  *Note:
  *  - xstrstrW uses xstrlenW.
@@ -1682,7 +1781,7 @@ BOOL xstrstrA(const char *pText, INT_PTR nTextLen, const char *pStr, int nStrLen
 #if defined xstrstrW || defined ALLSTRFUNC
 #define xstrstrW_INCLUDED
 #undef xstrstrW
-BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int nStrLen, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd)
+BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int nStrLen, BOOL bSensitive, const wchar_t **wpStrBegin, const wchar_t **wpStrEnd)
 {
   const wchar_t *wpTextMax;
   const wchar_t *wpTextCount;
@@ -1690,12 +1789,14 @@ BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int
   const wchar_t *wpStrMax;
   const wchar_t *wpStrCount;
 
-  if (nTextLen == -1)
-    nTextLen=xstrlenW(wpText) + 1;
   if (nStrLen == -1)
     nStrLen=(int)xstrlenW(wpStr);
-  wpTextMax=wpText + nTextLen;
+  if (!wpText || !nStrLen)
+    return FALSE;
+  if (nTextLen == -1)
+    nTextLen=xstrlenW(wpText) + 1;
   wpStrMax=wpStr + nStrLen;
+  wpTextMax=wpText + nTextLen;
 
   for (wpTextCount=wpText; wpTextCount < wpTextMax; ++wpTextCount)
   {
@@ -1714,13 +1815,15 @@ BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int
     {
       if (++wpStrCount >= wpStrMax)
       {
-        if (wpStrBegin) *wpStrBegin=(wchar_t *)wpTextCount;
-        if (wpStrEnd) *wpStrEnd=(wchar_t *)wpMatchCount + 1;
+        if (wpStrBegin) *wpStrBegin=wpTextCount;
+        if (wpStrEnd) *wpStrEnd=wpMatchCount + 1;
         return TRUE;
       }
       if (++wpMatchCount >= wpTextMax) break;
     }
   }
+  if (wpStrBegin) *wpStrBegin=wpTextMax;
+  if (wpStrEnd) *wpStrEnd=wpTextMax;
   return FALSE;
 }
 #endif
@@ -1750,7 +1853,7 @@ BOOL xstrstrW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpStr, int
  *                            including the terminating null character if nTextLen == -1,
  *                            can be NULL.
  *
- *Returns:  number of changes.
+ *Returns: number of changes.
  *
  *Note:
  *  xstrrepA uses xstrlenA.
@@ -1767,19 +1870,20 @@ int xstrrepA(const char *pText, INT_PTR nTextLen, const char *pIt, int nItLen, c
   const char *pItCount;
   const char *pWithMax;
   const char *pWithCount;
-  char *pResultCount;
+  char *pResultCount=szResult;
   int nChanges=0;
 
-  if (nTextLen == -1)
-    nTextLen=xstrlenA(pText) + 1;
   if (nItLen == -1)
     nItLen=(int)xstrlenA(pIt);
+  if (!pText || !nItLen)
+    goto End;
   if (nWithLen == -1)
     nWithLen=(int)xstrlenA(pWith);
-  pTextMax=pText + nTextLen;
+  if (nTextLen == -1)
+    nTextLen=xstrlenA(pText) + 1;
   pItMax=pIt + nItLen;
   pWithMax=pWith + nWithLen;
-  pResultCount=szResult;
+  pTextMax=pText + nTextLen;
 
   for (pTextCount=pText; pTextCount < pTextMax; ++pTextCount)
   {
@@ -1840,7 +1944,7 @@ int xstrrepA(const char *pText, INT_PTR nTextLen, const char *pIt, int nItLen, c
  *                              including the terminating null character if nTextLen == -1,
  *                              can be NULL.
  *
- *Returns:  number of changes.
+ *Returns: number of changes.
  *
  *Note:
  *  - xstrrepW uses xstrlenW.
@@ -1858,19 +1962,20 @@ int xstrrepW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int n
   const wchar_t *wpItCount;
   const wchar_t *wpWithMax;
   const wchar_t *wpWithCount;
-  wchar_t *wpResultCount;
+  wchar_t *wpResultCount=wszResult;
   int nChanges=0;
 
-  if (nTextLen == -1)
-    nTextLen=xstrlenW(wpText) + 1;
   if (nItLen == -1)
     nItLen=(int)xstrlenW(wpIt);
+  if (!wpText || !nItLen)
+    goto End;
   if (nWithLen == -1)
     nWithLen=(int)xstrlenW(wpWith);
-  wpTextMax=wpText + nTextLen;
+  if (nTextLen == -1)
+    nTextLen=xstrlenW(wpText) + 1;
   wpItMax=wpIt + nItLen;
   wpWithMax=wpWith + nWithLen;
-  wpResultCount=wszResult;
+  wpTextMax=wpText + nTextLen;
 
   for (wpTextCount=wpText; wpTextCount < wpTextMax; ++wpTextCount)
   {
@@ -1963,8 +2068,8 @@ INT_PTR xatoiA(const char *pStr, const char **pNext)
  *
  *Converts unicode string to integer.
  *
- *[in]  const wchar_t *wpStr  Unicode string number.
- *[out] wchar_t **wpNext      Pointer to the first char after number, can be NULL.
+ *[in]  const wchar_t *wpStr    Unicode string number.
+ *[out] const wchar_t **wpNext  Pointer to the first char after number, can be NULL.
  *
  *Returns: integer.
  *
@@ -2051,8 +2156,8 @@ __int64 xatoi64A(const char *pStr, const char **pNext)
  *
  *Converts unicode string to int64.
  *
- *[in]  const wchar_t *wpStr  Unicode string number.
- *[out] wchar_t **wpNext      Pointer to the first char after number, can be NULL.
+ *[in]  const wchar_t *wpStr    Unicode string number.
+ *[out] const wchar_t **wpNext  Pointer to the first char after number, can be NULL.
  *
  *Returns: 64-bit integer.
  *
@@ -2372,31 +2477,63 @@ int xi64toaW(__int64 nNumber, wchar_t *wszStr)
  *Converts hex value to decimal.
  *
  *[in]  const char *pStrHex  Hex value.
+ *[in]  INT_PTR nStrHexLen   Hex value length.
+ *                            If this value is -1, process string until null character.
+ *                            If this value is -2, process string until wrong hex value.
+ *[out] const char **pNext   Pointer to the first char after hex value, can be NULL.
  *
  *Returns: integer. Wrong hex value if equal to -1.
  *
  *Examples:
- *  hex2decA("A1F") == 2591;
+ *  hex2decA("A1F", -1, NULL) == 2591;
  ********************************************************************/
 #if defined hex2decA || defined ALLSTRFUNC
 #define hex2decA_INCLUDED
 #undef hex2decA
-INT_PTR hex2decA(const char *pStrHex)
+INT_PTR hex2decA(const char *pStr, INT_PTR nStrLen, const char **pNext)
 {
+  const char *pStrMax;
   INT_PTR a;
   INT_PTR b=0;
 
-  for (;;)
+  if (!nStrLen)
   {
-    a=*pStrHex++;
-    if (a >= '0' && a <= '9') a-='0';
-    else if (a >= 'a' && a <= 'f') a-='a' - 10;
-    else if (a >= 'A' && a <= 'F') a-='A' - 10;
-    else return -1;
-
-    if (*pStrHex) b=(b + a) * 16;
-    else return (b + a);
+    b=-1;
   }
+  else if (nStrLen < 0)
+  {
+    for (; *pStr; ++pStr)
+    {
+      a=*pStr;
+      if (a >= '0' && a <= '9') a-='0';
+      else if (a >= 'a' && a <= 'f') a-='a' - 10;
+      else if (a >= 'A' && a <= 'F') a-='A' - 10;
+      else
+      {
+        if (nStrLen == -1) b=-1;
+        break;
+      }
+      b=(b * 16) + a;
+    }
+  }
+  else //if (nStrLen > 0)
+  {
+    for (pStrMax=pStr + nStrLen; pStr < pStrMax; ++pStr)
+    {
+      a=*pStr;
+      if (a >= '0' && a <= '9') a-='0';
+      else if (a >= 'a' && a <= 'f') a-='a' - 10;
+      else if (a >= 'A' && a <= 'F') a-='A' - 10;
+      else
+      {
+        b=-1;
+        break;
+      }
+      b=(b * 16) + a;
+    }
+  }
+  if (pNext) *pNext=pStr;
+  return b;
 }
 #endif
 
@@ -2406,32 +2543,64 @@ INT_PTR hex2decA(const char *pStrHex)
  *
  *Converts unicode hex value to decimal.
  *
- *[in]  const wchar_t *wpStrHex  Unicode hex value.
+ *[in]  const wchar_t *wpStr    Unicode hex string.
+ *[in]  INT_PTR nStrLen         Unicode hex string length.
+ *                               If this value is -1, process string until null character.
+ *                               If this value is -2, process string until wrong hex value.
+ *[out] const wchar_t **wpNext  Pointer to the first char after hex value, can be NULL.
  *
  *Returns: integer. Wrong hex value if equal to -1.
  *
  *Examples:
- *  hex2decW(L"A1F") == 2591;
+ *  hex2decW(L"A1F", -1, NULL) == 2591;
  ********************************************************************/
 #if defined hex2decW || defined ALLSTRFUNC
 #define hex2decW_INCLUDED
 #undef hex2decW
-INT_PTR hex2decW(const wchar_t *wpStrHex)
+INT_PTR hex2decW(const wchar_t *wpStr, INT_PTR nStrLen, const wchar_t **wpNext)
 {
+  const wchar_t *wpStrMax;
   INT_PTR a;
   INT_PTR b=0;
 
-  for (;;)
+  if (!nStrLen)
   {
-    a=*wpStrHex++;
-    if (a >= '0' && a <= '9') a-='0';
-    else if (a >= 'a' && a <= 'f') a-='a' - 10;
-    else if (a >= 'A' && a <= 'F') a-='A' - 10;
-    else return -1;
-
-    if (*wpStrHex) b=(b + a) * 16;
-    else return (b + a);
+    b=-1;
   }
+  else if (nStrLen < 0)
+  {
+    for (; *wpStr; ++wpStr)
+    {
+      a=*wpStr;
+      if (a >= '0' && a <= '9') a-='0';
+      else if (a >= 'a' && a <= 'f') a-='a' - 10;
+      else if (a >= 'A' && a <= 'F') a-='A' - 10;
+      else
+      {
+        if (nStrLen == -1) b=-1;
+        break;
+      }
+      b=(b * 16) + a;
+    }
+  }
+  else //if (nStrLen > 0)
+  {
+    for (wpStrMax=wpStr + nStrLen; wpStr < wpStrMax; ++wpStr)
+    {
+      a=*wpStr;
+      if (a >= '0' && a <= '9') a-='0';
+      else if (a >= 'a' && a <= 'f') a-='a' - 10;
+      else if (a >= 'A' && a <= 'F') a-='A' - 10;
+      else
+      {
+        b=-1;
+        break;
+      }
+      b=(b * 16) + a;
+    }
+  }
+  if (wpNext) *wpNext=wpStr;
+  return b;
 }
 #endif
 
@@ -2676,7 +2845,7 @@ INT_PTR bin2hexW(const unsigned char *pData, INT_PTR nBytes, wchar_t *wszStrHex,
 #undef hex2binA
 INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax)
 {
-  char szHexChar[4];
+  char szHexChar[2];
   INT_PTR nHexChar;
   UINT_PTR a;
   UINT_PTR b;
@@ -2688,9 +2857,8 @@ INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax)
     szHexChar[0]=pStrHex[a++];
     if (!pStrHex[a]) break;
     szHexChar[1]=pStrHex[a++];
-    szHexChar[2]='\0';
 
-    if ((nHexChar=hex2decA(szHexChar)) >= 0)
+    if ((nHexChar=hex2decA(szHexChar, 2, NULL)) >= 0)
     {
       if (pData) pData[b]=(unsigned char)nHexChar;
     }
@@ -2723,7 +2891,7 @@ INT_PTR hex2binA(const char *pStrHex, unsigned char *pData, INT_PTR nDataMax)
 #undef hex2binW
 INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax)
 {
-  wchar_t wszHexChar[4];
+  wchar_t wszHexChar[2];
   INT_PTR nHexChar;
   UINT_PTR a;
   UINT_PTR b;
@@ -2735,9 +2903,8 @@ INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax
     wszHexChar[0]=wpStrHex[a++];
     if (!wpStrHex[a]) break;
     wszHexChar[1]=wpStrHex[a++];
-    wszHexChar[2]='\0';
 
-    if ((nHexChar=hex2decW(wszHexChar)) >= 0)
+    if ((nHexChar=hex2decW(wszHexChar, 2, NULL)) >= 0)
     {
       if (pData) pData[b]=(unsigned char)nHexChar;
     }
@@ -2747,48 +2914,8 @@ INT_PTR hex2binW(const wchar_t *wpStrHex, unsigned char *pData, INT_PTR nDataMax
 }
 #endif
 
-/********************************************************************
- *
- *  xprintfA
- *
- *Function formats and stores a series of characters and values in a buffer.
- *
- *[out] char *szOutput       Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
- *[in]  const char *pFormat  Pointer to a null-terminated string that contains the format-control specifications.
- *                            pFormat syntax is equal to wsprintfA function.
- *[in]  ...                  Specifies one or more optional arguments. The number and type of argument parameters
- *                            depend on the corresponding format-control specifications in the pFormat parameter.
- *                           %[-][0][width][.precision]type
- *                             "-"           Pad the output with blanks or zeros to the right to fill the field width, justifying output to the left.
- *                             "0"           Pad the output value with zeros to fill the field width. If this field is omitted, the output value is padded with blank spaces.
- *                             [width]       Copy the specified minimum number of characters to the output buffer.
- *                             [.precision]  For numbers, copy the specified minimum number of digits to the output buffer. If the number of digits in the argument is less than the specified precision, the output value is padded on the left with zeros.
- *                                           For strings, copy the specified maximum number of characters to the output buffer.
- *                                           Supported special format to specify argument as precision: "%.%us" or "%.%ds"
- *                             [type]
- *                               "c"         ansi character.
- *                               "d"         signed integer (32-bit).
- *                               "Id"        signed integer (32-bit on x86, 64-bit on x64).
- *                               "u"         unsigned integer (32-bit).
- *                               "Iu"        unsigned integer (32-bit on x86, 64-bit on x64).
- *                               "x","X"     unsigned hexadecimal integer in lowercase or uppercase (32-bit).
- *                               "Ix","IX"   unsigned hexadecimal integer in lowercase or uppercase (32-bit on x86, 64-bit on x64).
- *                               "s"         ansi string.
- *                               "S"         unicode string.
- *
- *
- *Returns:  number of characters copied, not including the terminating null character.
- *
- *Note:
- *  xprintfA uses xatoiA, xitoaA, xuitoaA, dec2hexA, xstrcpynA.
- *
- *Examples:
- *  xprintfA(szResult, "%d | %u | %x | %X | %s", -123, 123, 123, 123, "string");   //szResult == "-123 | 123 | 7b | 7B | string"
- ********************************************************************/
-#if defined xprintfA || defined ALLSTRFUNC
-#define xprintfA_INCLUDED
-#undef xprintfA
-INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
+#if defined xprintfA || defined xnprintfA || defined ALLSTRFUNC
+INT_PTR xprintfCommonA(char *szOutput, const char *pFormat, va_list argList)
 {
   const char *pFmt=pFormat;
   char *pOut=szOutput;
@@ -2801,9 +2928,6 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
   BOOL bInt64;
   INT_PTR nSigned;
   INT_PTR nUnsigned;
-
-  va_list val;
-  va_start(val, pFormat);
 
   while (*pFmt)
   {
@@ -2838,7 +2962,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
         //Special format to specify argument as precision: "%.%us" or "%.%ds"
         if (*++pFmt == '%' && (*(pFmt + 1) == 'u' || *(pFmt + 1) == 'd'))
         {
-          dwPrecision=(unsigned int)va_arg(val, INT_PTR);
+          dwPrecision=(unsigned int)va_arg(argList, INT_PTR);
           pFmt+=2;
         }
         else dwPrecision=(unsigned int)xatoiA(pFmt, &pFmt);
@@ -2862,7 +2986,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       }
       else if (*pFmt == 'c')
       {
-        nSigned=va_arg(val, INT_PTR);
+        nSigned=va_arg(argList, INT_PTR);
         if (nWidth > 0)
         {
           nWidth=max(nWidth - 1, 0);
@@ -2874,9 +2998,9 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       else if (*pFmt == 'd')
       {
         if (bInt64)
-          nSigned=va_arg(val, INT_PTR);
+          nSigned=va_arg(argList, INT_PTR);
         else
-          nSigned=va_arg(val, int);
+          nSigned=va_arg(argList, int);
         if (!szOutput || nWidth > 0)
         {
           dwLen=xitoaA(nSigned, NULL) - 1;
@@ -2897,9 +3021,9 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       else if (*pFmt == 'u')
       {
         if (bInt64)
-          nUnsigned=va_arg(val, UINT_PTR);
+          nUnsigned=va_arg(argList, UINT_PTR);
         else
-          nUnsigned=va_arg(val, UINT);
+          nUnsigned=va_arg(argList, UINT);
         if (!szOutput || nWidth > 0)
         {
           dwLen=xuitoaA(nUnsigned, NULL) - 1;
@@ -2915,9 +3039,9 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       else if (*pFmt == 'x' || *pFmt == 'X')
       {
         if (bInt64)
-          nUnsigned=va_arg(val, UINT_PTR);
+          nUnsigned=va_arg(argList, UINT_PTR);
         else
-          nUnsigned=va_arg(val, UINT);
+          nUnsigned=va_arg(argList, UINT);
         if (!szOutput || nWidth > 0)
         {
           dwLen=dec2hexA(nUnsigned, NULL, 0, (*pFmt == 'x')?TRUE:FALSE) - 1;
@@ -2932,7 +3056,7 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
       }
       else if (*pFmt == 's' || *pFmt == 'S')
       {
-        if (pString=va_arg(val, unsigned char *))
+        if (pString=va_arg(argList, unsigned char *))
         {
           if (dwPrecision != (DWORD)-1)
           {
@@ -3004,53 +3128,102 @@ INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
   else
     ++pOut;
 
-  va_end(val);
   return pOut - szOutput;
 }
 #endif
 
 /********************************************************************
  *
- *  xprintfW
+ *  xnprintfA
  *
  *Function formats and stores a series of characters and values in a buffer.
  *
- *[out] wchar_t *wszOutput       Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
- *[in]  const wchar_t *wpFormat  Pointer to a null-terminated string that contains the format-control specifications.
- *                                wpFormat syntax is equal to wsprintfW function.
- *[in]  ...                      Specifies one or more optional arguments. The number and type of argument parameters
- *                                depend on the corresponding format-control specifications in the wpFormat parameter.
- *                               %[-][0][width][.precision]type
- *                                 "-"           Pad the output with blanks or zeros to the right to fill the field width, justifying output to the left.
- *                                 "0"           Pad the output value with zeros to fill the field width. If this field is omitted, the output value is padded with blank spaces.
- *                                 [width]       Copy the specified minimum number of characters to the output buffer.
- *                                 [.precision]  For numbers, copy the specified minimum number of digits to the output buffer. If the number of digits in the argument is less than the specified precision, the output value is padded on the left with zeros.
- *                                               For strings, copy the specified maximum number of characters to the output buffer.
- *                                               Supported special format to specify argument as precision: "%.%us" or "%.%ds"
- *                                 [type]
- *                                   "c"         unicode character.
- *                                   "d"         signed integer (32-bit).
- *                                   "Id"        signed integer (32-bit on x86, 64-bit on x64).
- *                                   "u"         unsigned integer (32-bit).
- *                                   "Iu"        unsigned integer (32-bit on x86, 64-bit on x64).
- *                                   "x","X"     unsigned hexadecimal integer in lowercase or uppercase (32-bit).
- *                                   "Ix","IX"   unsigned hexadecimal integer in lowercase or uppercase (32-bit on x86, 64-bit on x64).
- *                                   "s"         unicode string.
- *                                   "S"         ansi string.
+ *[out] char *szOutput        Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
+ *[in]  UINT_PTR dwOutputMax  Maximum number of characters to store, including a terminating null character.
+ *[in]  const char *pFormat   Pointer to a null-terminated string that contains the format-control specifications.
+ *                             pFormat syntax is equal to wsprintfA function.
+ *[in]  ...                   Specifies one or more optional arguments. The number and type of argument parameters
+ *                             depend on the corresponding format-control specifications in the pFormat parameter.
+ *                            %[-][0][width][.precision]type
+ *                              "-"           Pad the output with blanks or zeros to the right to fill the field width, justifying output to the left.
+ *                              "0"           Pad the output value with zeros to fill the field width. If this field is omitted, the output value is padded with blank spaces.
+ *                              [width]       Copy the specified minimum number of characters to the output buffer.
+ *                              [.precision]  For numbers, copy the specified minimum number of digits to the output buffer. If the number of digits in the argument is less than the specified precision, the output value is padded on the left with zeros.
+ *                                            For strings, copy the specified maximum number of characters to the output buffer.
+ *                                            Supported special format to specify argument as precision: "%.%us" or "%.%ds"
+ *                              [type]
+ *                                "c"         ansi character.
+ *                                "d"         signed integer (32-bit).
+ *                                "Id"        signed integer (32-bit on x86, 64-bit on x64).
+ *                                "u"         unsigned integer (32-bit).
+ *                                "Iu"        unsigned integer (32-bit on x86, 64-bit on x64).
+ *                                "x","X"     unsigned hexadecimal integer in lowercase or uppercase (32-bit).
+ *                                "Ix","IX"   unsigned hexadecimal integer in lowercase or uppercase (32-bit on x86, 64-bit on x64).
+ *                                "s"         ansi string.
+ *                                "S"         unicode string.
  *
  *
- *Returns:  number of characters copied, not including the terminating null character.
+ *Returns: number of characters copied, not including the terminating null character.
+ *         If store operation failed due to insufficient buffer size, zero returns.
  *
  *Note:
- *  xprintfW uses xatoiW, xitoaW, xuitoaW, dec2hexW, xstrcpynW, xstrlenW.
+ *  xnprintfA uses xatoiA, xitoaA, xuitoaA, dec2hexA, xstrcpynA.
  *
  *Examples:
- *  xprintfW(szResult, L"%d | %u | %x | %X | %s", -123, 123, 123, 123, L"string");   //szResult == "-123 | 123 | 7b | 7B | string"
+ *  xnprintfA(szResult, "%d | %u | %x | %X | %s", -123, 123, 123, 123, "string");   //szResult == "-123 | 123 | 7b | 7B | string"
  ********************************************************************/
-#if defined xprintfW || defined ALLSTRFUNC
-#define xprintfW_INCLUDED
-#undef xprintfW
-INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
+#if defined xnprintfA || defined ALLSTRFUNC
+#define xnprintfA_INCLUDED
+#undef xnprintfA
+INT_PTR xnprintfA(char *szOutput, UINT_PTR dwOutputMax, const char *pFormat, ...)
+{
+  INT_PTR nOutputLen;
+
+  va_list argList;
+  va_start(argList, pFormat);
+
+  if (!dwOutputMax && szOutput) return 0;
+  nOutputLen=xprintfCommonA(NULL, pFormat, argList);
+  if (!szOutput) return nOutputLen;
+  if ((UINT_PTR)nOutputLen > dwOutputMax)
+  {
+    szOutput[0]='\0';
+    return 0;
+  }
+  nOutputLen=xprintfCommonA(szOutput, pFormat, argList);
+
+  va_end(argList);
+  return nOutputLen;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xprintfA
+ *
+ *Function formats and stores a series of characters and values in a buffer.
+ *
+ *  Same as xnprintfA, but without maximum number of characters to store parameter.
+ ********************************************************************/
+#if defined xprintfA || defined ALLSTRFUNC
+#define xprintfA_INCLUDED
+#undef xprintfA
+INT_PTR xprintfA(char *szOutput, const char *pFormat, ...)
+{
+  INT_PTR nOutputLen;
+
+  va_list argList;
+  va_start(argList, pFormat);
+
+  nOutputLen=xprintfCommonA(szOutput, pFormat, argList);
+
+  va_end(argList);
+  return nOutputLen;
+}
+#endif
+
+#if defined xprintfW || defined xnprintfW || defined ALLSTRFUNC
+INT_PTR xprintfCommonW(wchar_t *wszOutput, const wchar_t *wpFormat, va_list argList)
 {
   const wchar_t *wpFmt=wpFormat;
   wchar_t *wpOut=wszOutput;
@@ -3063,9 +3236,6 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
   BOOL bInt64;
   INT_PTR nSigned;
   INT_PTR nUnsigned;
-
-  va_list val;
-  va_start(val, wpFormat);
 
   while (*wpFmt)
   {
@@ -3100,7 +3270,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
         //Special format to specify argument as precision: "%.%us" or "%.%ds"
         if (*++wpFmt == '%' && (*(wpFmt + 1) == L'u' || *(wpFmt + 1) == L'd'))
         {
-          dwPrecision=(unsigned int)va_arg(val, INT_PTR);
+          dwPrecision=(unsigned int)va_arg(argList, INT_PTR);
           wpFmt+=2;
         }
         else dwPrecision=(unsigned int)xatoiW(wpFmt, &wpFmt);
@@ -3124,7 +3294,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       }
       else if (*wpFmt == L'c')
       {
-        nSigned=va_arg(val, INT_PTR);
+        nSigned=va_arg(argList, INT_PTR);
         if (nWidth > 0)
         {
           nWidth=max(nWidth - 1, 0);
@@ -3136,9 +3306,9 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       else if (*wpFmt == L'd')
       {
         if (bInt64)
-          nSigned=va_arg(val, INT_PTR);
+          nSigned=va_arg(argList, INT_PTR);
         else
-          nSigned=va_arg(val, int);
+          nSigned=va_arg(argList, int);
         if (!wszOutput || nWidth > 0)
         {
           dwLen=xitoaW(nSigned, NULL) - 1;
@@ -3159,9 +3329,9 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       else if (*wpFmt == L'u')
       {
         if (bInt64)
-          nUnsigned=va_arg(val, UINT_PTR);
+          nUnsigned=va_arg(argList, UINT_PTR);
         else
-          nUnsigned=va_arg(val, UINT);
+          nUnsigned=va_arg(argList, UINT);
         if (!wszOutput || nWidth > 0)
         {
           dwLen=xuitoaW(nUnsigned, NULL) - 1;
@@ -3177,9 +3347,9 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       else if (*wpFmt == L'x' || *wpFmt == L'X')
       {
         if (bInt64)
-          nUnsigned=va_arg(val, UINT_PTR);
+          nUnsigned=va_arg(argList, UINT_PTR);
         else
-          nUnsigned=va_arg(val, UINT);
+          nUnsigned=va_arg(argList, UINT);
         if (!wszOutput || nWidth > 0)
         {
           dwLen=dec2hexW(nUnsigned, NULL, 0, (*wpFmt == L'x')?TRUE:FALSE) - 1;
@@ -3194,7 +3364,7 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       }
       else if (*wpFmt == L's' || *wpFmt == L'S')
       {
-        if (pString=va_arg(val, unsigned char *))
+        if (pString=va_arg(argList, unsigned char *))
         {
           if (dwPrecision != (DWORD)-1)
           {
@@ -3266,8 +3436,97 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
   else
     ++wpOut;
 
-  va_end(val);
   return wpOut - wszOutput;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xnprintfW
+ *
+ *Function formats and stores a series of characters and values in a buffer.
+ *
+ *[out] wchar_t *wszOutput       Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
+ *[in]  UINT_PTR dwOutputMax     Maximum number of characters to store, including a terminating null character.
+ *[in]  const wchar_t *wpFormat  Pointer to a null-terminated string that contains the format-control specifications.
+ *                                wpFormat syntax is equal to wsprintfW function.
+ *[in]  ...                      Specifies one or more optional arguments. The number and type of argument parameters
+ *                                depend on the corresponding format-control specifications in the wpFormat parameter.
+ *                               %[-][0][width][.precision]type
+ *                                 "-"           Pad the output with blanks or zeros to the right to fill the field width, justifying output to the left.
+ *                                 "0"           Pad the output value with zeros to fill the field width. If this field is omitted, the output value is padded with blank spaces.
+ *                                 [width]       Copy the specified minimum number of characters to the output buffer.
+ *                                 [.precision]  For numbers, copy the specified minimum number of digits to the output buffer. If the number of digits in the argument is less than the specified precision, the output value is padded on the left with zeros.
+ *                                               For strings, copy the specified maximum number of characters to the output buffer.
+ *                                               Supported special format to specify argument as precision: "%.%us" or "%.%ds"
+ *                                 [type]
+ *                                   "c"         unicode character.
+ *                                   "d"         signed integer (32-bit).
+ *                                   "Id"        signed integer (32-bit on x86, 64-bit on x64).
+ *                                   "u"         unsigned integer (32-bit).
+ *                                   "Iu"        unsigned integer (32-bit on x86, 64-bit on x64).
+ *                                   "x","X"     unsigned hexadecimal integer in lowercase or uppercase (32-bit).
+ *                                   "Ix","IX"   unsigned hexadecimal integer in lowercase or uppercase (32-bit on x86, 64-bit on x64).
+ *                                   "s"         unicode string.
+ *                                   "S"         ansi string.
+ *
+ *
+ *Returns: number of characters copied, not including the terminating null character.
+ *         If store operation failed due to insufficient buffer size, zero returns.
+ *
+ *Note:
+ *  xnprintfW uses xatoiW, xitoaW, xuitoaW, dec2hexW, xstrcpynW, xstrlenW.
+ *
+ *Examples:
+ *  xnprintfW(szResult, L"%d | %u | %x | %X | %s", -123, 123, 123, 123, L"string");   //szResult == "-123 | 123 | 7b | 7B | string"
+ ********************************************************************/
+#if defined xnprintfW || defined ALLSTRFUNC
+#define xnprintfW_INCLUDED
+#undef xnprintfW
+INT_PTR xnprintfW(wchar_t *wszOutput, UINT_PTR dwOutputMax, const wchar_t *wpFormat, ...)
+{
+  INT_PTR nOutputLen;
+
+  va_list argList;
+  va_start(argList, wpFormat);
+
+  if (!dwOutputMax && wszOutput) return 0;
+  nOutputLen=xprintfCommonW(NULL, wpFormat, argList);
+  if (!wszOutput) return nOutputLen;
+  if ((UINT_PTR)nOutputLen > dwOutputMax)
+  {
+    wszOutput[0]=L'\0';
+    return 0;
+  }
+  nOutputLen=xprintfCommonW(wszOutput, wpFormat, argList);
+
+  va_end(argList);
+  return nOutputLen;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xprintfW
+ *
+ *Function formats and stores a series of characters and values in a buffer.
+ *
+ *  Same as xnprintfW, but without maximum number of characters to store parameter.
+ ********************************************************************/
+#if defined xprintfW || defined ALLSTRFUNC
+#define xprintfW_INCLUDED
+#undef xprintfW
+INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
+{
+  INT_PTR nOutputLen;
+
+  va_list argList;
+  va_start(argList, wpFormat);
+
+  nOutputLen=xprintfCommonW(wszOutput, wpFormat, argList);
+
+  va_end(argList);
+  return nOutputLen;
 }
 #endif
 
