@@ -1,7 +1,7 @@
 /******************************************************************
- *                  Wide functions header v3.3                    *
+ *                  Wide functions header v3.4                    *
  *                                                                *
- * 2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2024 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *  Header provide functions that can be successfully called in   *
  *        all versions of Windows including Win95/98/Me.          *
@@ -65,6 +65,7 @@ DWORD GetFileAttributesWide(const wchar_t *wpFile);
 BOOL SetFileAttributesWide(const wchar_t *wpFile, DWORD dwFileAttributes);
 HANDLE FindFirstFileWide(const wchar_t *wpFile, WIN32_FIND_DATAW *lpFindFileData);
 BOOL FindNextFileWide(HANDLE hFindFile, WIN32_FIND_DATAW *lpFindFileData);
+DWORD GetSystemDirectoryWide(wchar_t *wszDir, int nDirMax);
 DWORD GetCurrentDirectoryWide(int nDirMax, wchar_t *wszDir);
 BOOL SetCurrentDirectoryWide(const wchar_t *wszDir);
 HMODULE LoadLibraryWide(const wchar_t *wpFileName);
@@ -521,6 +522,32 @@ BOOL FindNextFileWide(HANDLE hFindFile, WIN32_FIND_DATAW *lpFindFileData)
 
   WideNotInitialized();
   return FALSE;
+}
+#endif
+
+#if defined GetSystemDirectoryWide || defined FILEWIDEFUNC || defined ALLWIDEFUNC
+#define GetSystemDirectoryWide_INCLUDED
+#undef GetSystemDirectoryWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+DWORD GetSystemDirectoryWide(wchar_t *wszDir, int nDirMax)
+{
+  if (WideGlobal_bOldWindows == FALSE)
+    return GetSystemDirectoryW(wszDir, nDirMax);
+  else if (WideGlobal_bOldWindows == TRUE)
+  {
+    char szDir[MAX_PATH];
+    DWORD dwResult;
+
+    GetSystemDirectoryA(szDir, MAX_PATH);
+    if (dwResult=AnsiToWide(szDir, -1, wszDir, nDirMax))
+      --dwResult;
+    return dwResult;
+  }
+
+  WideNotInitialized();
+  return 0;
 }
 #endif
 
