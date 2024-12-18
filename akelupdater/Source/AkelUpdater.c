@@ -1,7 +1,7 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v6.8                  *
+ *                 AkelUpdater NSIS plugin v6.9                  *
  *                                                               *
- * 2018 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2024 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
 
 #define _WIN32_IE 0x0400
@@ -423,7 +423,7 @@ BOOL bInputNoCopies=FALSE;
 BOOL bSelectAllExe;
 BOOL bSelectAllDll;
 BOOL bSelectAllJs;
-INT_PTR lpDownloadScriptsProc;
+int nDownloadScriptsProcPos;
 RECT rcMainMinMaxDialog={437, 309, 0, 0};
 RECT rcMainCurrentDialog={0};
 
@@ -431,9 +431,6 @@ RECT rcMainCurrentDialog={0};
 BOOL (WINAPI *GetBinaryTypePtr)(const wchar_t *lpApplicationName, LPDWORD lpBinaryType);
 
 //Plugin extern function
-#ifdef __GNUC__
-  extern "C"
-#endif
 void __declspec(dllexport) Init(HWND hwndParent, int string_size, wchar_t *variables, stack_t **stacktop, extra_parameters *extra)
 {
   Initialize(string_size, variables, stacktop, extra);
@@ -471,9 +468,6 @@ void __declspec(dllexport) Init(HWND hwndParent, int string_size, wchar_t *varia
   }
 }
 
-#ifdef __GNUC__
-  extern "C"
-#endif
 void __declspec(dllexport) List(HWND hwndParent, int string_size, wchar_t *variables, stack_t **stacktop, extra_parameters *extra)
 {
   Initialize(string_size, variables, stacktop, extra);
@@ -482,12 +476,12 @@ void __declspec(dllexport) List(HWND hwndParent, int string_size, wchar_t *varia
 
     popstringWide(wszInputVersion, MAX_PATH);
     popstringWide(wszInputLanguage, MAX_PATH);
-    bInputOnTop=popintegerWide();
-    nInputBit=popintegerWide();
-    bInputAuto=popintegerWide();
-    bInputNoCopies=popintegerWide();
+    bInputOnTop=(BOOL)popintegerWide();
+    nInputBit=(int)popintegerWide();
+    bInputAuto=(BOOL)popintegerWide();
+    bInputNoCopies=(BOOL)popintegerWide();
     popstringWide(wszNsisTempDir, MAX_PATH);
-    lpDownloadScriptsProc=popintegerWide();
+    nDownloadScriptsProcPos=(int)popintegerWide();
     popstringWide(wszInputHelper, MAX_PATH);
 
     nResult=DialogBoxWide(hInstanceDLL, MAKEINTRESOURCEW(IDD_SETUP), hwndParent, (DLGPROC)SetupDlgProc);
@@ -495,9 +489,6 @@ void __declspec(dllexport) List(HWND hwndParent, int string_size, wchar_t *varia
   }
 }
 
-#ifdef __GNUC__
-  extern "C"
-#endif
 void __declspec(dllexport) Collapse(HWND hwndParent, int string_size, wchar_t *variables, stack_t **stacktop, extra_parameters *extra)
 {
   Initialize(string_size, variables, stacktop, extra);
@@ -509,9 +500,6 @@ void __declspec(dllexport) Collapse(HWND hwndParent, int string_size, wchar_t *v
   }
 }
 
-#ifdef __GNUC__
-  extern "C"
-#endif
 void __declspec(dllexport) ParseAndPush(HWND hwndParent, int string_size, wchar_t *variables, stack_t **stacktop, extra_parameters *extra)
 {
   Initialize(string_size, variables, stacktop, extra);
@@ -948,8 +936,8 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bScriptsLstLoaded=TRUE;
           pushstringWide(L"ini");
           pushstringWide(wszScriptsPack);
-          if (lpDownloadScriptsProc >= 0)
-            g_pluginParms->ExecuteCodeSegment(lpDownloadScriptsProc - 1, 0);
+          if (nDownloadScriptsProcPos >= 0)
+            g_pluginParms->ExecuteCodeSegment(nDownloadScriptsProcPos - 1, 0);
           ParseLst(hDlg);
           CompareItems();
         }
@@ -1001,12 +989,12 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
 
           //"Type|Pack|Path64|OrigName"
-          nOffset=xprintfW(wszBuffer, L"%d|%s|%d|%s", lpFileItem->nType, lpFileItem->wszPack, lpFileItem->bPath64, lpFileItem->wszName);
+          nOffset=(int)xprintfW(wszBuffer, L"%d|%s|%d|%s", lpFileItem->nType, lpFileItem->wszPack, lpFileItem->bPath64, lpFileItem->wszName);
 
           //Append copies and push them in format "Type|Pack|Path64|OrigName|CopyName1|CopyName2"
           for (lpCopyItem=lpFileItem->firstCopy; lpCopyItem; lpCopyItem=lpCopyItem->next)
           {
-            nOffset+=xprintfW(wszBuffer + nOffset, L"|%s", lpCopyItem->wszName);
+            nOffset+=(int)xprintfW(wszBuffer + nOffset, L"|%s", lpCopyItem->wszName);
           }
 
           pushstringWide(wszBuffer);
@@ -1021,15 +1009,15 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         for (lpPackItem=hPackStack.first; lpPackItem; lpPackItem=lpPackItem->next)
         {
-          nOffset+=xprintfW(wszScriptsPack + nOffset, L"%s|", lpPackItem->wszName);
+          nOffset+=(int)xprintfW(wszScriptsPack + nOffset, L"%s|", lpPackItem->wszName);
         }
         StackFilesFree(&hPackStack);
 
         //Download script packs
         pushstringWide(L"zip");
         pushstringWide(wszScriptsPack);
-        if (lpDownloadScriptsProc >= 0)
-          g_pluginParms->ExecuteCodeSegment(lpDownloadScriptsProc - 1, 0);
+        if (nDownloadScriptsProcPos >= 0)
+          g_pluginParms->ExecuteCodeSegment(nDownloadScriptsProcPos - 1, 0);
       }
 
       xprintfW(wszBuffer, L"%s|%s|%d|%d|%d", (lpFileItemAkelPad->nChecked > 0) ? lpFileItemAkelPad->wszLastVer : L"0",
@@ -1040,12 +1028,12 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       setuservariable(INST_0, wszBuffer);
 
       wszBuffer[0]=L'\0';
-      if ((nSelection=SendMessage(hWndMirror, CB_GETCURSEL, 0, 0)) != CB_ERR)
+      if ((nSelection=(int)SendMessage(hWndMirror, CB_GETCURSEL, 0, 0)) != CB_ERR)
         ComboBox_GetLBTextWide(hWndMirror, nSelection, wszBuffer);
       setuservariable(INST_1, wszBuffer);
 
       wszBuffer[0]=L'\0';
-      if ((nSelection=SendMessage(hWndLanguage, CB_GETCURSEL, 0, 0)) != CB_ERR)
+      if ((nSelection=(int)SendMessage(hWndLanguage, CB_GETCURSEL, 0, 0)) != CB_ERR)
         ComboBox_GetLBTextWide(hWndLanguage, nSelection, wszBuffer);
       setuservariable(INST_2, wszBuffer);
 
@@ -1186,7 +1174,7 @@ void ParseLst(HWND hDlg)
                 xstrcpynW(wszName, wszName + 1, MAX_PATH);
 
                 if ((lpFileItemAkelPad && !xstrcmpnW(L"AkelPad", wszName, (UINT_PTR)-1)) ||
-                    (nInputBit == 64 && xstrstrW(wszNoSupport64Bit, -1, wszName, nNameLen, FALSE, NULL, NULL)))
+                    (nInputBit == 64 && xstrstrW(wszNoSupport64Bit, -1, wszName, (int)nNameLen, FALSE, NULL, NULL)))
                 {
                   //Skip line
                 }
@@ -1223,7 +1211,7 @@ void ParseLst(HWND hDlg)
                       lpFileItem->nType=FIT_PLUGIN;
                       xstrcpynW(lpFileItem->wszPack, (nInputBit == 64 ? STR_PLUGSPACK64 : STR_PLUGSPACK), MAX_PATH);
 
-                      if (wszPlugsDir64[0] && !xstrstrW(wszNoSupport64Bit, -1, wszName, nNameLen, FALSE, NULL, NULL))
+                      if (wszPlugsDir64[0] && !xstrstrW(wszNoSupport64Bit, -1, wszName, (int)nNameLen, FALSE, NULL, NULL))
                       {
                         if (lpFileItem=StackFileInsert(&hFileStack, wszName))
                         {
@@ -1511,16 +1499,16 @@ void FillItems(HWND hDlg, HWND hWndListExe, HWND hWndListDll, const wchar_t *wpF
         }
       }
 
-      nOffset=xstrcpynW(wszBuffer, wpName, MAX_PATH);
+      nOffset=(int)xstrcpynW(wszBuffer, wpName, MAX_PATH);
 
       //Append copies
       if (lpCopyItem=lpFileItem->firstCopy)
       {
-        nOffset+=xprintfW(wszBuffer + nOffset, L" (%s", lpCopyItem->wszName);
+        nOffset+=(int)xprintfW(wszBuffer + nOffset, L" (%s", lpCopyItem->wszName);
 
         for (lpCopyItem=lpCopyItem->next; lpCopyItem; lpCopyItem=lpCopyItem->next)
         {
-          nOffset+=xprintfW(wszBuffer + nOffset, L", %s", lpCopyItem->wszName);
+          nOffset+=(int)xprintfW(wszBuffer + nOffset, L", %s", lpCopyItem->wszName);
         }
         xprintfW(wszBuffer + nOffset, L")");
       }
@@ -1663,7 +1651,7 @@ int GetNextWord(const wchar_t *wpStr, INT_PTR nStrLen, const wchar_t *wpDelim, i
 
   xstrstrW(wpStr, nStrLen, wpDelim, nDelimLen, TRUE, &wpMatchBegin, &wpMatchEnd);
   if (wpNextWord) *wpNextWord=wpMatchEnd;
-  return xstrcpynW(wszWord, wpStr, min(wpMatchBegin - wpStr + 1, nWordMax));
+  return (int)xstrcpynW(wszWord, wpStr, min(wpMatchBegin - wpStr + 1, nWordMax));
 }
 
 void StackFilesFill(STACKFILEITEM *hStack, const wchar_t *wpPlugsDir, BOOL bPath64)
@@ -2772,7 +2760,7 @@ int getuservariable(const int varnum, wchar_t *str, int len)
   {
     if (g_unicode)
     {
-      len=xstrcpynW(str, g_variables + varnum*g_stringsize, len);
+      len=(int)xstrcpynW(str, g_variables + varnum*g_stringsize, len);
     }
     else
     {
@@ -2826,7 +2814,7 @@ int popstringAnsi(char *str, int len)
     }
     else
     {
-      len=xstrcpynA(str, (const char *)th->text, len);
+      len=(int)xstrcpynA(str, (const char *)th->text, len);
     }
     *g_stacktop=th->next;
     GlobalFree((HGLOBAL)th);
@@ -2844,7 +2832,7 @@ int popstringWide(wchar_t *str, int len)
     th=(*g_stacktop);
     if (g_unicode)
     {
-      len=xstrcpynW(str, th->text, len);
+      len=(int)xstrcpynW(str, th->text, len);
     }
     else
     {

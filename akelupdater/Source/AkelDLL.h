@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 2, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 4, 0)
 
 
 //// Defines
@@ -106,6 +106,12 @@
 #define IEE_CALLERROR          5
 #define IEE_NOFALSE            6
 #define IEE_NULLSTRING         7
+
+//MI_ONSTART type
+#define MOS_NONE        0 //Main window initialized
+#define MOS_ONSTART     1 //Execution is between AKDN_MAIN_ONSTART and AKDN_MAIN_ONSTART_PRESHOW
+#define MOS_PRESHOW     2 //Execution is between AKDN_MAIN_ONSTART_PRESHOW and AKDN_MAIN_ONSTART_SHOW
+#define MOS_SHOW        3 //Execution is between AKDN_MAIN_ONSTART_SHOW and AKDN_MAIN_ONSTART_FINISH
 
 //MI_ONFINISH type
 #define MOF_NONE        0
@@ -266,7 +272,7 @@
 #define MI_LANGIDSYSTEM              53   //Return: system language ID.
 #define MI_LANGIDMODULE              54   //Return: language module language ID.
 //Execution
-#define MI_ONSTART                   90   //Return: TRUE - execution is between AKDN_MAIN_ONSTART and AKDN_MAIN_ONSTART_FINISH, FALSE - elsewhere.
+#define MI_ONSTART                   90   //Return: see MOS_* defines.
 #define MI_ONFINISH                  91   //Return: see MOF_* defines.
 #define MI_AKELEXEA                  95   //Return: copied chars. (char *)lParam - buffer that receives AkelPad executable string.
 #define MI_AKELEXEW                  96   //Return: copied chars. (wchar_t *)lParam - buffer that receives AkelPad executable string.
@@ -536,6 +542,7 @@
 #define CO_CARETVERTLINE         0x00000002  //Draw caret vertical line.
 #define CO_CARETACTIVELINE       0x00000004  //Draw active line.
 #define CO_CARETACTIVELINEBORDER 0x00000008  //Draw active line border.
+#define CO_NOCARETHORZINDENT     0x00000010  //Caret horizontal indent isn't recovered after pressing Up, Down, Page Up, Page Down keys.
 
 //Mouse options
 #define MO_LEFTMARGINSELECTION   0x00000001  //Enables left margin line selection with mouse.

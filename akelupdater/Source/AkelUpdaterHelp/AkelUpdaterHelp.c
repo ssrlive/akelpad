@@ -42,7 +42,7 @@ void _WinMain()
   DLLINFO di;
   HMODULE hInstance;
   HWND hWndSend=NULL;
-  wchar_t *wpArguments=GetCommandLineW();
+  const wchar_t *wpArguments=GetCommandLineW();
   wchar_t wszWindow[MAX_PATH];
   wchar_t wszFile[MAX_PATH];
   int nAction;

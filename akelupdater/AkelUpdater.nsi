@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "6.8"
+!define PRODUCT_VERSION "6.9"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -7,9 +7,15 @@ SetCompressor /SOLID lzma
 CRCCheck off
 RequestExecutionLevel user
 
+!searchparse ${NSIS_VERSION} v VER_MAJOR .
+!if ${VER_MAJOR} > 2
+  Unicode False
+  ManifestDPIAware True
+!endif
+
 ############  File info  ############
 VIAddVersionKey FileDescription "AkelPad text editor updater"
-VIAddVersionKey LegalCopyright "© 2018 Shengalts Aleksander aka Instructor"
+VIAddVersionKey LegalCopyright "© 2024 Shengalts Aleksander aka Instructor"
 VIAddVersionKey ProductName "${PRODUCT_NAME}"
 VIAddVersionKey FileVersion "${PRODUCT_VERSION}"
 VIAddVersionKey Comments ""
@@ -97,6 +103,7 @@ LangString completed ${LANG_ENGLISH} 'Completed'
 LangString completed ${LANG_RUSSIAN} 'Завершено'
 
 ############  Variables  ############
+Var ISCURL
 Var PARAMETERS
 Var PROXYPARAM
 Var PROXYVALUE
@@ -207,6 +214,11 @@ Function .onInit
     MessageBox MB_OK|MB_ICONEXCLAMATION '$(not_in_folder)'
     Quit
   ${EndIf}
+  ${If} ${FileExists} "$EXEDIR\NScurl.dll"
+    StrCpy $ISCURL 1
+  ${Else}
+    StrCpy $ISCURL 0
+  ${EndIf}
 
   InitPluginsDir
   ;CopyFiles /SILENT "c:\a\VC\akelpad_4\AkelUpdater\Source\Debug\AkelUpdater.dll" "$PLUGINSDIR"
@@ -233,7 +245,11 @@ Function .onInit
   ${GetOptions} $PARAMETERS "/PROXY=" $0
   ${IfNot} ${Errors}
     StrCpy $PROXYPARAM /PROXY
-    StrCpy $PROXYVALUE $0
+    ${If} $ISCURL == 1
+      StrCpy $PROXYVALUE "http://$0"
+    ${Else}
+      StrCpy $PROXYVALUE $0
+    ${EndIf}
   ${EndIf}
 
   ${GetOptions} $PARAMETERS "/AUTH=" $0
@@ -242,9 +258,13 @@ Function .onInit
     ${IfNot} ${Errors}
       ${WordFind} "$0" ":" "E+1}" $2
       ${IfNot} ${Errors}
-        StrCpy $LOGINPARAM /USERNAME
+        ${If} $ISCURL == 1
+          StrCpy $LOGINPARAM /PROXYAUTH
+        ${Else}
+          StrCpy $LOGINPARAM /USERNAME
+          StrCpy $PASSWORDPARAM /PASSWORD
+        ${EndIf}
         StrCpy $LOGINVALUE $1
-        StrCpy $PASSWORDPARAM /PASSWORD
         StrCpy $PASSWORDVALUE $2
       ${EndIf}
     ${EndIf}
@@ -315,11 +335,35 @@ Function .onInit
     CopyFiles /SILENT "$AKELPADDIR\versions.lst" "$PLUGINSDIR"
     CopyFiles /SILENT "$AKELPADDIR\*.ini" "$PLUGINSDIR"
   ${Else}
-    inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-               $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
-               /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-               "http://akelpad.sourceforge.net/img/versions.lst" "$PLUGINSDIR\versions.lst" /END
-    Pop $0
+    ${If} $ISCURL == 1
+      Push /END
+      Push /POPUP
+      Push /CANCEL
+      ;Push "$EXEDIR\log.md"
+      ;Push /DEBUG
+      Push "$PASSWORDVALUE"
+      Push "$LOGINVALUE"
+      Push $LOGINPARAM
+      Push "$PROXYVALUE"
+      Push $PROXYPARAM
+      Push "$PLUGINSDIR\versions.lst"
+      Push "https://akelpad.sourceforge.net/img/versions.lst"
+      Push GET
+      CallInstDLL "$EXEDIR\NScurl.dll" http
+      Pop $0
+
+      ;nscurl::http GET "https://akelpad.sourceforge.net/img/versions.lst" "$PLUGINSDIR\versions.lst" \
+      ;             $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" "$PASSWORDVALUE" \
+      ;             /CANCEL /POPUP /END
+      ;Pop $0
+    ${Else}
+      inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+                 $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+                 /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
+                 "http://akelpad.sourceforge.net/img/versions.lst" "$PLUGINSDIR\versions.lst" /END
+      Pop $0
+    ${EndIf}
+
     ${If} $0 != "OK"
       MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
       Quit
