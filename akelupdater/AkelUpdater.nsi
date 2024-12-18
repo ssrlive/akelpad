@@ -111,6 +111,8 @@ Var LOGINPARAM
 Var LOGINVALUE
 Var PASSWORDPARAM
 Var PASSWORDVALUE
+Var FILESRC
+Var FILEDST
 Var SAVEDIR
 Var AKELPADDIR
 Var AKELFILESDIR
@@ -245,10 +247,10 @@ Function .onInit
   ${GetOptions} $PARAMETERS "/PROXY=" $0
   ${IfNot} ${Errors}
     StrCpy $PROXYPARAM /PROXY
-    ${If} $ISCURL == 1
-      StrCpy $PROXYVALUE "http://$0"
-    ${Else}
+    ${If} $ISCURL == 0
       StrCpy $PROXYVALUE $0
+    ${Else}
+      StrCpy $PROXYVALUE "http://$0"
     ${EndIf}
   ${EndIf}
 
@@ -258,11 +260,11 @@ Function .onInit
     ${IfNot} ${Errors}
       ${WordFind} "$0" ":" "E+1}" $2
       ${IfNot} ${Errors}
-        ${If} $ISCURL == 1
-          StrCpy $LOGINPARAM /PROXYAUTH
-        ${Else}
+        ${If} $ISCURL == 0
           StrCpy $LOGINPARAM /USERNAME
           StrCpy $PASSWORDPARAM /PASSWORD
+        ${Else}
+          StrCpy $LOGINPARAM /PROXYAUTH
         ${EndIf}
         StrCpy $LOGINVALUE $1
         StrCpy $PASSWORDVALUE $2
@@ -335,7 +337,13 @@ Function .onInit
     CopyFiles /SILENT "$AKELPADDIR\versions.lst" "$PLUGINSDIR"
     CopyFiles /SILENT "$AKELPADDIR\*.ini" "$PLUGINSDIR"
   ${Else}
-    ${If} $ISCURL == 1
+    ${If} $ISCURL == 0
+      inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+                 $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+                 /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
+                 "http://akelpad.sourceforge.net/img/versions.lst" "$PLUGINSDIR\versions.lst" /END
+      Pop $0
+    ${Else}
       Push /END
       Push /POPUP
       Push /CANCEL
@@ -356,12 +364,6 @@ Function .onInit
       ;             $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" "$PASSWORDVALUE" \
       ;             /CANCEL /POPUP /END
       ;Pop $0
-    ${Else}
-      inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-                 $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
-                 /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-                 "http://akelpad.sourceforge.net/img/versions.lst" "$PLUGINSDIR\versions.lst" /END
-      Pop $0
     ${EndIf}
 
     ${If} $0 != "OK"
@@ -480,9 +482,11 @@ Function DownloadScriptsProc
 
   ;Download "KDJ.ini" (or "KDJ.zip"), "Infocatcher.ini" (or "Infocatcher.zip") and so on
   ${If} $SCRIPTSPACK != ""
-    ;Add urls for inetc::get
-    Push "/END"
+    ;Add urls
     StrCpy $WORDCOUNT 1
+    ${If} $ISCURL == 0
+      Push "/END"
+    ${EndIf}
     ${Do}
       ;KDJ|Infocatcher|Instructor|VladSh
       ${WordFind} "$SCRIPTSPACK" "|" "E-$WORDCOUNT" $1
@@ -490,17 +494,41 @@ Function DownloadScriptsProc
         ${Break}
       ${EndIf}
       ${If} $EXTENSION == "zip"
-        Push "$SAVEDIR\$1.$EXTENSION"
+        StrCpy $FILEDST "$SAVEDIR\$1.$EXTENSION"
       ${Else}
-        Push "$PLUGINSDIR\$1.$EXTENSION"
+        StrCpy $FILEDST "$PLUGINSDIR\$1.$EXTENSION"
       ${EndIf}
-      Push "http://akelpad.sourceforge.net/files/plugs/Scripts/$1.$EXTENSION"
+      StrCpy $FILESRC "http://akelpad.sourceforge.net/files/plugs/Scripts/$1.$EXTENSION"
       IntOp $WORDCOUNT $WORDCOUNT + 1
+
+      ${If} $ISCURL == 0
+        Push $FILEDST
+        Push $FILESRC
+      ${Else}
+        Push /END
+        Push /POPUP
+        Push /CANCEL
+        Push "$PASSWORDVALUE"
+        Push "$LOGINVALUE"
+        Push $LOGINPARAM
+        Push "$PROXYVALUE"
+        Push $PROXYPARAM
+        Push $FILEDST
+        Push $FILESRC
+        Push GET
+        CallInstDLL "$EXEDIR\NScurl.dll" http
+        Pop $0
+        ${If} $0 != "OK"
+          ${Break}
+        ${EndIf}
+      ${EndIf}
     ${Loop}
-    inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-                       $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
-                       /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)"
-    Pop $0
+    ${If} $ISCURL == 0
+      inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+                         $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+                         /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)"
+      Pop $0
+    ${EndIf}
     ${If} $0 != "OK"
       MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
       Quit
@@ -520,11 +548,27 @@ Function DownloadZip
   ;Download "AkelPad-x.x.x-bin-lng.zip"
   ${If} $DL_EXEVERSIONFULL != 0
     ${If} $DEBUG != 1
-      inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-                 $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
-                 /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-                 "http://$ZIPMIRROR.dl.sourceforge.net/project/akelpad/AkelPad%20$DL_EXEVERSIONMAJOR/$DL_EXEVERSIONFULL$BITSUFFIXSLASH/AkelPad-$DL_EXEVERSIONFULL$BITSUFFIXMINUS-bin-$ZIPLANG.zip" "$SAVEDIR\AkelPad-$DL_EXEVERSIONFULL$BITSUFFIXMINUS-bin-$ZIPLANG.zip" /end
-      Pop $0
+      ${If} $ISCURL == 0
+        inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+                   $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+                   /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
+                   "http://$ZIPMIRROR.dl.sourceforge.net/project/akelpad/AkelPad%20$DL_EXEVERSIONMAJOR/$DL_EXEVERSIONFULL$BITSUFFIXSLASH/AkelPad-$DL_EXEVERSIONFULL$BITSUFFIXMINUS-bin-$ZIPLANG.zip" "$SAVEDIR\AkelPad-$DL_EXEVERSIONFULL$BITSUFFIXMINUS-bin-$ZIPLANG.zip" /end
+        Pop $0
+      ${Else}
+        Push /END
+        Push /POPUP
+        Push /CANCEL
+        Push "$PASSWORDVALUE"
+        Push "$LOGINVALUE"
+        Push $LOGINPARAM
+        Push "$PROXYVALUE"
+        Push $PROXYPARAM
+        Push "$SAVEDIR\AkelPad-$DL_EXEVERSIONFULL$BITSUFFIXMINUS-bin-$ZIPLANG.zip"
+        Push "http://$ZIPMIRROR.dl.sourceforge.net/project/akelpad/AkelPad%20$DL_EXEVERSIONMAJOR/$DL_EXEVERSIONFULL$BITSUFFIXSLASH/AkelPad-$DL_EXEVERSIONFULL$BITSUFFIXMINUS-bin-$ZIPLANG.zip"
+        Push GET
+        CallInstDLL "$EXEDIR\NScurl.dll" http
+        Pop $0
+      ${EndIf}
       ${If} $0 != "OK"
         MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
         Quit
@@ -533,11 +577,28 @@ Function DownloadZip
       ;Download "LangsPack.zip"
       ${If} ${FileExists} "$AKELLANGSDIR$DL_PATH64\*.dll"
         StrCpy $LANGEXIST "true"
-        inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-                   $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
-                   /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-                   "http://akelpad.sourceforge.net/files/langs/LangsPack$BITSUFFIXMINUS.zip" "$SAVEDIR\LangsPack$BITSUFFIXMINUS.zip" /end
-        Pop $0
+
+        ${If} $ISCURL == 0
+          inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+                     $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+                     /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
+                     "http://akelpad.sourceforge.net/files/langs/LangsPack$BITSUFFIXMINUS.zip" "$SAVEDIR\LangsPack$BITSUFFIXMINUS.zip" /end
+          Pop $0
+        ${Else}
+          Push /END
+          Push /POPUP
+          Push /CANCEL
+          Push "$PASSWORDVALUE"
+          Push "$LOGINVALUE"
+          Push $LOGINPARAM
+          Push "$PROXYVALUE"
+          Push $PROXYPARAM
+          Push "$SAVEDIR\LangsPack$BITSUFFIXMINUS.zip"
+          Push "http://akelpad.sourceforge.net/files/langs/LangsPack$BITSUFFIXMINUS.zip"
+          Push GET
+          CallInstDLL "$EXEDIR\NScurl.dll" http
+          Pop $0
+        ${EndIf}
         ${If} $0 != "OK"
           MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
           Quit
@@ -549,11 +610,27 @@ Function DownloadZip
   ;Download "PlugsPack.zip"
   ${If} $DL_PLUGINCOUNT != 0
     ${If} $DEBUG != 1
-      inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-                 $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
-                 /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-                 "http://akelpad.sourceforge.net/files/plugs/PlugsPack$BITSUFFIXMINUS.zip" "$SAVEDIR\PlugsPack$BITSUFFIXMINUS.zip" /end
-      Pop $0
+      ${If} $ISCURL == 0
+        inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+                   $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+                   /TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
+                   "http://akelpad.sourceforge.net/files/plugs/PlugsPack$BITSUFFIXMINUS.zip" "$SAVEDIR\PlugsPack$BITSUFFIXMINUS.zip" /end
+        Pop $0
+      ${Else}
+        Push /END
+        Push /POPUP
+        Push /CANCEL
+        Push "$PASSWORDVALUE"
+        Push "$LOGINVALUE"
+        Push $LOGINPARAM
+        Push "$PROXYVALUE"
+        Push $PROXYPARAM
+        Push "$SAVEDIR\PlugsPack$BITSUFFIXMINUS.zip"
+        Push "http://akelpad.sourceforge.net/files/plugs/PlugsPack$BITSUFFIXMINUS.zip"
+        Push GET
+        CallInstDLL "$EXEDIR\NScurl.dll" http
+        Pop $0
+      ${EndIf}
       ${If} $0 != "OK"
         MessageBox MB_OK|MB_ICONEXCLAMATION '$(download_error): $0'
         Quit
