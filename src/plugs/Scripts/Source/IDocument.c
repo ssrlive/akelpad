@@ -1189,7 +1189,7 @@ HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **
           }
           else
           {
-            #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0x7FFFFFFF)
+            #if defined(_WIN64)
               if (pvtParameter->bstrVal && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
               {
                 //JScript doesn't support VT_I8, so __int64 number converted to string.
@@ -1610,7 +1610,7 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *This, VARIANT vtPointer, V
 
   if (pvtData->vt == VT_BSTR)
   {
-    #if defined(_WIN64) || (defined(SCRIPTS_MAXHANDLE) && SCRIPTS_MAXHANDLE < 0x7FFFFFFF)
+    #if defined(_WIN64)
       if (pvtData->bstrVal && !pvtData->bstrVal[0] && SysStringLen(pvtData->bstrVal) > 0)
       {
         //JScript doesn't support VT_I8, so __int64 number converted to string.

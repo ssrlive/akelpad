@@ -77,7 +77,7 @@ Call("Log::Output", 1, "PROGRAM", "WORKDIR", "REPATTERN", "RETAGS", INPUTCODEPAG
   Пример (вывод в выделение без панели вывода):
     Call("Log::Output", 1, `ipconfig`, "", "", "", -1, -1, 1048577)
   Пример (запуск пакетного файла для компиляции):
-    Call("Log::Output", 1, `"%d\Build.cmd" /S`, "%d", "^\s*(.*)[(:](\d+)([,:](\d+))?[):]", "/FILE=\1 /GOTOLINE=\2:\4", -2, -2, 4)
+    Call("Log::Output", 1, `"%d\Build.cmd" /S`, "%d", "^\s*(.*?)[(:](\d+)([,:](\d+))?[):]", "/FILE=\1 /GOTOLINE=\2:\4", -2, -2, 4)
 
 Call("Log::Output", 2, *WINDOW, *DOCK)
   Параметры:
