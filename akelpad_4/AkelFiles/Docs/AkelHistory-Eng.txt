@@ -3,6 +3,8 @@ AkelPad 4.10.0 ()
 -----------------
 Changed: statusbar parts width and tabs height now take into account Windows scale percent.
 
+Added: manual parameter "VersionCheck" - possibility to turn off language module version check.
+
 
 AkelPad 4.9.9 (Oct 16, 2024)
 ----------------------------

@@ -874,6 +874,7 @@ void _WinMain()
   //moInit.dwEditStyle=0;
   //moInit.bRichEditClass=FALSE;
   moInit.bAkelAdminResident=TRUE;
+  moInit.dwVersionCheck=VCF_LANGMODULE;
   //moInit.wszDateLogFormat[0]=L'\0';
   //moInit.wszDateInsertFormat[0]=L'\0';
   //moInit.wszAkelUpdaterOptions[0]=L'\0';
@@ -1167,7 +1168,7 @@ void _WinMain()
     }
     else bResult=GetFileVersionW(wbuf, &nMajor, &nMinor, &nRelease, &nBuild, &dwLangModule);
 
-    if (bResult && MAKE_IDENTIFIER(nMajor, nMinor, nRelease, nBuild) == dwExeVersion)
+    if (bResult && (!(moCur.dwVersionCheck & VCF_LANGMODULE) || MAKE_IDENTIFIER(nMajor, nMinor, nRelease, nBuild) == dwExeVersion))
     {
       if (!(hLangModule=LoadLibraryWide(wbuf)))
       {
@@ -2598,6 +2599,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return moCur.bRichEditClass;
           case MI_AKELADMINRESIDENT:
             return moCur.bAkelAdminResident;
+          case MI_VERSIONCHECK:
+            return moCur.dwVersionCheck;
           case MI_DATELOGFORMAT:
             return xstrcpynW((void *)lParam, moCur.wszDateLogFormat, 128);
           case MI_DATEINSERTFORMAT:
@@ -2875,6 +2878,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return SetOption(lParam, &moCur.bRichEditClass, sizeof(DWORD), INI_DWORD);
           case MIS_AKELADMINRESIDENT:
             return SetOption(lParam, &moCur.bAkelAdminResident, sizeof(DWORD), INI_DWORD);
+          case MIS_VERSIONCHECK:
+            return SetOption(lParam, &moCur.dwVersionCheck, sizeof(DWORD), INI_DWORD);
           case MIS_DATELOGFORMAT:
             return SetOption(lParam, moCur.wszDateLogFormat, sizeof(moCur.wszDateLogFormat), INI_STRINGUNICODE);
           case MIS_DATEINSERTFORMAT:
