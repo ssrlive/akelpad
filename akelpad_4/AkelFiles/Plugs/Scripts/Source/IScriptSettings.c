@@ -125,7 +125,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Begin(IScriptSettings *this, BSTR wpScr
   if (!wpScriptName || !*wpScriptName)
     wpScriptName=lpScriptThread->wszScriptBaseName;
   *lphOptions=(HANDLE)SendMessage(hMainWnd, AKD_BEGINOPTIONSW, dwFlags|POB_SCRIPTS, (LPARAM)wpScriptName);
-  SetVariantInt(vtOptions, (INT_PTR)*lphOptions);
+  SetVariantIntPtr(vtOptions, (INT_PTR)*lphOptions);
   return NOERROR;
 }
 
@@ -155,7 +155,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, VARIANT vtO
 
   if (dwType == PO_BINARYSIZE)
   {
-    SetVariantInt(vtData, nDataSize);
+    SetVariantIntPtr(vtData, nDataSize);
     return hr;
   }
   if (nDataSize >= 0)
@@ -171,7 +171,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, VARIANT vtO
       }
       else if (dwType == PO_BINARY)
       {
-        SetVariantInt(vtData, (INT_PTR)lpData);
+        SetVariantIntPtr(vtData, (INT_PTR)lpData);
         lpData=NULL;
       }
       else if (dwType == PO_STRING || dwType == PO_ENUM)

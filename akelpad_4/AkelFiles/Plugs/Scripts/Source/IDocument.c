@@ -244,7 +244,7 @@ HRESULT STDMETHODCALLTYPE Document_Global(IDocument *this, IDispatch **objGlobal
 
 HRESULT STDMETHODCALLTYPE Document_GetMainWnd(IDocument *this, VARIANT *vtWnd)
 {
-  SetVariantInt(vtWnd, (INT_PTR)hMainWnd);
+  SetVariantIntPtr(vtWnd, (INT_PTR)hMainWnd);
   return NOERROR;
 }
 
@@ -277,13 +277,13 @@ HRESULT STDMETHODCALLTYPE Document_GetAkelDir(IDocument *this, int nSubDir, BSTR
 
 HRESULT STDMETHODCALLTYPE Document_GetInstanceExe(IDocument *this, VARIANT *vtInstance)
 {
-  SetVariantInt(vtInstance, (INT_PTR)hInstanceEXE);
+  SetVariantIntPtr(vtInstance, (INT_PTR)hInstanceEXE);
   return NOERROR;
 }
 
 HRESULT STDMETHODCALLTYPE Document_GetInstanceDll(IDocument *this, VARIANT *vtInstance)
 {
-  SetVariantInt(vtInstance, (INT_PTR)hInstanceDLL);
+  SetVariantIntPtr(vtInstance, (INT_PTR)hInstanceDLL);
   return NOERROR;
 }
 
@@ -336,7 +336,7 @@ HRESULT STDMETHODCALLTYPE Document_IsMDI(IDocument *this, int *nIsMDI)
 
 HRESULT STDMETHODCALLTYPE Document_GetEditWnd(IDocument *this, VARIANT *vtWnd)
 {
-  SetVariantInt(vtWnd, (INT_PTR)GetCurEdit(this));
+  SetVariantIntPtr(vtWnd, (INT_PTR)GetCurEdit(this));
   return NOERROR;
 }
 
@@ -350,7 +350,7 @@ HRESULT STDMETHODCALLTYPE Document_SetEditWnd(IDocument *this, VARIANT vtWnd, VA
   {
     if ((INT_PTR)hWnd == SEW_FOCUS)
       hWnd=(HWND)SendMessage(hMainWnd, AKD_GETFOCUS, 0, 0);
-    SetVariantInt(&vtWnd, (INT_PTR)hWnd);
+    SetVariantIntPtr(&vtWnd, (INT_PTR)hWnd);
     Document_IsAkelEdit(this, vtWnd, &nIsAkelEdit);
 
     if (nIsAkelEdit != ISAEW_NONE)
@@ -360,7 +360,7 @@ HRESULT STDMETHODCALLTYPE Document_SetEditWnd(IDocument *this, VARIANT vtWnd, VA
   }
   else lpScriptThread->hWndPluginEdit=NULL;
 
-  SetVariantInt(vtWndResult, (INT_PTR)lpScriptThread->hWndPluginEdit);
+  SetVariantIntPtr(vtWndResult, (INT_PTR)lpScriptThread->hWndPluginEdit);
   return NOERROR;
 }
 
@@ -373,7 +373,7 @@ HRESULT STDMETHODCALLTYPE Document_GetEditDoc(IDocument *this, VARIANT *vtDoc)
     hDoc=(AEHDOC)SendMessage(lpScriptThread->hWndPluginEdit, AEM_GETDOCUMENT, 0, 0);
   else
     hDoc=(AEHDOC)SendMessage(hMainWnd, AKD_GETFRAMEINFO, FI_DOCEDIT, (LPARAM)NULL);
-  SetVariantInt(vtDoc, (INT_PTR)hDoc);
+  SetVariantIntPtr(vtDoc, (INT_PTR)hDoc);
   return NOERROR;
 }
 
@@ -598,7 +598,7 @@ HRESULT STDMETHODCALLTYPE Document_SendMessage(IDocument *this, VARIANT vtWnd, U
     --nMutexMsgCount;
   }
 
-  SetVariantInt(vtResult, lResult);
+  SetVariantIntPtr(vtResult, lResult);
   return NOERROR;
 }
 
@@ -797,7 +797,7 @@ HRESULT STDMETHODCALLTYPE Document_GetSelStart(IDocument *this, VARIANT *vtSelSt
 
   if (hWndCurEdit=GetCurEdit(this))
     SendMessage(hWndCurEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-  SetVariantInt(vtSelStart, cr.cpMin);
+  SetVariantIntPtr(vtSelStart, cr.cpMin);
   return NOERROR;
 }
 
@@ -808,7 +808,7 @@ HRESULT STDMETHODCALLTYPE Document_GetSelEnd(IDocument *this, VARIANT *vtSelEnd)
 
   if (hWndCurEdit=GetCurEdit(this))
     SendMessage(hWndCurEdit, EM_EXGETSEL64, 0, (LPARAM)&cr);
-  SetVariantInt(vtSelEnd, cr.cpMax);
+  SetVariantIntPtr(vtSelEnd, cr.cpMax);
   return NOERROR;
 }
 
@@ -974,7 +974,7 @@ HRESULT STDMETHODCALLTYPE Document_TextFind(IDocument *this, VARIANT vtWnd, BSTR
   tf.nFindItLen=SysStringLen(wpFindIt);
   nResult=SendMessage(hMainWnd, AKD_TEXTFINDW, (WPARAM)hWnd, (LPARAM)&tf);
 
-  SetVariantInt(vtResult, nResult);
+  SetVariantIntPtr(vtResult, nResult);
   return NOERROR;
 }
 
@@ -994,7 +994,7 @@ HRESULT STDMETHODCALLTYPE Document_TextReplace(IDocument *this, VARIANT vtWnd, B
   if ((dwReplaceFlags & RRF_ALL) && nResult == -1)
     nResult=tr.nChanges;
 
-  SetVariantInt(vtResult, nResult);
+  SetVariantIntPtr(vtResult, nResult);
   return NOERROR;
 }
 
@@ -1238,7 +1238,7 @@ HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **
   //Free strings stack
   StackFreePointers(&hStringsStack);
 
-  SetVariantInt(vtResult, nResult);
+  SetVariantIntPtr(vtResult, nResult);
   return hr;
 }
 
@@ -1302,8 +1302,8 @@ HRESULT STDMETHODCALLTYPE Document_Command(IDocument *this, int nCommand, VARIAN
   VARIANT vtWnd;
   VARIANT vtWParam;
 
-  SetVariantInt(&vtWnd, (INT_PTR)hMainWnd);
-  SetVariantInt(&vtWParam, nCommand);
+  SetVariantIntPtr(&vtWnd, (INT_PTR)hMainWnd);
+  SetVariantIntPtr(&vtWParam, nCommand);
   Document_SendMessage(this, vtWnd, WM_COMMAND, vtWParam, vtLParam, vtResult);
 
   return NOERROR;
@@ -1580,6 +1580,12 @@ HRESULT STDMETHODCALLTYPE Document_MemAlloc(IDocument *this, VARIANT vtSize, VAR
   INT_PTR nPointer;
   HRESULT hr=NOERROR;
 
+  if (!dwSize)
+  {
+    xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_ZERO_MEMLOCATE));
+    return E_POINTER;
+  }
+
   if (nPointer=(INT_PTR)GlobalAlloc(GPTR, dwSize))
   {
     if (lpElement=StackInsertPointer(&lpScriptThread->hPointersStack))
@@ -1590,7 +1596,7 @@ HRESULT STDMETHODCALLTYPE Document_MemAlloc(IDocument *this, VARIANT vtSize, VAR
   }
   else hr=E_OUTOFMEMORY;
 
-  SetVariantInt(vtPointer, nPointer);
+  SetVariantIntPtr(vtPointer, nPointer);
   return hr;
 }
 
@@ -1769,7 +1775,7 @@ HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, VARIANT vtPointer, D
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMREAD));
       return E_POINTER;
     }
-    SetVariantInt(vtData, *(INT_PTR *)nPointer);
+    SetVariantIntPtr(vtData, *(INT_PTR *)nPointer);
   }
   else if (dwType == DT_DWORD)
   {
@@ -1812,7 +1818,7 @@ HRESULT STDMETHODCALLTYPE Document_MemStrPtr(IDocument *this, BSTR wpString, BOO
     nPointer=xatoiW(wpString, NULL);
   else
     nPointer=(INT_PTR)wpString;
-  SetVariantInt(vtPointer, nPointer);
+  SetVariantIntPtr(vtPointer, nPointer);
   return NOERROR;
 }
 
@@ -2030,7 +2036,7 @@ HRESULT STDMETHODCALLTYPE Document_CreateDialog(IDocument *this, DWORD dwExStyle
       }
     }
   }
-  SetVariantInt(vtWnd, nResult);
+  SetVariantIntPtr(vtWnd, nResult);
 
   return hr;
 }
@@ -2629,7 +2635,7 @@ HRESULT STDMETHODCALLTYPE Document_WindowSubClass(IDocument *this, VARIANT vtWnd
       }
     }
   }
-  SetVariantInt(vtCallbackItem, (INT_PTR)lpCallback);
+  SetVariantIntPtr(vtCallbackItem, (INT_PTR)lpCallback);
   return NOERROR;
 }
 
@@ -2680,7 +2686,7 @@ HRESULT STDMETHODCALLTYPE Document_WindowNextProc(IDocument *this, VARIANT vtCal
     if (pvtWParam->vt == VT_BSTR) GlobalFree((HGLOBAL)wParam);
     if (pvtLParam->vt == VT_BSTR) GlobalFree((HGLOBAL)lParam);
   }
-  SetVariantInt(vtResult, lResult);
+  SetVariantIntPtr(vtResult, lResult);
   return NOERROR;
 }
 
@@ -2799,7 +2805,7 @@ HRESULT STDMETHODCALLTYPE Document_ThreadHook(IDocument *this, int idHook, IDisp
       hr=DISP_E_BADINDEX;
     }
   }
-  SetVariantInt(vtHook, (INT_PTR)hHook);
+  SetVariantIntPtr(vtHook, (INT_PTR)hHook);
   return hr;
 }
 
@@ -2996,7 +3002,7 @@ HRESULT STDMETHODCALLTYPE Document_ScriptHandle(IDocument *this, VARIANT vtData,
       }
     }
   }
-  SetVariantInt(vtResult, nResult);
+  SetVariantIntPtr(vtResult, nResult);
   return hr;
 }
 
@@ -3989,11 +3995,11 @@ HRESULT CallScriptProc(IDispatch *objFunction, HWND hWnd, UINT uMsg, WPARAM wPar
   if (!objFunction)
     return E_FAIL;
 
-  SetVariantInt(&vtArg[0], lParam);
-  SetVariantInt(&vtArg[1], wParam);
-  SetVariantInt(&vtArg[2], uMsg);
+  SetVariantIntPtr(&vtArg[0], lParam);
+  SetVariantIntPtr(&vtArg[1], wParam);
+  SetVariantInt32(&vtArg[2], uMsg);
   if (hWnd)
-    SetVariantInt(&vtArg[3], (INT_PTR)hWnd);
+    SetVariantIntPtr(&vtArg[3], (INT_PTR)hWnd);
 
   xmemset(&dispp, 0, sizeof(DISPPARAMS));
   dispp.cArgs=hWnd?4:3;

@@ -118,7 +118,7 @@ HRESULT STDMETHODCALLTYPE Global_PtrAdd(IGlobal *this, VARIANT vtPointer1, VARIA
   INT_PTR nPointer1=GetVariantInt(&vtPointer1, NULL);
   INT_PTR nPointer2=GetVariantInt(&vtPointer2, NULL);
 
-  SetVariantInt(vtPointerResult, nPointer1 + nPointer2);
+  SetVariantIntPtr(vtPointerResult, nPointer1 + nPointer2);
   return NOERROR;
 }
 
@@ -168,7 +168,7 @@ HRESULT STDMETHODCALLTYPE Global_PtrMath(IGlobal *this, VARIANT vtPointer1, BSTR
   else if (!xstrcmpW(wpSign, L">>"))
     nPointerResult=nPointer1 >> nPointer2;
 
-  SetVariantInt(vtPointerResult, nPointerResult);
+  SetVariantIntPtr(vtPointerResult, nPointerResult);
   return NOERROR;
 }
 

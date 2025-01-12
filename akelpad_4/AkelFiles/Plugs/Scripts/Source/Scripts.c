@@ -329,7 +329,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
           objIDocument.dwCount=1;
           objIDocument.lpScriptThread=lpScriptThread;
 
-          SetVariantInt(&vtData, (INT_PTR)lpScriptThread);
+          SetVariantIntPtr(&vtData, (INT_PTR)lpScriptThread);
           Document_ScriptHandle((IDocument *)&objIDocument, vtData, nOperation, &vtResult);
           *lpnResult=GetVariantInt(&vtResult, NULL);
         }
@@ -465,7 +465,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
                     vtCount->vt=VT_BSTR;
                     vtCount->bstrVal=SysAllocString(lpParameter->wpString);
                   }
-                  else SetVariantInt(vtCount, lpParameter->nNumber);
+                  else SetVariantIntPtr(vtCount, lpParameter->nNumber);
 
                   --vtCount;
                 }
@@ -2728,7 +2728,19 @@ UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
   return max(dwResult, (UINT_PTR)nResult);
 }
 
-HRESULT SetVariantInt(VARIANT *pvtParameter, INT_PTR nValue)
+HRESULT SetVariantInt32(VARIANT *pvtParameter, int nValue)
+{
+  HRESULT hr=NOERROR;
+
+  VariantInit(pvtParameter);
+
+  //Use VT_I4 because VBScript can cause error for VT_UI4
+  pvtParameter->vt=VT_I4;
+  pvtParameter->lVal=(int)nValue;
+  return hr;
+}
+
+HRESULT SetVariantIntPtr(VARIANT *pvtParameter, INT_PTR nValue)
 {
   HRESULT hr=NOERROR;
 
@@ -3162,6 +3174,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"\x041D\x0435\x0020\x043D\x0430\x0439\x0434\x0435\x043D\x0020\x0444\x0430\x0439\x043B \"%s\".";
     if (nStringID == STRID_DEBUG_SYSFUNCTION)
       return L"\x041D\x0435\x0020\x043D\x0430\x0439\x0434\x0435\x043D\x0430\x0020\x0444\x0443\x043D\x043A\x0446\x0438\x044F \"%s\" \x0432\x0020\x0444\x0430\x0439\x043B\x0435 \"%s\".";
+    if (nStringID == STRID_ZERO_MEMLOCATE)
+      return L"AkelPad.MemAlloc \x0440\x0430\x0437\x043C\x0435\x0440\x0020\x0440\x0430\x0432\x0435\x043D 0";
     if (nStringID == STRID_COLUMNS)
       return L"\x041A\x043E\x043B\x043E\x043D\x043A\x0438";
     if (nStringID == STRID_MENU_OPENSITE)
@@ -3259,6 +3273,8 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
       return L"Cannot find file \"%s\".";
     if (nStringID == STRID_DEBUG_SYSFUNCTION)
       return L"Cannot find function \"%s\" in file \"%s\".";
+    if (nStringID == STRID_ZERO_MEMLOCATE)
+      return L"AkelPad.MemAlloc size is zero";
     if (nStringID == STRID_COLUMNS)
       return L"Columns";
     if (nStringID == STRID_MENU_OPENSITE)

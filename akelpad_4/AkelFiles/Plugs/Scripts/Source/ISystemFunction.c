@@ -264,7 +264,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, VARIANT vtD
       return E_POINTER;
     }
   }
-  SetVariantInt(vtResult, nResult);
+  SetVariantIntPtr(vtResult, nResult);
   return NOERROR;
 }
 
@@ -713,7 +713,7 @@ LRESULT AsmCallbackHelper(INT_PTR *lpnFirstArg, int nCallbackIndex, int *lpnArgS
 
         for (i=0; i < nArgCount; ++i)
         {
-          SetVariantInt(vtCount, *(lpnFirstArg + i));
+          SetVariantIntPtr(vtCount, *(lpnFirstArg + i));
           --vtCount;
         }
       }

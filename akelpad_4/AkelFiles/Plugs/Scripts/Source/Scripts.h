@@ -54,28 +54,29 @@
 #define STRID_DEBUG_MEMLEAK         23
 #define STRID_DEBUG_SYSCALL         24
 #define STRID_DEBUG_SYSFUNCTION     25
-#define STRID_COLUMNS               26
-#define STRID_MENU_OPENSITE         27
-#define STRID_MENU_COPYNAME         28
-#define STRID_MENU_ITEMMOVEUP       29
-#define STRID_MENU_ITEMMOVEDOWN     30
-#define STRID_SCRIPT                31
-#define STRID_HOTKEY                32
-#define STRID_STATUS                33
-#define STRID_VERSION               34
-#define STRID_DESCRIPTION           35
-#define STRID_AUTHOR                36
-#define STRID_SITE                  37
-#define STRID_RUNNING               38
-#define STRID_WAITING               39
-#define STRID_CONTAIN               40
-#define STRID_EXEC                  41
-#define STRID_EDIT                  42
-#define STRID_ASSIGN                43
-#define STRID_PLUGIN                44
-#define STRID_OK                    45
-#define STRID_CANCEL                46
-#define STRID_CLOSE                 47
+#define STRID_ZERO_MEMLOCATE        26
+#define STRID_COLUMNS               27
+#define STRID_MENU_OPENSITE         28
+#define STRID_MENU_COPYNAME         29
+#define STRID_MENU_ITEMMOVEUP       30
+#define STRID_MENU_ITEMMOVEDOWN     31
+#define STRID_SCRIPT                32
+#define STRID_HOTKEY                33
+#define STRID_STATUS                34
+#define STRID_VERSION               35
+#define STRID_DESCRIPTION           36
+#define STRID_AUTHOR                37
+#define STRID_SITE                  38
+#define STRID_RUNNING               39
+#define STRID_WAITING               40
+#define STRID_CONTAIN               41
+#define STRID_EXEC                  42
+#define STRID_EDIT                  43
+#define STRID_ASSIGN                44
+#define STRID_PLUGIN                45
+#define STRID_OK                    46
+#define STRID_CANCEL                47
+#define STRID_CLOSE                 48
 
 #define OF_RECT        0x01
 #define OF_COLUMNS     0x02
@@ -319,7 +320,8 @@ SCRIPTARG* StackGetArgumentByName(HARGSTACK *hStack, const wchar_t *wpArgName, i
 void StackFreeArguments(HARGSTACK *hStack);
 UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bAnsi);
 UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter);
-HRESULT SetVariantInt(VARIANT *pvtParameter, INT_PTR nValue);
+HRESULT SetVariantInt32(VARIANT *pvtParameter, int nValue);
+HRESULT SetVariantIntPtr(VARIANT *pvtParameter, INT_PTR nValue);
 int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
 INT_PTR DetectAndReadFile(HANDLE *lphFile, const wchar_t *wpFile, DWORD dwFlags, int *lpnCodePage, BOOL *lpbBOM, wchar_t **wpContent, UINT_PTR dwBytesMax);
 int GetFileDir(const wchar_t *wpFile, int nFileLen, wchar_t *wszFileDir, int nFileDirMax);
