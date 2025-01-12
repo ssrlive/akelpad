@@ -1338,25 +1338,29 @@ void _WinMain()
     BOOL bMsgStatus;
     DWORD dwLastError;
 
-    while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)
+    while (bMsgStatus=GetMessageWide(&msg, NULL, 0, 0))
     {
-      TranslateMessageAll(TMSG_ALL, &msg);
-
-      if (bMainCheckIdle)
+      if (bMsgStatus == -1)
       {
-        if (GetQueueStatus(QS_ALLINPUT) == 0)
+        dwLastError=GetLastError();
+        API_LoadString(hLangModule, MSG_ERROR_IN_MESSAGE_QUEUE, wbuf, BUFFER_SIZE);
+        xprintfW(wszMsg, wbuf, dwLastError);
+        API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+        //break;
+      }
+      else
+      {
+        TranslateMessageAll(TMSG_ALL, &msg);
+
+        if (bMainCheckIdle)
         {
-          bMainCheckIdle=FALSE;
-          SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
+          if (GetQueueStatus(QS_ALLINPUT) == 0)
+          {
+            bMainCheckIdle=FALSE;
+            SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
+          }
         }
       }
-    }
-    if (bMsgStatus == -1)
-    {
-      dwLastError=GetLastError();
-      API_LoadString(hLangModule, MSG_ERROR_IN_MESSAGE_QUEUE, wbuf, BUFFER_SIZE);
-      xprintfW(wszMsg, wbuf, dwLastError);
-      API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
     }
   }
   #endif
