@@ -1335,6 +1335,7 @@ void _WinMain()
     //Message loop
     MSG msg;
     BOOL bMsgStatus;
+    DWORD dwLastError;
 
     while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)
     {
@@ -1351,7 +1352,9 @@ void _WinMain()
     }
     if (bMsgStatus == -1)
     {
-      API_LoadString(hLangModule, MSG_ERROR_IN_MESSAGE_QUEUE, wszMsg, BUFFER_SIZE);
+      dwLastError=GetLastError();
+      API_LoadString(hLangModule, MSG_ERROR_IN_MESSAGE_QUEUE, wbuf, BUFFER_SIZE);
+      xprintfW(wszMsg, wbuf, dwLastError);
       API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
     }
   }

@@ -1002,7 +1002,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "메시지 큐에 에러 발생."
+    MSG_ERROR_IN_MESSAGE_QUEUE "메시지 큐에 에러 발생 (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "오류: 메모리가 부족합니다. 프로그램을 종료하세요."
     MSG_ERROR_BINARY        """%s"" 파일은 바이너리 파일입니다. 계속할까요?"

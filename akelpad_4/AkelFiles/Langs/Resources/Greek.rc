@@ -999,7 +999,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Σφάλμα στην ουρά μηνυμάτων."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Σφάλμα στην ουρά μηνυμάτων (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "Κρίσιμο σφάλμα: η μνήμη δεν επαρκεί. Συνιστάται να τερματίσει το πρόγραμμα."
     MSG_ERROR_BINARY        "Το ""%s"" είναι ένα δυαδικό αρχείο. Συνέχεια;"

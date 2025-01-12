@@ -1026,7 +1026,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Fehler in der Nachrichtenfolge."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Fehler in der Nachrichtenfolge (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "Schwerwiegender Fehler: nicht genügend Speicher. Es wird empfohlen, das Programm zu beenden."
     MSG_ERROR_BINARY        """%s"" ist eine binäre Datei. Weitermachen?"

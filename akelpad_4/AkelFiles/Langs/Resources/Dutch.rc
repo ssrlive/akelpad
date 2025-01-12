@@ -1009,7 +1009,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Fout in de berichtenwachtrij."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Fout in de berichtenwachtrij (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "Kritieke fout: niet genoeg geheugen. Het wordt aanbevolen het programma te beëindigen."
     MSG_ERROR_BINARY        """%s"" is een binair bestand. Doorgaan?"

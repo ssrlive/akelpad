@@ -1026,7 +1026,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "ѕамылка Ґ чарзе паведамленн€Ґ."
+    MSG_ERROR_IN_MESSAGE_QUEUE "ѕамылка Ґ чарзе паведамленн€Ґ (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             " рытычна€ памылка: н€досыць пам€ц≥. –экамендуецца зав€ршыць працу праграмы."
     MSG_ERROR_BINARY        """%s"" б≥нарны файл. ѕрац€гнуць?"

@@ -1002,7 +1002,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "メッセージ キューのエラーです。"
+    MSG_ERROR_IN_MESSAGE_QUEUE "メッセージ キューのエラーです (%d)。"
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "重大なエラー: メモリが足りません。プログラムを終了してください。"
     MSG_ERROR_BINARY        """%s"" はバイナリ ファイルです。続行しますか?"

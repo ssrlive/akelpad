@@ -1012,7 +1012,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Error en la cola de mensajes."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Error en la cola de mensajes (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "Error crítico: no hay suficiente memoria. Es recomendable finalizar el programa."
     MSG_ERROR_BINARY        """%s"" es un archivo binario. ¿Continuar?"
