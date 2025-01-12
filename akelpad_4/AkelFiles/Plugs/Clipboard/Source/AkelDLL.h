@@ -296,6 +296,7 @@
 #define MI_CREATEFILE                123  //Return: "CreateFile" flags, see CFF_* defines.
 #define MI_RICHEDITCLASS             125  //Return: "RichEditClass" type.
 #define MI_AKELADMINRESIDENT         126  //Return: AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
+#define MI_VERSIONCHECK              127  //Return: "VersionCheck" flags, see VCF_* defines.
 #define MI_DATELOGFORMAT             129  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateLogFormat" string.
 #define MI_DATEINSERTFORMAT          130  //Return: copied chars. (wchar_t *)lParam - buffer that receives "DateInsertFormat" string.
 #define MI_AKELUPDATEROPTIONS        131  //Return: copied chars. (wchar_t *)lParam - buffer that receives "AkelUpdaterOptions" string.
@@ -375,6 +376,7 @@
 #define MIS_CREATEFILE                123  //(DWORD)lParam - "CreateFile" flags, see CFF_* defines.
 #define MIS_RICHEDITCLASS             125  //(BOOL)lParam - "RichEditClass" type. Changes are applied for a new edit windows.
 #define MIS_AKELADMINRESIDENT         126  //(BOOL)lParam - AkelAdmin.exe resident - TRUE or unloaded immediately after execution - FALSE.
+#define MIS_VERSIONCHECK              127  //(DWORD)lParam - "VersionCheck" flags, see VCF_* defines.
 #define MIS_DATELOGFORMAT             129  //(wchar_t *)lParam - "DateLogFormat" string.
 #define MIS_DATEINSERTFORMAT          130  //(wchar_t *)lParam - "DateInsertFormat" string.
 #define MIS_AKELUPDATEROPTIONS        131  //(wchar_t *)lParam - "AkelUpdaterOptions" string.
@@ -580,6 +582,9 @@
 
 //CreateFile flags
 #define CFF_WRITETHROUGH            0x00000001  //Use FILE_FLAG_WRITE_THROUGH flag when writing file.
+
+//VersionCheck flags
+#define VCF_LANGMODULE              0x00000001  //Program version and language module must be equal.
 
 //Status bar position type
 #define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
