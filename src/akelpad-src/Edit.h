@@ -409,6 +409,7 @@ typedef struct {
   DWORD dwEditStyle;
   BOOL bRichEditClass;
   BOOL bAkelAdminResident;
+  DWORD dwVersionCheck;
   wchar_t wszDateLogFormat[128];
   wchar_t wszDateInsertFormat[128];
   wchar_t wszAkelUpdaterOptions[MAX_PATH];

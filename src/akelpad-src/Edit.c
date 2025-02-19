@@ -3883,6 +3883,8 @@ HANDLE ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nType, HANDLE hHandle)
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"AkelAdminResident", MOT_DWORD, &mo->bAkelAdminResident, sizeof(DWORD)))
       bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"VersionCheck", MOT_DWORD, &mo->dwVersionCheck, sizeof(DWORD)))
+      bSaveManual=TRUE;
     if (!ReadOption(&oh, L"DateLogFormat", MOT_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat)))
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"DateInsertFormat", MOT_STRING, mo->wszDateInsertFormat, sizeof(mo->wszDateInsertFormat)))
@@ -4163,6 +4165,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"RichEditClass", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, bRichEditClass), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"AkelAdminResident", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, bAkelAdminResident), sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"VersionCheck", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwVersionCheck), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"DateLogFormat", MOT_STRING|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, wszDateLogFormat), BytesInString(mo->wszDateLogFormat)))
     goto Error;

@@ -999,7 +999,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Error in message queue."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Error in message queue (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" is a binary file. Continue?"

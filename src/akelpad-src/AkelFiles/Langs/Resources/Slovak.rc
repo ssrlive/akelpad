@@ -1016,7 +1016,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Chyba frontu spr·v."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Chyba frontu spr·v (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "Critical error: not enough memory. It is recommended to terminate the program."
     MSG_ERROR_BINARY        """%s"" je bin·rny s˙bor. PokraËovaù?"

@@ -1035,7 +1035,7 @@ END
 
 STRINGTABLE DISCARDABLE
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Xabar navbatini xatolik."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Xabar navbatini xatolik (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY
                             "Kritik xatolik: xotira yetarli emas. Dastur ishini tugallash tavsiya etiladi."
     MSG_ERROR_BINARY        """%s"" binar fayl. Davom etilsinmi?"

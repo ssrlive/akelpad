@@ -1028,7 +1028,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Помилка в черзі повідомлень."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Помилка в черзі повідомлень (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "Критична помилка: недостатньо пам'яті. Рекомендовано завершити роботу програми."
     MSG_ERROR_BINARY        """%s"" бінарний файл. Продовжити?"

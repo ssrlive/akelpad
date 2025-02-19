@@ -1021,7 +1021,7 @@ END
 
 STRINGTABLE DISCARDABLE
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Ошибка в очереди сообщений."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Ошибка в очереди сообщений (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY
                             "Критическая ошибка: недостаточно памяти. Рекомендуется завершить работу программы."
     MSG_ERROR_BINARY        """%s"" бинарный файл. Продолжить?"

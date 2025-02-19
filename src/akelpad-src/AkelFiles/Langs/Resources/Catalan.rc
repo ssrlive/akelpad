@@ -999,7 +999,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Error en la cua de missatges."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Error en la cua de missatges (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "Error crític: no hi ha prou memòria. Es recomana tancar el programa."
     MSG_ERROR_BINARY        "«%s» és un fitxer binari. Voleu continuar?"

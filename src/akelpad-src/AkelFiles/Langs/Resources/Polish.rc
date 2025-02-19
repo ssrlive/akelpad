@@ -1004,7 +1004,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "B³¹d w kolejce wiadomoœci."
+    MSG_ERROR_IN_MESSAGE_QUEUE "B³¹d w kolejce wiadomoœci (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "B³¹d krytyczny: za ma³o pamiêci. Zaleca siê zakoñczenie programu."
     MSG_ERROR_BINARY        """%s"" jest plikiem binarnym. Kontynuowaæ?"

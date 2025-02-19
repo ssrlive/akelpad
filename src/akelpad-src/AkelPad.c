@@ -880,6 +880,7 @@ EXTERN_C int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPTSTR lpCmd
   //moInit.dwEditStyle=0;
   //moInit.bRichEditClass=FALSE;
   moInit.bAkelAdminResident=TRUE;
+  moInit.dwVersionCheck=VCF_LANGMODULE;
   //moInit.wszDateLogFormat[0]=L'\0';
   //moInit.wszDateInsertFormat[0]=L'\0';
   //moInit.wszAkelUpdaterOptions[0]=L'\0';
@@ -1173,7 +1174,7 @@ EXTERN_C int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPTSTR lpCmd
     }
     else bResult=GetFileVersionW(wbuf, &nMajor, &nMinor, &nRelease, &nBuild, &dwLangModule);
 
-    if (bResult && MAKE_IDENTIFIER(nMajor, nMinor, nRelease, nBuild) == dwExeVersion)
+    if (bResult && (!(moCur.dwVersionCheck & VCF_LANGMODULE) || MAKE_IDENTIFIER(nMajor, nMinor, nRelease, nBuild) == dwExeVersion))
     {
       if (!(hLangModule=LoadLibraryWide(wbuf)))
       {
@@ -1341,24 +1342,31 @@ EXTERN_C int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPTSTR lpCmd
     //Message loop
     MSG msg;
     BOOL bMsgStatus;
+    DWORD dwLastError;
 
-    while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)
+    while (bMsgStatus=GetMessageWide(&msg, NULL, 0, 0))
     {
-      TranslateMessageAll(TMSG_ALL, &msg);
-
-      if (bMainCheckIdle)
+      if (bMsgStatus == -1)
       {
-        if (GetQueueStatus(QS_ALLINPUT) == 0)
+        dwLastError=GetLastError();
+        API_LoadString(hLangModule, MSG_ERROR_IN_MESSAGE_QUEUE, wbuf, BUFFER_SIZE);
+        xprintfW(wszMsg, wbuf, dwLastError);
+        API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+        //break;
+      }
+      else
+      {
+        TranslateMessageAll(TMSG_ALL, &msg);
+
+        if (bMainCheckIdle)
         {
-          bMainCheckIdle=FALSE;
-          SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
+          if (GetQueueStatus(QS_ALLINPUT) == 0)
+          {
+            bMainCheckIdle=FALSE;
+            SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
+          }
         }
       }
-    }
-    if (bMsgStatus == -1)
-    {
-      API_LoadString(hLangModule, MSG_ERROR_IN_MESSAGE_QUEUE, wszMsg, BUFFER_SIZE);
-      API_MessageBox(NULL, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
     }
   }
   #endif
@@ -2601,6 +2609,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return moCur.bRichEditClass;
           case MI_AKELADMINRESIDENT:
             return moCur.bAkelAdminResident;
+          case MI_VERSIONCHECK:
+            return moCur.dwVersionCheck;
           case MI_DATELOGFORMAT:
             return xstrcpynW((void *)lParam, moCur.wszDateLogFormat, 128);
           case MI_DATEINSERTFORMAT:
@@ -2878,6 +2888,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return SetOption(lParam, &moCur.bRichEditClass, sizeof(DWORD), INI_DWORD);
           case MIS_AKELADMINRESIDENT:
             return SetOption(lParam, &moCur.bAkelAdminResident, sizeof(DWORD), INI_DWORD);
+          case MIS_VERSIONCHECK:
+            return SetOption(lParam, &moCur.dwVersionCheck, sizeof(DWORD), INI_DWORD);
           case MIS_DATELOGFORMAT:
             return SetOption(lParam, moCur.wszDateLogFormat, sizeof(moCur.wszDateLogFormat), INI_STRINGUNICODE);
           case MIS_DATEINSERTFORMAT:

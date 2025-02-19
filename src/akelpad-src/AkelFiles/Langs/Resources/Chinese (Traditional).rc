@@ -995,7 +995,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "訊息佇列發生錯誤。"
+    MSG_ERROR_IN_MESSAGE_QUEUE "訊息佇列發生錯誤 (%d)。"
     MSG_ERROR_NOT_ENOUGH_MEMORY "嚴重錯誤：無足夠的記憶體，建議終止程式。"
     MSG_ERROR_BINARY        "[%s] 是一個二進位檔案，要繼續嗎？"
     MSG_ERROR_IO            "[輸出 / 輸入] 錯誤。"

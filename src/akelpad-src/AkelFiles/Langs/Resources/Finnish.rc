@@ -1013,7 +1013,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Virhe viestijonossa."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Virhe viestijonossa (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "Kriittinen virhe: muisti ei riit‰. Ohjelman sulkeminen on suositeltavaa."
     MSG_ERROR_BINARY        """%s"" on bin‰‰ritiedosto. Jatketaanko?"

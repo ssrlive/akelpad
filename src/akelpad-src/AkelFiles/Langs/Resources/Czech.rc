@@ -1022,7 +1022,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "Chyba ve frontì zpráv."
+    MSG_ERROR_IN_MESSAGE_QUEUE "Chyba ve frontì zpráv (%d)."
     MSG_ERROR_NOT_ENOUGH_MEMORY 
                             "Kritická chyba: nedostatek pamìti. Doporuèujeme ukonèit program."
     MSG_ERROR_BINARY        """%s"" je binární soubor. Pokraèovat?"

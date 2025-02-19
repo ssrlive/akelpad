@@ -264,7 +264,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *This, VARIANT vtD
       return E_POINTER;
     }
   }
-  SetVariantInt(vtResult, nResult);
+  SetVariantIntPtr(vtResult, nResult);
   return NOERROR;
 }
 
@@ -713,7 +713,7 @@ LRESULT AsmCallbackHelper(INT_PTR *lpnFirstArg, int nCallbackIndex, int *lpnArgS
 
         for (i=0; i < nArgCount; ++i)
         {
-          SetVariantInt(vtCount, *(lpnFirstArg + i));
+          SetVariantIntPtr(vtCount, *(lpnFirstArg + i));
           --vtCount;
         }
       }
@@ -722,7 +722,7 @@ LRESULT AsmCallbackHelper(INT_PTR *lpnFirstArg, int nCallbackIndex, int *lpnArgS
     dispp.cArgs=nArgCount;
     dispp.rgvarg=vtArg;
 
-    //Because objFunction->lpVtbl->Invoke cause error for different thread, we send message from This thread to hWndScriptsThreadDummy.
+    //Because objFunction->lpVtbl->Invoke cause error for different thread, we send message from this thread to hWndScriptsThreadDummy.
     msgs.lpCallback=lpSysCallback;
     msgs.lParam=(LPARAM)&dispp;
     lResult=SendMessage(lpScriptThread->hWndScriptsThreadDummy, AKDLL_CALLBACKSEND, 0, (LPARAM)&msgs);
