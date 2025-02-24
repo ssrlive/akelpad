@@ -1,6 +1,7 @@
 
 AkelPad 4.10.0 ()
 -----------------
+Changed: removed limit of minimum characters to start the text recognition procedure.
 Changed: statusbar parts width and tabs height now take into account Windows scale percent.
 
 Added: manual parameter "VersionCheck" - possibility to turn off language module version check.
@@ -10,7 +11,7 @@ AkelPad 4.9.9 (Oct 16, 2024)
 ----------------------------
 Changed: during codepage recognition character "\xF1" now refers to 1251.
 Changed: codepage recognition in "Recode" dialog in case of failure by
-         values of "Ñodepage recognition" settings, tries to recognize by
+         values of "Ð¡odepage recognition" settings, tries to recognize by
          all encodings from the user list.
 Changed: restoring selection when reopening the current file.
 Changed: improved compatibility with Windows 11.

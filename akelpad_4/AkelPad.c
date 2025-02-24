@@ -2154,13 +2154,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         DETECTANSITEXT *dat=(DETECTANSITEXT *)lParam;
 
-        return AutodetectMultibyte(dat->dwLangID, (unsigned char *)dat->pText, dat->nTextLen, dat->nMinChars?dat->nMinChars:DETECTCHARS_REQUIRED, &dat->nCodePage);
+        return AutodetectMultibyte(dat->dwLangID, (unsigned char *)dat->pText, dat->nTextLen, dat->bNoRate, &dat->nCodePage);
       }
       case AKD_DETECTUNITEXT:
       {
         DETECTUNITEXT *dut=(DETECTUNITEXT *)lParam;
 
-        return AutodetectWideChar(dut->dwLangID, dut->wpText, dut->nTextLen, dut->nMinChars?dut->nMinChars:DETECTCHARS_REQUIRED, &dut->nCodePageFrom, &dut->nCodePageTo);
+        return AutodetectWideChar(dut->dwLangID, dut->wpText, dut->nTextLen, dut->bNoRate, &dut->nCodePageFrom, &dut->nCodePageTo);
       }
       case AKD_CONVERTANSITEXT:
       {

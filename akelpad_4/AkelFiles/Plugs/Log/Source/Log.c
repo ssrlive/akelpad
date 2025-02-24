@@ -2495,7 +2495,7 @@ BOOL ExecuteToWindow(OUTPUTEXEC *oe)
                       dat.dwLangID=(DWORD)-1;
                       dat.pText=(char *)szTmp;
                       dat.nTextLen=dwAllData;
-                      dat.nMinChars=30;
+                      dat.bNoRate=FALSE;
                       if (SendMessage(hMainWnd, AKD_DETECTANSITEXT, 0, (LPARAM)&dat))
                       {
                         if (dat.nCodePage != nOutputCodePage)

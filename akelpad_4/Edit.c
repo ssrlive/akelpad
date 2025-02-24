@@ -8869,7 +8869,7 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
   {
     if (dwFlags & ADT_DETECTCODEPAGE)
     {
-      if (!AutodetectMultibyte(moCur.dwLangCodepageRecognition, pBuffer, dwBytesRead, DETECTCHARS_REQUIRED, nCodePage))
+      if (!AutodetectMultibyte(moCur.dwLangCodepageRecognition, pBuffer, dwBytesRead, FALSE, nCodePage))
       {
         *nCodePage=moCur.nDefaultCodePage;
         dwFlags&=~ADT_DETECTCODEPAGE;
@@ -8888,7 +8888,7 @@ int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCh
   return EDT_SUCCESS;
 }
 
-BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR dwBytesToCheck, UINT_PTR dwCharsRequired, int *nCodePage)
+BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR dwBytesToCheck, INT_PTR bNoRate, int *lpnCodePage)
 {
   static const char lpTrailingBytesForUTF8[256]={
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -8904,17 +8904,17 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
   char szOEMwatermark[128];
   char szKOIwatermark[128];
   char szUTF8watermark[128];
-  int nANSIrate=5;
+  int nANSIrate=0;
   int nOEMrate=0;
   int nKOIrate=0;
   int nUTF8rate=0;
   int nCommonUTF8rate=0;
-  DWORD dwCounter[0x80];
+  DWORD lpdwCounter[0x80];
   DWORD dwMaxIndex=0;
   DWORD dwMaxCount=0;
   DWORD dwTrailing;
+  DWORD dwTopChars;
   UINT_PTR i;
-  UINT_PTR j;
   BOOL bRated=FALSE;
 
   if (dwBytesToCheck == (UINT_PTR)-1)
@@ -8935,6 +8935,11 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
     xstrcpyA(szKOIwatermark,  "\xC1\xC2\xD7\xC5\xC9\xCD\xCE\xCF\xD2\xD4\xE1\xE2\xF7\xE5\xE9\xED\xEE\xEF\xF0\xF2\xF4");  //¡¬[◊=‚]≈[…=Ë]ÕŒœ“[‘=Ú]·‚[˜=¬]Â[È=»]ÌÓÔÚ[Ù=“]
     xstrcpyA(szOEMwatermark,  "\xAE\xA5\xA0\xA8\xAA\xAC\xAD\xE2\x8E\x85\x80\x88\x8A\x8C\x8D\x92\xB0\xB1\xB2\xB3\xBA\xDB\xCD");  //ÓÂ‡ËÍÏÌÚŒ≈¿» ÃÕ“         Graphic simbols: \xB0\xB1\xB2\xB3\xBA\xDB\xCD
     xstrcpyA(szUTF8watermark, "\xD0\xD1");
+    if (!bNoRate)
+    {
+      nANSIrate=5;
+      nUTF8rate=5;
+    }
   }
   else if (IsLangEasternEurope(dwLangID))
   {
@@ -8972,212 +8977,205 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
   else return FALSE;
 
   //Zero counter
-  xmemset(dwCounter, 0, 0x80 * sizeof(DWORD));
+  xmemset(lpdwCounter, 0, 0x80 * sizeof(DWORD));
 
   //Count number of each character in input buffer
-  for (j=0, i=0; i < dwBytesToCheck; ++i)
+  for (i=0; i < dwBytesToCheck; ++i)
   {
     //Char in range 0x80 - 0xFF
     if (pBuffer[i] >= 0x80)
+      lpdwCounter[pBuffer[i] - 0x80]++;
+  }
+
+  //Rate top 10 repeated characters
+  dwTopChars=10;
+
+  while (dwTopChars)
+  {
+    //Get max element
+    for (dwMaxCount=0, i=0; i < 0x80; ++i)
     {
-      ++j;
-      dwCounter[pBuffer[i] - 0x80]++;
+      if (lpdwCounter[i] > dwMaxCount)
+      {
+        dwMaxCount=lpdwCounter[i];
+        dwMaxIndex=(DWORD)i;
+      }
+    }
+    if (!lpdwCounter[dwMaxIndex]) break;
+
+    if (AKD_strchr(szANSIwatermark, dwMaxIndex + 0x80))
+    {
+      nANSIrate+=lpdwCounter[dwMaxIndex];
+      bRated=TRUE;
+    }
+    if (AKD_strchr(szOEMwatermark, dwMaxIndex + 0x80))
+    {
+      nOEMrate+=lpdwCounter[dwMaxIndex];
+      bRated=TRUE;
+    }
+    if (AKD_strchr(szUTF8watermark, dwMaxIndex + 0x80))
+    {
+      nUTF8rate+=lpdwCounter[dwMaxIndex];
+      bRated=TRUE;
+    }
+    if (AKD_strchr(szKOIwatermark, dwMaxIndex + 0x80))
+    {
+      nKOIrate+=lpdwCounter[dwMaxIndex];
+      bRated=TRUE;
+    }
+    lpdwCounter[dwMaxIndex]=0;
+
+    if (bRated)
+    {
+      --dwTopChars;
+      bRated=FALSE;
     }
   }
 
-  //Give it up if there's no representative selection
-  if (j > dwCharsRequired)
+  //Get common UTF8 rate
+  if (nUTF8rate < nANSIrate || nUTF8rate < nOEMrate || nUTF8rate < nKOIrate)
   {
-    //Rate top repeated characters
-    j=dwCharsRequired;
-
-    while (j)
+    for (i=0; i < dwBytesToCheck; ++i)
     {
-      //Get max element
-      for (dwMaxCount=0, i=0; i < 0x80; ++i)
+      dwTrailing=lpTrailingBytesForUTF8[pBuffer[i]];
+
+      if (i + dwTrailing < dwBytesToCheck)
       {
-        if (dwCounter[i] > dwMaxCount)
+        if (IsCharLegalUTF8(pBuffer + i, dwTrailing + 1))
         {
-          dwMaxCount=dwCounter[i];
-          dwMaxIndex=(DWORD)i;
-        }
-      }
-      if (!dwCounter[dwMaxIndex]) break;
-
-      if (AKD_strchr(szANSIwatermark, dwMaxIndex + 0x80))
-      {
-        nANSIrate+=dwCounter[dwMaxIndex];
-        bRated=TRUE;
-      }
-      if (AKD_strchr(szOEMwatermark, dwMaxIndex + 0x80))
-      {
-        nOEMrate+=dwCounter[dwMaxIndex];
-        bRated=TRUE;
-      }
-      if (AKD_strchr(szUTF8watermark, dwMaxIndex + 0x80))
-      {
-        nUTF8rate+=dwCounter[dwMaxIndex];
-        bRated=TRUE;
-      }
-      if (AKD_strchr(szKOIwatermark, dwMaxIndex + 0x80))
-      {
-        nKOIrate+=dwCounter[dwMaxIndex];
-        bRated=TRUE;
-      }
-      dwCounter[dwMaxIndex]=0;
-
-      if (bRated)
-      {
-        --j;
-        bRated=FALSE;
-      }
-    }
-
-    //Get common UTF8 rate
-    if (nUTF8rate < nANSIrate || nUTF8rate < nOEMrate || nUTF8rate < nKOIrate)
-    {
-      for (i=0; i < dwBytesToCheck; ++i)
-      {
-        dwTrailing=lpTrailingBytesForUTF8[pBuffer[i]];
-
-        if (i + dwTrailing < dwBytesToCheck)
-        {
-          if (IsCharLegalUTF8(pBuffer + i, dwTrailing + 1))
+          if (dwTrailing)
           {
-            if (dwTrailing)
-            {
-              ++nCommonUTF8rate;
-              i+=dwTrailing;
-            }
-          }
-          else
-          {
-            nCommonUTF8rate=0;
-            break;
+            ++nCommonUTF8rate;
+            i+=dwTrailing;
           }
         }
-        else break;
+        else
+        {
+          nCommonUTF8rate=0;
+          break;
+        }
       }
-      nUTF8rate=max(nUTF8rate, nCommonUTF8rate);
+      else break;
     }
+    nUTF8rate=max(nUTF8rate, nCommonUTF8rate);
+  }
 
-    //Set code page
-    if (dwLangID == LANG_RUSSIAN)
+  //Set code page
+  if (dwLangID == LANG_RUSSIAN)
+  {
+    if (nANSIrate >= nOEMrate && nANSIrate >= nKOIrate && nANSIrate >= nUTF8rate)
     {
-      if (nANSIrate >= nOEMrate && nANSIrate >= nKOIrate && nANSIrate >= nUTF8rate)
-      {
-        *nCodePage=1251;
-      }
-      else if (nOEMrate >= nKOIrate && nOEMrate >= nUTF8rate)
-      {
-        *nCodePage=866;
-      }
-      else if (nKOIrate >= nUTF8rate)
-      {
-        *nCodePage=CP_KOI8_R;
-      }
-      else
-      {
-        *nCodePage=CP_UNICODE_UTF8;
-      }
-      return TRUE;
+      *lpnCodePage=1251;
     }
-    else if (IsLangEasternEurope(dwLangID))
+    else if (nOEMrate >= nKOIrate && nOEMrate >= nUTF8rate)
     {
-      if (nANSIrate >= nOEMrate && nANSIrate >= nKOIrate && nANSIrate >= nUTF8rate)
-      {
-        *nCodePage=1250;
-      }
-      else if (nOEMrate >= nKOIrate && nOEMrate >= nUTF8rate)
-      {
-        *nCodePage=852;
-      }
-      else
-      {
-        *nCodePage=CP_UNICODE_UTF8;
-      }
-      return TRUE;
+      *lpnCodePage=866;
     }
-    else if (IsLangWesternEurope(dwLangID))
+    else if (nKOIrate >= nUTF8rate)
     {
-      if (nANSIrate >= nOEMrate && nANSIrate >= nKOIrate && nANSIrate >= nUTF8rate)
-      {
-        *nCodePage=1252;
-      }
-      else if (nOEMrate >= nKOIrate && nOEMrate >= nUTF8rate)
-      {
-        *nCodePage=850;
-      }
-      else
-      {
-        *nCodePage=CP_UNICODE_UTF8;
-      }
-      return TRUE;
+      *lpnCodePage=CP_KOI8_R;
     }
-    else if (dwLangID == LANG_TURKISH)
+    else
     {
-      if (nANSIrate >= nOEMrate && nANSIrate >= nUTF8rate)
-      {
-        *nCodePage=1254;
-      }
-      else if (nOEMrate >= nUTF8rate)
-      {
-        *nCodePage=857;
-      }
-      else
-      {
-        *nCodePage=CP_UNICODE_UTF8;
-      }
-      return TRUE;
+      *lpnCodePage=CP_UNICODE_UTF8;
     }
-    else if (dwLangID == LANG_CHINESE)
+    return TRUE;
+  }
+  else if (IsLangEasternEurope(dwLangID))
+  {
+    if (nANSIrate >= nOEMrate && nANSIrate >= nUTF8rate)
     {
-      if (nUTF8rate > nANSIrate)
+      *lpnCodePage=1250;
+    }
+    else if (nUTF8rate >= nOEMrate)
+    {
+      *lpnCodePage=CP_UNICODE_UTF8;
+    }
+    else
+    {
+      *lpnCodePage=852;
+    }
+    return TRUE;
+  }
+  else if (IsLangWesternEurope(dwLangID))
+  {
+    if (nANSIrate >= nOEMrate && nANSIrate >= nUTF8rate)
+    {
+      *lpnCodePage=1252;
+    }
+    else if (nUTF8rate >= nOEMrate)
+    {
+      *lpnCodePage=CP_UNICODE_UTF8;
+    }
+    else
+    {
+      *lpnCodePage=850;
+    }
+    return TRUE;
+  }
+  else if (dwLangID == LANG_TURKISH)
+  {
+    if (nANSIrate >= nOEMrate && nANSIrate >= nUTF8rate)
+    {
+      *lpnCodePage=1254;
+    }
+    else if (nUTF8rate >= nOEMrate)
+    {
+      *lpnCodePage=CP_UNICODE_UTF8;
+    }
+    else
+    {
+      *lpnCodePage=857;
+    }
+    return TRUE;
+  }
+  else if (dwLangID == LANG_CHINESE)
+  {
+    if (nANSIrate >= nUTF8rate)
+    {
+      if (nAnsiCodePage == 936 ||
+          nAnsiCodePage == 950)
       {
-        *nCodePage=CP_UNICODE_UTF8;
+        *lpnCodePage=nAnsiCodePage;
         return TRUE;
       }
-      else
-      {
-        if (nAnsiCodePage == 936 ||
-            nAnsiCodePage == 950)
-        {
-          *nCodePage=nAnsiCodePage;
-          return TRUE;
-        }
-      }
     }
-    else if (dwLangID == LANG_JAPANESE)
+    else
     {
-      if (nUTF8rate > nANSIrate)
-      {
-        *nCodePage=CP_UNICODE_UTF8;
-      }
-      else
-      {
-        *nCodePage=932;
-      }
+      *lpnCodePage=CP_UNICODE_UTF8;
       return TRUE;
     }
-    else if (dwLangID == LANG_KOREAN)
+  }
+  else if (dwLangID == LANG_JAPANESE)
+  {
+    if (nANSIrate >= nUTF8rate)
     {
-      if (nUTF8rate > nANSIrate)
-      {
-        *nCodePage=CP_UNICODE_UTF8;
-      }
-      else
-      {
-        *nCodePage=949;
-      }
-      return TRUE;
+      *lpnCodePage=932;
     }
+    else
+    {
+      *lpnCodePage=CP_UNICODE_UTF8;
+    }
+    return TRUE;
+  }
+  else if (dwLangID == LANG_KOREAN)
+  {
+    if (nANSIrate >= nUTF8rate)
+    {
+      *lpnCodePage=949;
+    }
+    else
+    {
+      *lpnCodePage=CP_UNICODE_UTF8;
+    }
+    return TRUE;
   }
   return FALSE;
 }
 
-BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen, INT_PTR nMinChars, int *nCodePageFrom, int *nCodePageTo)
+BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen, INT_PTR bNoRate, int *lpnCodePageFrom, int *lpnCodePageTo)
 {
-  //Detect nCodePageFrom
+  //Detect lpnCodePageFrom
   int lpDetectCodePage[][5]={{0,    0,               0,               0,               0},  //DETECTINDEX_NONE
                              {1251, 866,             CP_KOI8_R,       CP_UNICODE_UTF8, 0},  //DETECTINDEX_RUSSIAN
                              {1250, 852,             CP_UNICODE_UTF8, 0,               0},  //DETECTINDEX_EASTERNEUROPE
@@ -9220,15 +9218,15 @@ BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen,
 
   if (!bUsedDefaultChar)
   {
-    *nCodePageFrom=nFrom;
+    *lpnCodePageFrom=nFrom;
 
     if (szText=(char *)API_HeapAlloc(hHeap, 0, nAnsiLen))
     {
       WideCharToMultiByte64(nFrom, 0, wpText, nTextLen, szText, nAnsiLen, NULL, NULL);
 
-      //Detect nCodePageTo
-      if (!AutodetectMultibyte(dwLangID, (unsigned char *)szText, nAnsiLen, nMinChars, nCodePageTo))
-        *nCodePageTo=*nCodePageFrom;
+      //Detect lpnCodePageTo
+      if (!AutodetectMultibyte(dwLangID, (unsigned char *)szText, nAnsiLen, bNoRate, lpnCodePageTo))
+        *lpnCodePageTo=*lpnCodePageFrom;
 
       API_HeapFree(hHeap, 0, (LPVOID)szText);
     }
@@ -12877,7 +12875,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
     //Detect
     if (*nCodePageFrom == -1 && *nCodePageTo == -1)
     {
-      AutodetectWideChar(moCur.dwLangCodepageRecognition, wszSelText, nUnicodeLen, DETECTCHARS_REQUIRED, nCodePageFrom, nCodePageTo);
+      AutodetectWideChar(moCur.dwLangCodepageRecognition, wszSelText, nUnicodeLen, TRUE, nCodePageFrom, nCodePageTo);
     }
 
     //Convert
