@@ -8904,10 +8904,14 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
   char szOEMwatermark[128];
   char szKOIwatermark[128];
   char szUTF8watermark[128];
-  int nANSIrate=0;
-  int nOEMrate=0;
-  int nKOIrate=0;
-  int nUTF8rate=0;
+  int nInitANSIrate=0;
+  int nInitOEMrate=0;
+  int nInitKOIrate=0;
+  int nInitUTF8rate=0;
+  int nANSIrate;
+  int nOEMrate;
+  int nKOIrate;
+  int nUTF8rate;
   int nCommonUTF8rate=0;
   DWORD lpdwCounter[0x80];
   DWORD dwMaxIndex=0;
@@ -8937,8 +8941,8 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
     xstrcpyA(szUTF8watermark, "\xD0\xD1");
     if (!bNoRate)
     {
-      nANSIrate=5;
-      nUTF8rate=5;
+      nInitANSIrate=5;
+      nInitUTF8rate=5;
     }
   }
   else if (IsLangEasternEurope(dwLangID))
@@ -8976,7 +8980,11 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
   }
   else return FALSE;
 
-  //Zero counter
+  //Initialize counters
+  nANSIrate=nInitANSIrate;
+  nOEMrate=nInitOEMrate;
+  nKOIrate=nInitKOIrate;
+  nUTF8rate=nInitUTF8rate;
   xmemset(lpdwCounter, 0, 0x80 * sizeof(DWORD));
 
   //Count number of each character in input buffer
@@ -9060,6 +9068,13 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
     nUTF8rate=max(nUTF8rate, nCommonUTF8rate);
   }
 
+  //Check rate change
+  if (nANSIrate == nInitANSIrate &&
+      nOEMrate == nInitOEMrate &&
+      nKOIrate == nInitKOIrate &&
+      nUTF8rate == nInitUTF8rate)
+    return FALSE;
+
   //Set code page
   if (dwLangID == LANG_RUSSIAN)
   {
@@ -9079,7 +9094,6 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
     {
       *lpnCodePage=CP_UNICODE_UTF8;
     }
-    return TRUE;
   }
   else if (IsLangEasternEurope(dwLangID))
   {
@@ -9095,7 +9109,6 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
     {
       *lpnCodePage=852;
     }
-    return TRUE;
   }
   else if (IsLangWesternEurope(dwLangID))
   {
@@ -9111,7 +9124,6 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
     {
       *lpnCodePage=850;
     }
-    return TRUE;
   }
   else if (dwLangID == LANG_TURKISH)
   {
@@ -9127,7 +9139,6 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
     {
       *lpnCodePage=857;
     }
-    return TRUE;
   }
   else if (dwLangID == LANG_CHINESE)
   {
@@ -9137,13 +9148,12 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
           nAnsiCodePage == 950)
       {
         *lpnCodePage=nAnsiCodePage;
-        return TRUE;
       }
+      else return FALSE;
     }
     else
     {
       *lpnCodePage=CP_UNICODE_UTF8;
-      return TRUE;
     }
   }
   else if (dwLangID == LANG_JAPANESE)
@@ -9156,7 +9166,6 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
     {
       *lpnCodePage=CP_UNICODE_UTF8;
     }
-    return TRUE;
   }
   else if (dwLangID == LANG_KOREAN)
   {
@@ -9168,9 +9177,8 @@ BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR 
     {
       *lpnCodePage=CP_UNICODE_UTF8;
     }
-    return TRUE;
   }
-  return FALSE;
+  return TRUE;
 }
 
 BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen, INT_PTR bNoRate, int *lpnCodePageFrom, int *lpnCodePageTo)
