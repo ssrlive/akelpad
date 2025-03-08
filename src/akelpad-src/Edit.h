@@ -229,9 +229,6 @@
 #define DETECTINDEX_JAPANESE      6
 #define DETECTINDEX_KOREAN        7
 
-//Minimum detect characters representation
-#define DETECTCHARS_REQUIRED      10
-
 //Char layout
 #define CHARLAYOUT_NONE       0
 #define CHARLAYOUT_ENGLISH    1
@@ -910,8 +907,8 @@ void CodepageListFree(int **lpList);
 void GetCodePageName(int nCodePage, wchar_t *wszCodePage, int nLen);
 int FilePreview(HWND hWnd, AEHDOC hDoc, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 int AutodetectCodePage(const wchar_t *wpFile, HANDLE hFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
-BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR dwBytesToCheck, UINT_PTR dwCharsRequired, int *nCodePage);
-BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen, INT_PTR nMinChars, int *nCodePageFrom, int *nCodePageTo);
+BOOL AutodetectMultibyte(DWORD dwLangID, const unsigned char *pBuffer, UINT_PTR dwBytesToCheck, INT_PTR bNoRate, int *lpnCodePage);
+BOOL AutodetectWideChar(DWORD dwLangID, const wchar_t *wpText, INT_PTR nTextLen, INT_PTR bNoRate, int *lpnCodePageFrom, int *lpnCodePageTo);
 BOOL ConvertAnsiString(const char *pInput, INT_PTR nInputLen, int nCodePageFrom, int nCodePageTo, char **szOutput, INT_PTR *lpnOutputLen);
 BOOL ConvertWideString(const wchar_t *wpInput, INT_PTR nInputLen, int nCodePageFrom, int nCodePageTo, wchar_t **wszOutput, INT_PTR *lpnOutputLen);
 int GetDetectionIndex(DWORD dwLangID);

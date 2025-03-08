@@ -1,6 +1,7 @@
 
 AkelPad 4.10.0 ()
 -----------------
+Changed: removed limit of minimum characters to start the text recognition procedure.
 Changed: statusbar parts width and tabs height now take into account Windows scale percent.
 
 Added: manual parameter "VersionCheck" - possibility to turn off language module version check.
