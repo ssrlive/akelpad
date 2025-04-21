@@ -101,7 +101,8 @@ BEGIN
 
             MENUITEM "Ver&wijder achterliggende witruimtes\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete selection whitespaces",
+
+            MENUITEM "Delete selection whitespaces", 
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
@@ -729,7 +730,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,75,185,10
     CONTROL         "Onthoud tekenreeks",IDC_OPTIONS_SAVECODEPAGES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,86,185,10
-    LTEXT           "Recente bestanden:",IDC_STATIC,19,108,73,15,NOT WS_GROUP
+    LTEXT           "Recente bestanden:",IDC_STATIC,19,108,73,15,NOT 
+                    WS_GROUP
     EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,106,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -909,23 +911,25 @@ BEGIN
                     WS_TABSTOP,9,59,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
     LTEXT           "Standaard extentie bij opslaan",IDC_STATIC,37,77,171,8
-    GROUPBOX        "Zoeken/Vervangen dialoog",IDC_STATIC,9,96,200,66
+    GROUPBOX        "Zoeken/Vervangen dialoog",IDC_STATIC,9,96,200,78
     CONTROL         "Vervang alles - sluit dialoog",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
     CONTROL         """Replace all"" without message",
                     IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
+    CONTROL         """Find"" without message",IDC_OPTIONS_FIND_NOMSG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
     CONTROL         "Controleer ""In selectie"" of selectie niet leeg is",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,133,185,10
+                    WS_TABSTOP,17,145,185,10
     CONTROL         "Cyclus zoeken",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,157,102,10
     CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,157,83,10
     CONTROL         "Save position of modeless dialogs",
                     IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,169,185,10
+                    WS_TABSTOP,9,181,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -1036,11 +1040,11 @@ BEGIN
     MSG_WRONG_STRING        "Ongeldige regel nummer."
     MSG_LONG_FILELIST       "Te veel bestanden gekozen."
     MSG_DOCUMENT_CHANGED    "Document werd gewijzigd. Wilt u het wilt opslaan?"
-    MSG_FILE_DOES_NOT_EXIST "Nieuw bestand ""%s"" maken?"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_FILE_DOES_NOT_EXIST "Nieuw bestand ""%s"" maken?"
     MSG_RECENTFILES_DELETED "Verwijderde records: %d"
     MSG_SEARCH_ENDED        "Zoeken klaar."
     MSG_SEARCH_CYCLEPROMPT  "Passed file boundary. Continue?"

@@ -100,7 +100,8 @@ BEGIN
 
             MENUITEM "Usuñ &bia³e znaki na koñcu\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Usuñ bia³e znaki w zaznaczeniu",
+
+            MENUITEM "Usuñ bia³e znaki w zaznaczeniu", 
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
@@ -189,8 +190,8 @@ BEGIN
                                                 IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM SEPARATOR
-        MENUITEM "Sklo&nuj",                      IDM_WINDOW_FRAMECLONE
-        MENUITEM "Ko&piuj œcie¿kê",                  IDM_WINDOW_COPYPATH
+        MENUITEM "Sklo&nuj",                    IDM_WINDOW_FRAMECLONE
+        MENUITEM "Ko&piuj œcie¿kê",             IDM_WINDOW_COPYPATH
         MENUITEM "Wybór okna...",               IDM_WINDOW_MDILIST
     END
     POPUP "Pomo&c"
@@ -640,8 +641,8 @@ BEGIN
     LTEXT           "Zaznacz pole, ¿eby automatycznie wczytywaæ wtyczkê (plugin)",
                     IDC_PLUGINS_LIST_INFO,11,192,264,8
     LTEXT           "Klawisz skrótu:",IDC_PLUGINS_HOTKEY_LABEL,284,13,50,8
-    CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",
-                    WS_BORDER | WS_TABSTOP,282,24,50,14
+    CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",WS_BORDER | 
+                    WS_TABSTOP,282,24,50,14
     PUSHBUTTON      "Przydziel",IDC_PLUGINS_ASSIGN,282,42,50,14
     DEFPUSHBUTTON   "Wywo³aj",IDC_PLUGINS_CALL,9,209,50,14
     PUSHBUTTON      "OK",IDOK,228,209,50,14,BS_CENTER
@@ -725,13 +726,15 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,75,185,10
     CONTROL         "Zapamiêtaj stronê kodow¹",IDC_OPTIONS_SAVECODEPAGES,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,86,185,10
-    LTEXT           "Ostatnio otwarte pliki:",IDC_STATIC,19,108,73,15,NOT WS_GROUP
+    LTEXT           "Ostatnio otwarte pliki:",IDC_STATIC,19,108,73,15,NOT 
+                    WS_GROUP
     EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,106,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,113,106,11,13
     PUSHBUTTON      "Wyczyœæ",IDC_OPTIONS_RECENTFILES_CLEAR,141,105,54,14
-    LTEXT           "Historia wyszukiwania:",IDC_STATIC,19,128,73,15,NOT WS_GROUP
+    LTEXT           "Historia wyszukiwania:",IDC_STATIC,19,128,73,15,NOT 
+                    WS_GROUP
     EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -904,23 +907,25 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
     LTEXT           "domyœlne rozszerzenie nazwy przy zapisie",IDC_STATIC,37,
                     77,171,8
-    GROUPBOX        "Okna dialogowe: ZnajdŸ/Zamieñ",IDC_STATIC,9,96,200,66
+    GROUPBOX        "Okna dialogowe: ZnajdŸ/Zamieñ",IDC_STATIC,9,96,200,78
     CONTROL         """Zamieñ wszystko"" zamyka okno dialogowe",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
     CONTROL         """Zamieñ wszystko"" bez komunikatu",
                     IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
+    CONTROL         """Find"" without message",IDC_OPTIONS_FIND_NOMSG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
     CONTROL         "Ustaw ""W zaznaczeniu"" jeœli jest zaznaczenie",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,133,185,10
+                    WS_TABSTOP,17,145,185,10
     CONTROL         "Szukaj wko³o",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,157,102,10
     CONTROL         "Zapytanie",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,157,83,10
     CONTROL         "Pamiêtaj po³o¿enie niemodalnych okien dialogowych",
                     IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,169,185,10
+                    WS_TABSTOP,9,181,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -1032,11 +1037,11 @@ BEGIN
     MSG_WRONG_STRING        "Nieprawid³owy numer wiersza."
     MSG_LONG_FILELIST       "Wybrano za du¿o plików."
     MSG_DOCUMENT_CHANGED    "Dokument zosta³ zmodyfikowany. Czy zapisaæ zmiany?"
-    MSG_FILE_DOES_NOT_EXIST "Utworzyæ nowy plik ""%s""?"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_FILE_DOES_NOT_EXIST "Utworzyæ nowy plik ""%s""?"
     MSG_RECENTFILES_DELETED "Liczba usuniêtych wpisów: %d"
     MSG_SEARCH_ENDED        "Wyszukiwanie zakoñczone."
     MSG_SEARCH_CYCLEPROMPT  "Osi¹gniêto granicê pliku. Kontynuowaæ?"

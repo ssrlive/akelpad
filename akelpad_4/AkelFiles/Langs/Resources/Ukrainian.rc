@@ -13,7 +13,7 @@
   #else
     #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
   #endif
-  #define RC_VERSIONCOPYRIGHT "© 2010-2015 Fedorow Olexandr (www.olexandr@mail.ru), Yurii Petrashko aka YuriPet (yuripet@gmail.com)"
+  #define RC_VERSIONCOPYRIGHT "© 2014 Fedorow Olexandr (www.olexandr@mail.ru), Yurii Petrashko aka YuriPet"
   #define RC_VERSIONNAME "Ukrainian.dll"
 #endif
 #include "winresrc.h"
@@ -86,8 +86,9 @@ BEGIN
         BEGIN
             MENUITEM "Вертикальна вставка\tAlt+V",  IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
-            MENUITEM "&Додати табуляцію\tTab",            IDM_EDIT_INSERT_TAB_MENU
-            MENUITEM "&Прибрати табуляцію\tShift+Tab",    IDM_EDIT_DELETE_TAB_MENU
+            MENUITEM "&Додати табуляцію\tTab",      IDM_EDIT_INSERT_TAB_MENU
+            MENUITEM "&Прибрати табуляцію\tShift+Tab", 
+                                                    IDM_EDIT_DELETE_TAB_MENU
             MENUITEM "Д&одати пробіл\tSpace",       IDM_EDIT_INSERT_SPACE_MENU
 
             MENUITEM "При&брати пробіл\tShift+Space", 
@@ -96,9 +97,10 @@ BEGIN
             MENUITEM "Прибр&ати перший символ\tShift+Backspace", 
                                                     IDM_EDIT_DELETE_FIRST_CHAR_MENU
 
-   MENUITEM "Прибра&ти табуляцію та пробіли в кінці\tAlt+Backspace",
+            MENUITEM "Прибра&ти табуляцію та пробіли в кінці\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-   MENUITEM "Прибрати табуляцію та пробіли у позначеному",
+
+            MENUITEM "Прибрати табуляцію та пробіли у позначеному", 
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
@@ -122,7 +124,7 @@ BEGIN
         MENUITEM "&Шрифт...",                   IDM_VIEW_FONT
         MENUITEM "&Кольори...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
-        MENUITEM "&Лише для читання",         IDM_VIEW_READONLY
+        MENUITEM "&Лише для читання",           IDM_VIEW_READONLY
         MENUITEM "Пере&несення по словах\tCtrl+U", IDM_VIEW_WORDWRAP
         MENUITEM "&Розділити вікно",            IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "&Поверх усіх вікон\tCtrl+T",  IDM_VIEW_ONTOP
@@ -140,7 +142,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Зб&ерігати відступи зліва\tCtrl+L", IDM_OPTIONS_KEEPSPACE
         MENUITEM "Слідкувати за змінам&и файлу", IDM_OPTIONS_WATCHFILE
-        MENUITEM "Зберігати ча&с файлу",         IDM_OPTIONS_SAVETIME
+        MENUITEM "Зберігати ча&с файлу",        IDM_OPTIONS_SAVETIME
         MENUITEM "Не відкривати ф&айл двічі",   IDM_OPTIONS_SINGLEOPEN_FILE
         MENUITEM "Не відкривати про&граму двічі", 
                                                 IDM_OPTIONS_SINGLEOPEN_PROGRAM
@@ -186,14 +188,14 @@ BEGIN
                                                 IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM SEPARATOR
-        MENUITEM "Кло&нувати",                IDM_WINDOW_FRAMECLONE
-        MENUITEM "Ко&піювати шлях",            IDM_WINDOW_COPYPATH
+        MENUITEM "Кло&нувати",                  IDM_WINDOW_FRAMECLONE
+        MENUITEM "Ко&піювати шлях",             IDM_WINDOW_COPYPATH
         MENUITEM "Вибір вікна...",              IDM_WINDOW_MDILIST
     END
     POPUP "&Довідка"
     BEGIN
         MENUITEM "&Керівництво",                IDM_MANUAL
-        MENUITEM "О&новлення...",              IDM_UPDATE
+        MENUITEM "О&новлення...",               IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "Пр&о програму",               IDM_ABOUT
     END
@@ -656,8 +658,8 @@ CAPTION "Загальні"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Виконати",IDC_STATIC,9,6,200,90
-    LTEXT           "Команда (%f - файл, %a - каталог AkelPad):",IDC_STATIC,21,
-                    24,160,8,NOT WS_GROUP
+    LTEXT           "Команда (%f - файл, %a - каталог AkelPad):",IDC_STATIC,
+                    21,24,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
     LTEXT           "Робочий каталог (%d - каталог файлу):",IDC_STATIC,21,59,
@@ -791,9 +793,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,98,132,10
     CONTROL         "Показувати активний стовпчик",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,110,132,10
-    CONTROL         "Показувати активний рядок",
-                    IDC_OPTIONS_CARETACTIVELINE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,16,122,132,10
+    CONTROL         "Показувати активний рядок",IDC_OPTIONS_CARETACTIVELINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,122,132,10
     CONTROL         "Межа",IDC_OPTIONS_CARETACTIVELINEBORDER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,151,122,56,10
     LTEXT           "Ширина:",IDC_STATIC,151,94,56,8,NOT WS_GROUP
@@ -852,8 +853,9 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,20,200,10
     CONTROL         "Перетягування мишею",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,11,31,200,10
-    CONTROL         "Клацання правою кнопкою миші переміщує каретку",IDC_OPTIONS_RCLICKMOVECARET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,42,200,10
+    CONTROL         "Клацання правою кнопкою миші переміщує каретку",
+                    IDC_OPTIONS_RCLICKMOVECARET,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,11,42,200,10
     GROUPBOX        "Гіперпосилання",IDC_STATIC,9,60,200,100
     CONTROL         "Відображати",IDC_OPTIONS_URL_SHOW,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,76,90,10
@@ -901,29 +903,31 @@ BEGIN
     CONTROL         "Вставити дату, якщо файл містить на початку .LOG",
                     IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,47,200,10
-    CONTROL         "Попереджати про збереження в файли, призначені лише для читання",
+    CONTROL         "Попереджати про збереження в read-only файли",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     BS_MULTILINE | WS_TABSTOP,9,57,200,16
-    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,176,75,24,13,ES_AUTOHSCROLL
-    LTEXT           "Типове розширення при збереженні документа:",
-                    IDC_STATIC,37,77,171,8
-    GROUPBOX        "Діалог пошуку/заміни",IDC_STATIC,9,96,200,66
+    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
+    LTEXT           "типове розширення при збереженні документа",IDC_STATIC,
+                    37,77,171,8
+    GROUPBOX        "Діалог пошуку/заміни",IDC_STATIC,9,96,200,78
     CONTROL         """Замінити все"" закриває діалог",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
     CONTROL         """Замінити все"" без повідомлення",
                     IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
+    CONTROL         """Find"" without message",IDC_OPTIONS_FIND_NOMSG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
     CONTROL         "Відмітити ""У позначеному"" якщо є позначення",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,133,185,10
+                    WS_TABSTOP,17,145,185,10
     CONTROL         "Пошук по колу",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,157,102,10
     CONTROL         "Запит",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,157,83,10
     CONTROL         "Зберігати позицію немодальних діалогів",
                     IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,169,185,10
+                    WS_TABSTOP,9,181,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -1054,11 +1058,11 @@ BEGIN
     MSG_WRONG_STRING        "Неправильний номер рядка."
     MSG_LONG_FILELIST       "Обрано занадто багато файлів."
     MSG_DOCUMENT_CHANGED    "Документ було змінено. Зберегти?"
-    MSG_FILE_DOES_NOT_EXIST "Створити новий файл ""%s""?"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_FILE_DOES_NOT_EXIST "Створити новий файл ""%s""?"
     MSG_RECENTFILES_DELETED "Видалено записів: %d"
     MSG_SEARCH_ENDED        "Пошук завершено."
     MSG_SEARCH_CYCLEPROMPT  "Досягнуто межі файлу. Продовжити?"

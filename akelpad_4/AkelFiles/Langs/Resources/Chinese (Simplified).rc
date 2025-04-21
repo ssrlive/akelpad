@@ -97,7 +97,8 @@ BEGIN
 
             MENUITEM "去除尾部的空格(&W)\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete selection whitespaces",
+
+            MENUITEM "Delete selection whitespaces", 
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
@@ -190,7 +191,7 @@ BEGIN
     POPUP "帮助(&H)"
     BEGIN
         MENUITEM "用户手册(&M)",                IDM_MANUAL
-        MENUITEM "版本更新(&U)...",                  IDM_UPDATE
+        MENUITEM "版本更新(&U)...",             IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "关于(&A)",                    IDM_ABOUT
     END
@@ -485,10 +486,10 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "区分大小写",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,109,12
-    CONTROL         "整字匹配",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,109,12
-    CONTROL         "正则表达式",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,53,95,12
+    CONTROL         "整字匹配",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,41,109,12
+    CONTROL         "正则表达式",IDC_SEARCH_REGEXP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,53,95,12
     CONTROL         "",IDC_SEARCH_REGEXP_ARROW,"Button",BS_OWNERDRAW | 
                     WS_TABSTOP,106,55,10,9
     CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
@@ -526,10 +527,10 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "区分大小写",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,109,12
-    CONTROL         "整字匹配",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,109,12
-    CONTROL         "正则表达式",IDC_SEARCH_REGEXP,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,67,95,12
+    CONTROL         "整字匹配",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,55,109,12
+    CONTROL         "正则表达式",IDC_SEARCH_REGEXP,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,67,95,12
     CONTROL         "",IDC_SEARCH_REGEXP_ARROW,"Button",BS_OWNERDRAW | 
                     WS_TABSTOP,106,69,10,9
     CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
@@ -893,22 +894,24 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,59,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
     LTEXT           "保存时默认的扩展名",IDC_STATIC,37,77,171,8
-    GROUPBOX        "查找/替换 对话框",IDC_STATIC,9,96,200,66
+    GROUPBOX        "查找/替换 对话框",IDC_STATIC,9,96,200,78
     CONTROL         "全部替换 - 关闭对话框",IDC_OPTIONS_REPLACEALL_CLOSE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,109,185,10
     CONTROL         """Replace all"" without message",
                     IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
+    CONTROL         """Find"" without message",IDC_OPTIONS_FIND_NOMSG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
     CONTROL         "如果选定区域不为空就选上“选定区域”。",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,133,185,10
+                    WS_TABSTOP,17,145,185,10
     CONTROL         "循环搜索",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,157,102,10
     CONTROL         "提示",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,157,83,10
     CONTROL         "Save position of modeless dialogs",
                     IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,169,185,10
+                    WS_TABSTOP,9,181,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -1016,11 +1019,11 @@ BEGIN
     MSG_WRONG_STRING        "无效的行号。"
     MSG_LONG_FILELIST       "选择太多文件。"
     MSG_DOCUMENT_CHANGED    "文档已经被修改。是否保存?"
-    MSG_FILE_DOES_NOT_EXIST "创建新文件 ""%s""?"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_FILE_DOES_NOT_EXIST "创建新文件 ""%s""?"
     MSG_RECENTFILES_DELETED "已删除记录: %d"
     MSG_SEARCH_ENDED        "搜索完成。"
     MSG_SEARCH_CYCLEPROMPT  "到达文件的边界。继续?"

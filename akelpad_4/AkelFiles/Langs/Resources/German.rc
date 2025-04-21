@@ -98,7 +98,8 @@ BEGIN
 
             MENUITEM "&Tabs und Leerstellen am Ende entfernen\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete selection whitespaces",
+
+            MENUITEM "Delete selection whitespaces", 
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
@@ -728,7 +729,8 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,75,185,10
     CONTROL         "Zeichensatz merken",IDC_OPTIONS_SAVECODEPAGES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,86,185,10
-    LTEXT           "Zuletzt geöffnete Dateien:",IDC_STATIC,19,108,73,15,NOT WS_GROUP
+    LTEXT           "Zuletzt geöffnete Dateien:",IDC_STATIC,19,108,73,15,NOT 
+                    WS_GROUP
     EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,106,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -909,23 +911,25 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
     LTEXT           "Standard-Dateierweiterung beim Speichern",IDC_STATIC,37,
                     77,171,8
-    GROUPBOX        "Suchen/Ersetzen-Dialog",IDC_STATIC,9,96,200,66
+    GROUPBOX        "Suchen/Ersetzen-Dialog",IDC_STATIC,9,96,200,78
     CONTROL         """Alles ersetzen"" schließt automatisch Dialog",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
     CONTROL         """Replace all"" without message",
                     IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
+    CONTROL         """Find"" without message",IDC_OPTIONS_FIND_NOMSG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
     CONTROL         "Im markierten Bereich direkt suchen, wenn nicht leer",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,133,185,10
+                    WS_TABSTOP,17,145,185,10
     CONTROL         "Zyklische Suche",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,157,102,10
     CONTROL         "Bestätigung",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,157,83,10
     CONTROL         "Save position of modeless dialogs",
                     IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,169,185,10
+                    WS_TABSTOP,9,181,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -1053,11 +1057,11 @@ BEGIN
     MSG_WRONG_STRING        "Ungültige Zeilennummer."
     MSG_LONG_FILELIST       "Zu viele Dateien ausgewählt."
     MSG_DOCUMENT_CHANGED    "Die Datei wurde verändert. Änderungen speichern?"
-    MSG_FILE_DOES_NOT_EXIST "Soll die neue Datei ""%s"" erstellt werden?"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_FILE_DOES_NOT_EXIST "Soll die neue Datei ""%s"" erstellt werden?"
     MSG_RECENTFILES_DELETED "Einträge gelöscht: %d"
     MSG_SEARCH_ENDED        "Suche beendet."
     MSG_SEARCH_CYCLEPROMPT  "Dateigrenze erreicht. Fortsetzten?"

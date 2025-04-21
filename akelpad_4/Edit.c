@@ -10257,7 +10257,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
               API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
             }
           }
-          else if (!bNoSearchFinishMsg)
+          else if (!bNoSearchFinishMsg && !(moCur.dwSearchOptions & FRF_FINDNOMSG))
           {
             API_LoadString(hLangModule, MSG_SEARCH_ENDED, wszMsg, BUFFER_SIZE);
             API_MessageBox(hDlg, wszMsg, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
@@ -10497,6 +10497,12 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
     lpFrame->bCompileErrorReplace=FALSE;
   }
 
+  if (bCycleCheck || (dwFlags & FRF_CYCLESEARCHPROMPT))
+  {
+    lpFrame->bReachedEOF=!bFound;
+    UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
+  }
+
   if (bCycleCheck && !bFound)
   {
     if ((dwFlags & FRF_CYCLESEARCH) && !(dwFlags & FRF_SELECTION) && !(dwFlags & FRF_BEGINNING))
@@ -10544,8 +10550,6 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
         bNoSearchFinishMsg=TRUE;
     }
   }
-  lpFrame->bReachedEOF=!bFound;
-  UpdateStatusUser(lpFrame, CSB_SEARCHENDED);
 
   if (bFound)
   {
@@ -16483,6 +16487,7 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndSaveInReadOnlyMsg;
   static HWND hWndReplaceAllAndClose;
   static HWND hWndReplaceAllNoMsg;
+  static HWND hWndFindNoMsg;
   static HWND hWndInSelIfSel;
   static HWND hWndCycleSearch;
   static HWND hWndCycleSearchPrompt;
@@ -16500,6 +16505,7 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
     hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
     hWndReplaceAllNoMsg=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_NOMSG);
+    hWndFindNoMsg=GetDlgItem(hDlg, IDC_OPTIONS_FIND_NOMSG);
     hWndInSelIfSel=GetDlgItem(hDlg, IDC_OPTIONS_INSELIFSEL);
     hWndCycleSearch=GetDlgItem(hDlg, IDC_OPTIONS_CYCLESEARCH);
     hWndCycleSearchPrompt=GetDlgItem(hDlg, IDC_OPTIONS_CYCLESEARCHPROMPT);
@@ -16519,6 +16525,8 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.dwSearchOptions & FRF_REPLACEALLNOMSG)
       SendMessage(hWndReplaceAllNoMsg, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwSearchOptions & FRF_FINDNOMSG)
+      SendMessage(hWndFindNoMsg, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.dwSearchOptions & FRF_CHECKINSELIFSEL)
       SendMessage(hWndInSelIfSel, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.dwSearchOptions & FRF_CYCLESEARCH)
@@ -16584,6 +16592,12 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         moCur.dwSearchOptions|=FRF_REPLACEALLNOMSG;
       else
         moCur.dwSearchOptions&=~FRF_REPLACEALLNOMSG;
+
+      //"Find" without message
+      if (SendMessage(hWndFindNoMsg, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        moCur.dwSearchOptions|=FRF_FINDNOMSG;
+      else
+        moCur.dwSearchOptions&=~FRF_FINDNOMSG;
 
       //Check "In selection" if selection not empty
       if (SendMessage(hWndInSelIfSel, BM_GETCHECK, 0, 0) == BST_CHECKED)

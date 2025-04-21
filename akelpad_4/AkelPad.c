@@ -1091,6 +1091,7 @@ void _WinMain()
           (moInit.dwSearchOptions & FRF_ALLFILES) |
           (moInit.dwSearchOptions & FRF_REPLACEALLANDCLOSE) |
           (moInit.dwSearchOptions & FRF_REPLACEALLNOMSG) |
+          (moInit.dwSearchOptions & FRF_FINDNOMSG) |
           (moInit.dwSearchOptions & FRF_CHECKINSELIFSEL) |
           (moInit.dwSearchOptions & FRF_CYCLESEARCH) |
           (moInit.dwSearchOptions & FRF_CYCLESEARCHPROMPT);

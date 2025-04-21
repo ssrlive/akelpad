@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 5, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 6, 0)
 
 
 //// Defines
@@ -801,6 +801,7 @@
 #define FRF_CYCLESEARCH        0x08000000
 #define FRF_CYCLESEARCHPROMPT  0x10000000
 #define FRF_REPLACEALLNOMSG    0x20000000
+#define FRF_FINDNOMSG          0x40000000
 #define FRF_TEST               0x80000000  //Test only. Without text replacement and selection.
 
 //Replace flags
