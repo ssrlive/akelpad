@@ -19,8 +19,10 @@
 
 //Include stack functions
 #define StackInsertBefore
+#define StackInsertAfter
 #define StackDelete
 #define StackJoin
+#define StackCopy
 #include "..\AkelEdit\StackFunc.h"
 
 //Include RegExp functions

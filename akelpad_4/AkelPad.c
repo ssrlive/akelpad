@@ -26,15 +26,18 @@
 //Include stack functions
 #ifndef AKELEDIT_STATICBUILD
   #define StackInsertBefore
+  #define StackInsertAfter
   #define StackDelete
   #define StackJoin
+  #define StackCopy
 #else
   #define StackInsertBefore_INCLUDED
+  #define StackInsertAfter_INCLUDED
   #define StackDelete_INCLUDED
   #define StackJoin_INCLUDED
+  #define StackCopy_INCLUDED
 #endif
 #define StackGetElement
-#define StackInsertAfter
 #define StackInsertIndex
 #define StackMoveAfter
 #define StackMoveBefore

@@ -56,8 +56,10 @@
 
 //Include stack functions
 #define StackInsertBefore
+#define StackInsertAfter
 #define StackDelete
 #define StackJoin
+#define StackCopy
 #define StackSplit
 #include "StackFunc.h"
 
@@ -5633,12 +5635,13 @@ void AE_StackWindowFree(AESTACKEDIT *hStack)
 
 void AE_CloneActivate(AKELEDIT *lpPrev, AKELEDIT *ae)
 {
-  if (lpPrev && ae->hWndEdit != lpPrev->hWndEdit)
+  if (lpPrev && ae != lpPrev)
   {
     //Save previous window info
     if (lpPrev->nCloneCount > 0 || lpPrev->lpMaster)
     {
       AKELEDIT *aeSource;
+      AECHARINDEX *lpSelIndex;
 
       if (lpPrev->lpMaster)
         aeSource=lpPrev->lpMaster;
@@ -5650,7 +5653,11 @@ void AE_CloneActivate(AKELEDIT *lpPrev, AKELEDIT *ae)
         if (!lpPrev->lpSelStartPoint)
         {
           //Get selection start from master
-          lpPrev->lpSelStartPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelStartIndex);
+          if (aeSource->lpSelStartPoint)
+            lpSelIndex=&aeSource->lpSelStartPoint->ciPoint;
+          else
+            lpSelIndex=&aeSource->ciSelStartIndex;
+          lpPrev->lpSelStartPoint=AE_StackPointInsert(aeSource, lpSelIndex);
         }
         else
         {
@@ -5661,7 +5668,11 @@ void AE_CloneActivate(AKELEDIT *lpPrev, AKELEDIT *ae)
         if (!lpPrev->lpSelEndPoint)
         {
           //Get selection end from master
-          lpPrev->lpSelEndPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelEndIndex);
+          if (aeSource->lpSelEndPoint)
+            lpSelIndex=&aeSource->lpSelEndPoint->ciPoint;
+          else
+            lpSelIndex=&aeSource->ciSelEndIndex;
+          lpPrev->lpSelEndPoint=AE_StackPointInsert(aeSource, lpSelIndex);
         }
         else
         {
@@ -5669,16 +5680,10 @@ void AE_CloneActivate(AKELEDIT *lpPrev, AKELEDIT *ae)
           lpPrev->lpSelEndPoint=AE_StackPointInsert(lpPrev, &lpPrev->ciSelEndIndex);
         }
 
-        if (!lpPrev->lpCaretPoint)
-        {
-          //Get caret index from master
-          lpPrev->lpCaretPoint=AE_StackPointInsert(aeSource, &aeSource->ciCaretIndex);
-        }
+        if (AEC_IndexCompare(&lpPrev->ciCaretIndex, &lpPrev->ciSelEndIndex) >= 0)
+          lpPrev->lpCaretPoint=lpPrev->lpSelEndPoint;
         else
-        {
-          AE_StackPointDelete(lpPrev, lpPrev->lpCaretPoint);
-          lpPrev->lpCaretPoint=AE_StackPointInsert(lpPrev, &lpPrev->ciCaretIndex);
-        }
+          lpPrev->lpCaretPoint=lpPrev->lpSelStartPoint;
 
         //Clear lines selection
         AE_ClearSelLines(&lpPrev->ciSelStartIndex, &lpPrev->ciSelEndIndex);
@@ -5686,7 +5691,7 @@ void AE_CloneActivate(AKELEDIT *lpPrev, AKELEDIT *ae)
     }
   }
 
-  if (!lpPrev || ae->hWndEdit != lpPrev->hWndEdit)
+  if (!lpPrev || ae != lpPrev)
   {
     //Set current window info
     if (ae->nCloneCount > 0 || ae->lpMaster)
@@ -5816,10 +5821,7 @@ void AE_StackCloneDelete(AECLONE *aec)
       aeClone->lpSelEndPoint=NULL;
     }
     if (aeClone->lpCaretPoint)
-    {
-      AE_StackPointDelete(aeMaster, aeClone->lpCaretPoint);
       aeClone->lpCaretPoint=NULL;
-    }
 
     //Deassociate AKELTEXT and AKELOPTIONS pointers
     aeClone->ptxt=&aeClone->txt;
@@ -9038,20 +9040,23 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
   }
   nWrapCount=AE_WrapLines(ae, liWrapStart, liWrapEnd, dwWrap);
 
-  //First point
-  ciSelStart=lpPointOne->ciPoint;
-  AE_StackPointDelete(ae, lpPointOne);
+  //Update scroll data
+  if (!ae->ptxt->liMaxWidthLine.lpLine)
+    AE_CalcLinesWidth(ae, NULL, NULL, 0);
+  else
+    AE_CalcLinesWidth(ae, liWrapStart, liWrapEnd, 0);
 
-  //Second point
-  ciSelEnd=lpPointTwo->ciPoint;
-  AE_StackPointDelete(ae, lpPointTwo);
-
-  //Third point
-  if (!ae->popt->nVScrollLock)
+  if (nWrapCount)
   {
-    ciFirstVisibleLineAfterWrap=lpPointThree->ciPoint;
-    AE_StackPointDelete(ae, lpPointThree);
+    ae->ptxt->nLineCount+=nWrapCount;
+    ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
   }
+
+  //Update selection
+  ciSelStart=lpPointOne->ciPoint;
+  ciSelEnd=lpPointTwo->ciPoint;
+  AE_StackPointDelete(ae, lpPointOne);
+  AE_StackPointDelete(ae, lpPointTwo);
 
   ae->ptCaret.x=0;
   ae->ptCaret.y=0;
@@ -9062,24 +9067,20 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
   ae->ciSelStartIndex=ciSelStart;
   ae->ciSelEndIndex=ciSelEnd;
 
-  //Update scroll bars
-  if (!ae->ptxt->liMaxWidthLine.lpLine)
-    AE_CalcLinesWidth(ae, NULL, NULL, 0);
-  else
-    AE_CalcLinesWidth(ae, liWrapStart, liWrapEnd, 0);
-
-  if (nWrapCount)
-  {
-    ae->ptxt->nLineCount+=nWrapCount;
-    ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
-    AE_UpdateScrollBars(ae, SB_VERT);
-  }
   AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_RESETSELECTION|AESELT_LOCKNOTIFY);
+
+  //Update first visible line
   if (!ae->popt->nVScrollLock)
   {
+    ciFirstVisibleLineAfterWrap=lpPointThree->ciPoint;
+    AE_StackPointDelete(ae, lpPointThree);
+
     ptFirstVisLine.y=AE_VPosFromLine(ae, ciFirstVisibleLineAfterWrap.nLine);
     AE_ScrollToPointEx(ae, AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
   }
+
+  if (nWrapCount)
+    AE_UpdateScrollBars(ae, SB_VERT);
 
   if (bNotify)
   {
