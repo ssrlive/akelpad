@@ -114,6 +114,12 @@
 #define AEUN_UNDOONLY        0x00001000
 #define AEUN_REDOONLY        0x00002000
 
+//AE_CloneUpdate flags
+#define AECU_SAVESELECTION     0x00000001
+#define AECU_RESTORESELECTION  0x00000002
+#define AECU_SCROLLBAR         0x00000004
+#define AECU_INVALIDATERECT    0x00000008
+
 #ifndef IDC_HAND
   #define IDC_HAND  MAKEINTRESOURCE(32649)
 #endif
@@ -717,6 +723,7 @@ typedef struct _AKELEDIT {
   AEPOINT *lpSelStartPoint;
   AEPOINT *lpSelEndPoint;
   AEPOINT *lpCaretPoint;
+  int nClonePointUse;
   //RECT rcCloneMargins;
 
   //Undo window heap or global heap
@@ -802,11 +809,12 @@ void AE_StackWindowFree(AESTACKEDIT *hStack);
 AECLONE* AE_StackCloneIndex(AKELEDIT *ae, DWORD dwIndex);
 AECLONE* AE_StackCloneGet(AKELEDIT *aeMaster, AKELEDIT *aeClone);
 AECLONE* AE_StackCloneAdd(AKELEDIT *aeMaster, AKELEDIT *aeClone);
-void AE_CloneActivate(AKELEDIT *lpPrev, AKELEDIT *ae);
-void AE_CloneRestoreSelection(AKELEDIT *ae);
 void AE_StackCloneDelete(AECLONE *aec);
 void AE_StackCloneDeleteAll(AKELEDIT *ae);
-void AE_StackCloneUpdate(AKELEDIT *ae);
+void AE_StackCloneUpdate(AKELEDIT *ae, DWORD dwFlags);
+void AE_CloneUpdate(AKELEDIT *ae, DWORD dwFlags);
+void AE_CloneRestoreSelection(AKELEDIT *ae);
+void AE_CloneSwitchSelection(AKELEDIT *ae, BOOL bUpdateSelection);
 AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae);
 AEERASE* AE_StackEraseInsert(AKELEDIT *ae, RECT *rcErase);
 BOOL AE_StackEraseMore(AKELEDIT *ae, RECT *rcErase);

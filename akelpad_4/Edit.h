@@ -1121,7 +1121,7 @@ void StackRecentCaretFree(STACKRECENTCARET *hStack);
 void RecentCaretSet(AENSELCHANGE *aensc);
 BOOL RecentCaretGo(BOOL bNext);
 
-void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci);
+void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, const AECHARRANGE *cr, const AECHARINDEX *ci);
 void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags);

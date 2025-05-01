@@ -18476,7 +18476,7 @@ BOOL RecentCaretGo(BOOL bNext)
 
 //// Status bar
 
-void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci)
+void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, const AECHARRANGE *cr, const AECHARINDEX *ci)
 {
   if (hWndEdit && lpFrameCurrent->ei.hDocEdit == hDocEdit)
   {
