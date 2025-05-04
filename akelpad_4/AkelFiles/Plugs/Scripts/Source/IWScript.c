@@ -236,22 +236,21 @@ HRESULT STDMETHODCALLTYPE WScript_Sleep(IWScript *this, int nTime)
 HRESULT STDMETHODCALLTYPE WScript_Quit(IWScript *this, int nErrorCode)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealWScript *)this)->lpScriptThread;
+  const wchar_t *wpExt=GetFileExt(lpScriptThread->wszScriptName, -1);
 
   lpScriptThread->bQuiting=TRUE;
 
-  if (!bOldWindows)
+  if (!xstrcmpiW(wpExt, L"vbs") && !bOldWindows)
   {
     //On Win9x this will cause crash, but it is necessary for VBScript code:
     //  On Error Resume Next
     //  WScript.Quit
     //  MsgBox "Not quit"
-    lpScriptThread->objActiveScript->lpVtbl->SetScriptState(lpScriptThread->objActiveScript, SCRIPTSTATE_DISCONNECTED);
-    lpScriptThread->objActiveScript->lpVtbl->Close(lpScriptThread->objActiveScript);
+    lpScriptThread->objActiveScript->lpVtbl->SetScriptState(lpScriptThread->objActiveScript, SCRIPTSTATE_CLOSED);
   }
 
-  //This error code disconnect script (skipping OnScriptError).
-  //If we return E_FAIL, then debugger will start before execution go to OnScriptError.
-  return SCRIPT_E_PROPAGATE;
+  //If we return SCRIPT_E_PROPAGATE (to skip OnScriptError), then jscript9Legacy.dll will crash.
+  return E_FAIL;
 }
 
 HRESULT STDMETHODCALLTYPE WScript_ConnectObject(IWScript *this, IDispatch *objConnectTo, BSTR wpPrefix, VARIANT vtIID, int *nCount)

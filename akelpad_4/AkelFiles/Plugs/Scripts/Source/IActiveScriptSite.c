@@ -367,8 +367,8 @@ HRESULT STDMETHODCALLTYPE OnScriptError(IActiveScriptSite *this, IActiveScriptEr
 
   if (lpScriptThread->bQuiting)
   {
-    //Just in case - SCRIPT_E_PROPAGATE must disconnect without enter here.
-    lpScriptThread->objActiveScript->lpVtbl->SetScriptState(lpScriptThread->objActiveScript, SCRIPTSTATE_DISCONNECTED);
+    //WScript.Quit with E_FAIL
+    //lpScriptThread->objActiveScript->lpVtbl->SetScriptState(lpScriptThread->objActiveScript, SCRIPTSTATE_DISCONNECTED);
     return S_OK;
   }
 
@@ -418,7 +418,7 @@ HRESULT STDMETHODCALLTYPE OnScriptError(IActiveScriptSite *this, IActiveScriptEr
       //CloseScriptWindows(lpScriptThread);
       if (lpScriptThread->dwMessageLoop)
         PostQuitMessage(0);
-      lpScriptThread->objActiveScript->lpVtbl->Close(lpScriptThread->objActiveScript);
+      //lpScriptThread->objActiveScript->lpVtbl->SetScriptState(lpScriptThread->objActiveScript, SCRIPTSTATE_DISCONNECTED);
 
       if (nChoice == IDNO) //"Edit"
       {
