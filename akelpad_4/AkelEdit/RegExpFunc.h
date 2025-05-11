@@ -1,5 +1,5 @@
 /******************************************************************
- *                  RegExp functions header v2.6                  *
+ *                  RegExp functions header v2.7                  *
  *                                                                *
  * 2025 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -26,6 +26,7 @@
 #define REO_WHOLEWORD         0x0004 //Whole word match.
 #define REO_NONEWLINEDOT      0x0008 //Symbol . specifies any character except new line.
 #define REO_REFEXIST          0x1000 //Flag is set by PatCompile, if any backreferences found.
+#define REO_REF100EXIST       0x2000 //Flag is set by PatCompile, if backreferences >= 100 found (\101 matches \1 in ref100, \102 matches \2 and so on).
 
 //REGROUP flags
 #define REGF_MATCHCASE        0x00000001 //Case-sensitive search.
@@ -477,6 +478,8 @@ INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wchar_t *wp
         {
           lpREGroupRef->dwFlags|=REGF_REFEXIST;
           hStack->dwOptions|=REO_REFEXIST;
+          if (nPatRefIndex >= 100)
+            hStack->dwOptions|=REO_REF100EXIST;
           if (lpREGroupItem->nGroupLen != -1)
           {
             if (lpREGroupRef->nGroupLen != -1)
