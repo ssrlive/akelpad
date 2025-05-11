@@ -212,6 +212,7 @@ typedef struct _FOLDINFO {
   SYNTAXFILE *lpRuleFile;
   SYNTAXFILE *lpPrevFile;
   STACKREGROUP sregEnd;
+  BOOL bRef100;
   CHARRANGE64 crSyntaxFileLine;
 } FOLDINFO;
 
@@ -227,6 +228,7 @@ typedef struct {
   HTREEITEM hItem;
   wchar_t *wpName;
   int nNameOffsetFromPoint;
+  STACKREGROUP sregStart;
 } FOLDDATA;
 
 //For FillLevelsStack
@@ -257,6 +259,7 @@ typedef struct {
   AEHMARKRANGE hTagMarkThird;
   AEFOLD *lpTagMark;
   wchar_t wszFilter[MAX_PATH];
+  int nClones;
 } FOLDWINDOWDATA;
 
 typedef struct _FOLDWINDOW {
@@ -371,14 +374,14 @@ FOLDWINDOW* SetActiveEdit(HWND hWndEdit, HWND hWndTreeView, DWORD dwFlags);
 void UpdateTagMark(FOLDWINDOW *lpFoldWindow);
 BOOL RemoveTagMark(FOLDWINDOW *lpFoldWindow);
 BOOL CALLBACK IsMatch(AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
-INT_PTR CALLBACK IsMatchRE(STACKREGROUP *sreg, AECHARRANGE *crFound, const AECHARINDEX *ciChar);
+INT_PTR CALLBACK IsMatchRE(STACKREGROUP *sreg, AECHARRANGE *crFound, const AECHARINDEX *ciChar, BOOL bReset);
 BOOL IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape);
 FOLDINFO* IsFold(FOLDWINDOW *lpFoldWindow, LEVEL *lpLevel, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, DWORD *dwFoldStop);
 BOOL FoldAllowed(LEVEL *lpLevel, int nParentID, int nFoldRuleID);
 FOLDINFO* IsFoldStart(FOLDSTART *lpFoldStart, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
-FOLDINFO* IsFoldEnd(FOLDINFO *lpFoldInfo, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
+BOOL IsFoldEnd(FOLDINFO *lpFoldInfo, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
 SKIPINFO* IsSkipStart(SKIPSTART *lpSkipStart, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
-SKIPINFO* IsSkipEnd(SKIPINFO *lpSkipInfo, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
+BOOL IsSkipEnd(SKIPINFO *lpSkipInfo, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
 FOLDINFO* FindFold(FOLDWINDOW *lpFoldWindow, const AECHARRANGE *crSearchRange);
 BOOL CheckFoldFlags(FOLDINFO *lpFoldInfo, AECHARRANGE *crFound, DWORD dwFoldStop);
 BOOL CheckSkipFlags(SKIPINFO *lpSkipInfo, AECHARRANGE *crFound, const AECHARINDEX *ciChar, DWORD dwFoldStop);

@@ -1467,7 +1467,7 @@ DWORD CreateAutoCompleteWindow(SYNTAXFILE *lpSyntaxFile, DWORD dwFlags)
         lpBlockInfo->sregTitle->ciRange=ciCaret;
         lpBlockInfo->sregTitle->ciMaxRange=ciCaret;
 
-        if (IsMatchRE(lpBlockInfo->sregTitle, &aes.crSel, &ciLineBegin) >= 0)
+        if (IsMatchRE(lpBlockInfo->sregTitle, &aes.crSel, &ciLineBegin, TRUE) >= 0)
         {
           SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
           if (lpBlockInfo->master)
