@@ -505,6 +505,7 @@ typedef struct {
   //Scroll
   INT_PTR nHScrollMax;
   INT_PTR nVScrollMax;
+  INT_PTR nVTextMax;
 
   //Text size
   INT_PTR nLastCharOffset;
@@ -564,7 +565,6 @@ typedef struct {
   int nOutputNewLine;
   int nVScrollLock;
   int nHScrollLock;
-  DWORD dwVScrollMaxOffset;
   DWORD dwMScrollSpeed;
   BOOL bHideSelection;
   DWORD dwLockUpdate;
@@ -849,7 +849,7 @@ void AE_FoldScroll(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags);
 INT_PTR AE_FoldUpdate(AKELEDIT *ae, int nFirstVisibleLine);
 int AE_LineFromVPos(AKELEDIT *ae, INT_PTR nVPos);
 INT_PTR AE_VPosFromLine(AKELEDIT *ae, int nLine);
-INT_PTR AE_GetVScrollMax(AKELEDIT *ae);
+void AE_UpdateVScrollMax(AKELEDIT *ae, BOOL bTextUpdate);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
 void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags);
 void AE_StackPointUnreserve(AKELEDIT *ae);

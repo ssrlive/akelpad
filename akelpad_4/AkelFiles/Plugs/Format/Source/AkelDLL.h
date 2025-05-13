@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 6, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 7, 0)
 
 
 //// Defines
@@ -573,6 +573,7 @@
 #define PAINT_HIDENOSCROLL          0x00000100  //Hides scroll bars instead of disabling them when they are not needed.
 #define PAINT_STATICEDGE            0x00000200  //Draw thin edit window border.
 #define PAINT_NOEDGE                0x00000400  //Draw no edit window border.
+#define PAINT_SCROLLPASTEOF         0x00000800  //Scroll beyond last line.
 
 //Edit styles
 #define EDS_GLOBALUNDO              0x00000001  //Use process heap for Undo/Redo instead of window heap. Required for AEM_DETACHUNDO and AEM_ATTACHUNDO.

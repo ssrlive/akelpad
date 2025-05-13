@@ -1181,6 +1181,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       AE_SetDrawRect(ae, lprcDraw, (BOOL)(wParam & AERC_UPDATE));
       if (ae->ptxt->dwWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
+      AE_UpdateVScrollMax(ae, FALSE);
       AE_UpdateScrollBars(ae, SB_BOTH);
       AE_NotifySetRect(ae);
       return 0;
@@ -1745,7 +1746,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           ae->ptxt->nCharHeight=max(ae->ptxt->nCharHeight, 1);
           ae->ptxt->nLineGap=(int)wParam;
 
-          ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+          AE_UpdateVScrollMax(ae, TRUE);
           AE_UpdateScrollBars(ae, SB_VERT);
           ae->ptCaret.x=0;
           ae->ptCaret.y=0;
@@ -3450,6 +3451,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       AE_SetDrawRect(ae, lprcDraw, (uMsg == EM_SETRECT?TRUE:FALSE));
       if (ae->ptxt->dwWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
+      AE_UpdateVScrollMax(ae, FALSE);
       AE_UpdateScrollBars(ae, SB_BOTH);
       AE_NotifySetRect(ae);
       return 0;
@@ -3469,6 +3471,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       AE_SetDrawRect(ae, &rcDraw, TRUE);
       if (ae->ptxt->dwWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
+      AE_UpdateVScrollMax(ae, FALSE);
       AE_UpdateScrollBars(ae, SB_BOTH);
       AE_NotifySetRect(ae);
       return 0;
@@ -3716,7 +3719,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       else
         AE_SetEditFontW(ae, (HFONT)wParam, FALSE);
 
-      ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+      AE_UpdateVScrollMax(ae, TRUE);
       AE_UpdateScrollBars(ae, SB_VERT);
       AE_CalcLinesWidth(ae, NULL, NULL, AECLW_FRESH);
       ae->ptCaret.x=0;
@@ -4762,7 +4765,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
           //Erase only a space after the last line
           rcErase=lpErase->rcErase;
-          rcErase.top=max(rcErase.top, ae->rcDraw.top + (int)(ae->ptxt->nVScrollMax - ae->nVScrollPos));
+          rcErase.top=max(rcErase.top, ae->rcDraw.top + (int)(ae->ptxt->nVTextMax - ae->nVScrollPos));
 
           if (rcErase.top < rcErase.bottom)
           {
@@ -5007,7 +5010,6 @@ AKELEDIT* AE_CreateDocument(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditProc)
     ae->popt->dwWordBreak=AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND;
     ae->bCaretVisible=TRUE;
     ae->nCurrentCursor=AECC_IBEAM;
-    ae->popt->dwVScrollMaxOffset=0;
     ae->popt->dwMScrollSpeed=10;
 
     //OLE Drag'n'Drop
@@ -5188,6 +5190,7 @@ AKELEDIT* AE_SetDocument(AKELEDIT *aeOld, AKELEDIT *aeNew, DWORD dwFlags)
       }
       if (!(dwFlags & AESWD_NOUPDATESCROLLBARS))
       {
+        AE_UpdateVScrollMax(aeNew, FALSE);
         AE_UpdateScrollBars(aeNew, SB_BOTH);
       }
       if (!(dwFlags & AESWD_NOUPDATECARET))
@@ -5292,6 +5295,7 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
   ae->ptxt->nLineUnwrapLastCall=0;
   ae->ptxt->nHScrollMax=0;
   ae->ptxt->nVScrollMax=0;
+  ae->ptxt->nVTextMax=0;
   ae->liFirstDrawLine.nLine=0;
   ae->liFirstDrawLine.lpLine=NULL;
   ae->ciSelStartIndex.nLine=0;
@@ -5670,6 +5674,7 @@ AECLONE* AE_StackCloneAdd(AKELEDIT *aeMaster, AKELEDIT *aeClone)
       //Copy selection and scroll info
       xmemcpy(&aeClone->liFirstDrawLine, &aeMaster->liFirstDrawLine, (BYTE *)&aeMaster->lpEditProc - (BYTE *)&aeMaster->liFirstDrawLine);
 
+      AE_UpdateVScrollMax(aeClone, FALSE);
       AE_UpdateScrollBars(aeClone, SB_BOTH);
     }
   }
@@ -5723,6 +5728,7 @@ void AE_StackCloneDelete(AECLONE *aec)
     AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciSelStartIndex);
     aeClone->ciSelEndIndex=aeClone->ciSelStartIndex;
     aeClone->ciCaretIndex=aeClone->ciSelStartIndex;
+    AE_UpdateVScrollMax(aeClone, FALSE);
     AE_UpdateScrollBars(aeClone, SB_BOTH);
 
     if (!aeMaster->nCloneCount)
@@ -5804,6 +5810,7 @@ void AE_CloneUpdate(AKELEDIT *ae, DWORD dwFlags)
   }
   if (dwFlags & AECU_SCROLLBAR)
   {
+    AE_UpdateVScrollMax(ae, FALSE);
     AE_UpdateScrollBars(ae, SB_BOTH);
   }
   if (dwFlags & AECU_INVALIDATERECT)
@@ -6935,7 +6942,7 @@ INT_PTR AE_FoldUpdate(AKELEDIT *ae, int nFirstVisibleLine)
   INT_PTR nFirstVisiblePos;
   INT_PTR nScrolled=0;
 
-  ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+  AE_UpdateVScrollMax(ae, TRUE);
   AE_UpdateScrollBars(ae, SB_VERT);
   ae->ptCaret.x=0;
   ae->ptCaret.y=0;
@@ -7143,9 +7150,13 @@ INT_PTR AE_VPosFromLine(AKELEDIT *ae, int nLine)
   return (nLine - nHiddenLines) * ae->ptxt->nCharHeight;
 }
 
-INT_PTR AE_GetVScrollMax(AKELEDIT *ae)
+void AE_UpdateVScrollMax(AKELEDIT *ae, BOOL bTextUpdate)
 {
-  return AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1) + (ae->ptxt->nCharHeight * ae->popt->dwVScrollMaxOffset);
+  if (bTextUpdate)
+    ae->ptxt->nVTextMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+  ae->ptxt->nVScrollMax=ae->ptxt->nVTextMax;
+  if (ae->popt->dwOptionsEx & AECOE_SCROLLPASTEOF)
+    ae->ptxt->nVScrollMax+=max(ae->rcDraw.bottom - ae->rcDraw.top - ae->ptxt->nCharHeight - 1, 0);
 }
 
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
@@ -9023,7 +9034,7 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
   if (nWrapCount)
   {
     ae->ptxt->nLineCount+=nWrapCount;
-    ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+    AE_UpdateVScrollMax(ae, TRUE);
   }
 
   //Update selection
@@ -10724,7 +10735,7 @@ DWORD AE_IsPointOnUrl(AKELEDIT *ae, INT_PTR nClientX, INT_PTR nClientY, AECHARRA
 
     if (PtInRect(&ae->rcDraw, ptClient))
     {
-      if (nClientY - ae->rcDraw.top <= ae->ptxt->nVScrollMax)
+      if (nClientY - ae->rcDraw.top <= ae->ptxt->nVTextMax)
       {
         if (nResult=AE_GetCharFromPos(ae, nClientX, nClientY, &ciCharIndex, NULL, FALSE))
         {
@@ -15947,6 +15958,7 @@ void AE_UpdateSize(AKELEDIT *ae)
         if (nDrawWidth != ae->rcDraw.right - ae->rcDraw.left)
           AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
       }
+      AE_UpdateVScrollMax(ae, FALSE);
       AE_UpdateScrollBars(ae, SB_BOTH);
       AE_UpdateEditWindow(ae->hWndEdit, TRUE);
     }
@@ -17403,7 +17415,7 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
         AE_NotifyProgress(ae, AEPGS_SETTEXT, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
       }
     }
-    ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+    AE_UpdateVScrollMax(ae, TRUE);
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
     ae->ciCaretIndex=ciCaretChar;
     ae->ciSelStartIndex=ciCaretChar;
@@ -17415,7 +17427,7 @@ UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int
       {
         ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->dwWordWrap);
 
-        ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+        AE_UpdateVScrollMax(ae, TRUE);
         AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
         ae->ciCaretIndex=ciCaretChar;
         ae->ciSelStartIndex=ciCaretChar;
@@ -17695,7 +17707,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           }
         }
 
-        ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+        AE_UpdateVScrollMax(ae, TRUE);
         AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
         ae->ciCaretIndex=ciCaretChar;
         ae->ciSelStartIndex=ciCaretChar;
@@ -17706,7 +17718,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
         {
           ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->dwWordWrap);
 
-          ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+          AE_UpdateVScrollMax(ae, TRUE);
           AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
           ae->ciCaretIndex=ciCaretChar;
           ae->ciSelStartIndex=ciCaretChar;
@@ -17752,7 +17764,7 @@ void AE_PreviewEdit(AKELEDIT *ae, BOOL bJoinNewLines)
   (ae->ptxt->hLinesStack.last)->nLineBreak=AELB_EOF;
   if (bJoinNewLines) AE_JoinNewLines(ae);
 
-  ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+  AE_UpdateVScrollMax(ae, TRUE);
   AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
   ae->ciCaretIndex=ciCaretChar;
   ae->ciSelStartIndex=ciCaretChar;
@@ -17765,7 +17777,7 @@ void AE_PreviewEdit(AKELEDIT *ae, BOOL bJoinNewLines)
   {
     ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->dwWordWrap);
 
-    ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+    AE_UpdateVScrollMax(ae, TRUE);
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar);
     ae->ciCaretIndex=ciCaretChar;
     ae->ciSelStartIndex=ciCaretChar;
@@ -18607,7 +18619,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
 
         //Update scroll bars
         ae->ptxt->nLineCount+=nWrapCount;
-        ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+        AE_UpdateVScrollMax(ae, TRUE);
         if (nWrapCount)
         {
           if (!(dwDeleteFlags & AEDELT_LOCKUPDATEVSCROLL))
@@ -18843,7 +18855,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
       nVScrollPos=ae->nVScrollPos;
       ae->ptxt->nLineCount+=nLineCount;
       ae->ptxt->nLineUnwrapCount+=nLineUnwrapCount;
-      ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+      AE_UpdateVScrollMax(ae, TRUE);
       AE_GetPosFromChar(ae, &ciFirstChar, &ae->ptCaret, NULL);
       ae->ciCaretIndex=ciFirstChar;
       ae->nSelStartCharOffset=nStartOffset;
@@ -18878,7 +18890,7 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
 
         //Update scroll bars
         ae->ptxt->nLineCount+=nWrapCount;
-        ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+        AE_UpdateVScrollMax(ae, TRUE);
         if (nLineCount + nWrapCount)
         {
           if (!(dwDeleteFlags & AEDELT_LOCKUPDATEVSCROLL))
@@ -19414,7 +19426,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
           nVScrollPos=ae->nVScrollPos;
           ae->ptxt->nLineCount+=nLineCount;
           ae->ptxt->nLineUnwrapCount+=nLineCount;
-          ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+          AE_UpdateVScrollMax(ae, TRUE);
           AE_GetPosFromChar(ae, &ciFirstChar, &ae->ptCaret, NULL);
           ae->ciCaretIndex=ciFirstChar;
           ae->nSelStartCharOffset=nStartOffset;
@@ -19450,7 +19462,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
 
             //Update scroll bars
             ae->ptxt->nLineCount+=nWrapCount;
-            ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+            AE_UpdateVScrollMax(ae, TRUE);
             if (nLineCount + nWrapCount)
             {
               if (!(dwInsertFlags & AEINST_LOCKUPDATEVSCROLL))
@@ -19782,7 +19794,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
           nVScrollPos=ae->nVScrollPos;
           ae->ptxt->nLineCount+=nLineCount;
           ae->ptxt->nLineUnwrapCount+=nLineCount;
-          ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+          AE_UpdateVScrollMax(ae, TRUE);
           ciLastChar.nLine=ciInsertFrom.nLine + nLineCount;
           ciLastChar.lpLine=lpNewElement;
           ciLastChar.nCharInLine=nCaretIndexInLine;
@@ -19815,7 +19827,7 @@ UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar
 
             //Update scroll bars
             ae->ptxt->nLineCount+=nWrapCount;
-            ae->ptxt->nVScrollMax=AE_GetVScrollMax(ae);
+            AE_UpdateVScrollMax(ae, TRUE);
             if (nLineCount + nWrapCount)
             {
               if (!(dwInsertFlags & AEINST_LOCKUPDATEVSCROLL))

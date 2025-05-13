@@ -241,6 +241,7 @@
 #define AECOE_INVERTHORZWHEEL         0x00000010  //Invert mouse horizontal wheel.
 #define AECOE_INVERTVERTWHEEL         0x00000020  //Invert mouse vertical wheel.
 #define AECOE_NOCARETHORZINDENT       0x00000040  //Caret horizontal indent isn't recovered after pressing VK_UP, VK_DOWN, VK_PRIOR, VK_NEXT.
+#define AECOE_SCROLLPASTEOF           0x00000080  //Scroll beyond last line.
 #define AECOE_NOPRINTCOLLAPSED        0x00001000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
