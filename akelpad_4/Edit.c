@@ -431,6 +431,12 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
       }
       lpOldEditProc=(WNDPROC)GetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC);
       SetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC, (UINT_PTR)CommonEditProc);
+
+      //if (hWndParent == hMainWnd)
+      //{
+      //  //Default edit documents in SDI/PMDI
+      //  SendMessage(hResult, AEM_LOCKUPDATE, AELU_SCROLLBAR|AELU_CARET|AELU_ERASEBKGND, TRUE);
+      //}
     }
   }
   return hResult;
@@ -503,8 +509,6 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptions|=AECO_NOMARKERAFTERLASTLINE;
   if (moCur.dwPaintOptions & PAINT_VSCROLLBYLINE)
     dwOptions|=AECO_VSCROLLBYLINE;
-  if (moCur.dwPaintOptions & PAINT_SCROLLPASTEOF)
-    dwOptionsEx|=AECOE_SCROLLPASTEOF;
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
   if (dwOptionsEx)
     SendMessage(lpFrame->ei.hWndEdit, AEM_EXSETOPTIONS, AECOOP_OR, dwOptionsEx);
@@ -512,6 +516,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   //Scroll
   if (moCur.dwMScrollSpeed)
     SendMessage(lpFrame->ei.hWndEdit, AEM_SETSCROLLSPEED, (WPARAM)moCur.dwMScrollSpeed, 0);
+  if (moCur.dwScrollPastEOF)
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SCROLLPASTEOF, (WPARAM)moCur.dwScrollPastEOF, 0);
 
   //Font
   if (moCur.nFixedCharWidth)
@@ -823,6 +829,28 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
     else if (dwFlagsPMDI & FWA_NOUPDATEEDIT)
       dwSetDataFlags|=AESWD_NOREDRAW;
 
+    if (!(dwFlagsPMDI & FWA_NOVISUPDATE))
+    {
+      //Assign empty documents to resize windows and after assign normal documents.
+      //If this is not done, word wrap will be updated in each split document.
+      if (lpFrame->ei.hDocMaster)
+      {
+        SendMessage(lpFrame->ei.hWndMaster, AEM_SETDOCUMENT, (WPARAM)fdDefault.ei.hDocMaster, AESWD_SYNCSCROLLBARS|AESWD_NOALL);
+        if (lpFrame->ei.hDocClone1)
+          SendMessage(lpFrame->ei.hWndClone1, AEM_SETDOCUMENT, (WPARAM)fdDefault.ei.hDocClone1, AESWD_SYNCSCROLLBARS|AESWD_NOALL);
+        if (lpFrame->ei.hDocClone2)
+          SendMessage(lpFrame->ei.hWndClone2, AEM_SETDOCUMENT, (WPARAM)fdDefault.ei.hDocClone2, AESWD_SYNCSCROLLBARS|AESWD_NOALL);
+        if (lpFrame->ei.hDocClone3)
+          SendMessage(lpFrame->ei.hWndClone3, AEM_SETDOCUMENT, (WPARAM)fdDefault.ei.hDocClone3, AESWD_SYNCSCROLLBARS|AESWD_NOALL);
+      }
+      else if (lpFrame->ei.hDocEdit)
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETDOCUMENT, (WPARAM)fdDefault.ei.hDocEdit, AESWD_SYNCSCROLLBARS|AESWD_NOALL);
+      dwSetDataFlags|=AESWD_PRESYNCSCROLLBARS;
+
+      ResizeEditWindow(lpFrame, REW_NOREDRAW);
+    }
+
+    //Assign normal documents.
     if (lpFrame->ei.hDocMaster)
     {
       SendMessage(lpFrame->ei.hWndMaster, AEM_SETDOCUMENT, (WPARAM)lpFrame->ei.hDocMaster, dwSetDataFlags);
@@ -840,17 +868,9 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
     if (GetFocus() != lpFrame->ei.hWndEdit)
       SetFocus(lpFrame->ei.hWndEdit);
 
-    //If window size has been changed, update virtual window according to current window size
-    if (xmemcmp(&lpFrame->rcEditWindow, &fdDefault.rcEditWindow, sizeof(RECT)))
-    {
-      SendMessage(lpFrame->ei.hWndEdit, AEM_UPDATESIZE, 0, 0);
-      lpFrame->rcEditWindow=fdDefault.rcEditWindow;
-    }
-
     if (!(dwFlagsPMDI & FWA_NOVISUPDATE))
     {
       SplitVisUpdate(lpFrame);
-      ResizeEditWindow(lpFrame, (dwFlagsPMDI & FWA_NOUPDATEEDIT)?REW_NOREDRAW:0);
     }
   }
   //Update selection to set valid globals: crCurSel, ciCurCaret and nSelSubtract
@@ -912,6 +932,7 @@ BOOL CreateFrameWindow(RECT *rcRectMDI)
       lpFrame->ei.hDocEdit=(AEHDOC)CreateEditWindow(lpFrame->hWndEditParent, fdDefault.ei.hWndEdit);
       lpFrame->lpEditProc=fdDefault.lpEditProc;
       lpFrame->ei.hWndEdit=fdDefault.ei.hWndEdit;
+      GetClientRect(lpFrame->ei.hWndEdit, &lpFrame->rcEditWindow);
 
       InsertTabItem(hTab, (moCur.dwTabOptionsMDI & TAB_ADD_AFTERCURRENT)?nDocumentIndex + 1:-1, (LPARAM)lpFrame);
 
@@ -3877,6 +3898,8 @@ HANDLE ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nType, HANDLE hHandle)
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"MScrollSpeed", MOT_DWORD, &mo->dwMScrollSpeed, sizeof(DWORD)))
       bSaveManual=TRUE;
+    if (!ReadOption(&oh, L"ScrollPastEOF", MOT_DWORD, &mo->dwScrollPastEOF, sizeof(DWORD)))
+      bSaveManual=TRUE;
     if (!ReadOption(&oh, L"CreateFile", MOT_DWORD, &mo->dwCreateFile, sizeof(DWORD)))
       bSaveManual=TRUE;
     if (!ReadOption(&oh, L"EditStyle", MOT_DWORD, &mo->dwEditStyle, sizeof(DWORD)))
@@ -4159,6 +4182,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"FixedCharWidth", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, nFixedCharWidth), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"MScrollSpeed", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwMScrollSpeed), sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"ScrollPastEOF", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwScrollPastEOF), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"CreateFile", MOT_DWORD|MOT_MAINOFFSET|MOT_MANUAL, (void *)offsetof(MAINOPTIONS, dwCreateFile), sizeof(DWORD)))
     goto Error;
@@ -4614,8 +4639,8 @@ int OpenDocument(HWND hWnd, AEHDOC hDoc, const wchar_t *wpFile, DWORD dwFlags, i
         nCaretOffset=SendMessage(hWnd, AEM_GETRICHOFFSET, AEGI_CARETCHAR, 0);
         if (nCaretOffset == cr.cpMin)
         {
-            cr.cpMin=cr.cpMax;
-            cr.cpMax=nCaretOffset;
+          cr.cpMin=cr.cpMax;
+          cr.cpMax=nCaretOffset;
         }
         SendMessage(hWnd, AEM_GETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
       }

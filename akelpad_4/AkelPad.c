@@ -873,6 +873,7 @@ void _WinMain()
   //moInit.dwPaintOptions=0;
   //moInit.nFixedCharWidth=0;
   //moInit.dwMScrollSpeed=0;
+  //moInit.dwScrollPastEOF=0;
   //moInit.dwCreateFile=0;
   //moInit.dwEditStyle=0;
   //moInit.bRichEditClass=FALSE;
@@ -2595,6 +2596,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return moCur.dwWordBreakCustom;
           case MI_MSCROLLSPEED:
             return moCur.dwMScrollSpeed;
+          case MI_SCROLLPASTEOF:
+            return moCur.dwScrollPastEOF;
           case MI_FIXEDCHARWIDTH:
             return moCur.nFixedCharWidth;
           case MI_PAINTOPTIONS:
@@ -2874,6 +2877,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return SetOption(lParam, &moCur.dwWordBreakCustom, sizeof(DWORD), INI_DWORD);
           case MIS_MSCROLLSPEED:
             return SetOption(lParam, &moCur.dwMScrollSpeed, sizeof(DWORD), INI_DWORD);
+          case MIS_SCROLLPASTEOF:
+            return SetOption(lParam, &moCur.dwScrollPastEOF, sizeof(DWORD), INI_DWORD);
           case MIS_FIXEDCHARWIDTH:
             return SetOption(lParam, &moCur.nFixedCharWidth, sizeof(DWORD), INI_DWORD);
           case MIS_PAINTOPTIONS:

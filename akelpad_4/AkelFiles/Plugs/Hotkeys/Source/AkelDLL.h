@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 7, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 8, 0)
 
 
 //// Defines
@@ -290,6 +290,7 @@
 #define MI_STATUSUSERFORMAT          112  //Return: copied chars. (wchar_t *)lParam - buffer that receives "StatusUserFormat" string.
 #define MI_WORDBREAKCUSTOM           117  //Return: "WordBreak" flags.
 #define MI_MSCROLLSPEED              118  //Return: "MScrollSpeed" value.
+#define MI_SCROLLPASTEOF             119  //Return: "ScrollPastEOF" value.
 #define MI_FIXEDCHARWIDTH            120  //Return: "FixedCharWidth" value.
 #define MI_PAINTOPTIONS              121  //Return: "PaintOptions" flags, see PAINT_* defines.
 #define MI_EDITSTYLE                 122  //Return: "EditStyle" flags, see EDS_* defines.
@@ -370,6 +371,7 @@
 #define MIS_STATUSUSERFORMAT          112  //(wchar_t *)lParam - "StatusUserFormat" string.
 #define MIS_WORDBREAKCUSTOM           117  //(DWORD)lParam - "WordBreak" flags. Changes are applied for a new edit windows.
 #define MIS_MSCROLLSPEED              118  //(DWORD)lParam - "MScrollSpeed" value. Changes are applied for a new edit windows.
+#define MIS_SCROLLPASTEOF             119  //(DWORD)lParam - "ScrollPastEOF" value. Changes are applied for a new edit windows.
 #define MIS_FIXEDCHARWIDTH            120  //(int)lParam - "FixedCharWidth" value. Changes are applied for a new edit windows.
 #define MIS_PAINTOPTIONS              121  //(DWORD)lParam - "PaintOptions" flags, see PAINT_* defines. Changes are applied for a new edit windows.
 #define MIS_EDITSTYLE                 122  //(DWORD)lParam - "EditStyle" flags, see EDS_* defines. Changes are applied for a new edit windows.
@@ -573,7 +575,6 @@
 #define PAINT_HIDENOSCROLL          0x00000100  //Hides scroll bars instead of disabling them when they are not needed.
 #define PAINT_STATICEDGE            0x00000200  //Draw thin edit window border.
 #define PAINT_NOEDGE                0x00000400  //Draw no edit window border.
-#define PAINT_SCROLLPASTEOF         0x00000800  //Scroll beyond last line.
 
 //Edit styles
 #define EDS_GLOBALUNDO              0x00000001  //Use process heap for Undo/Redo instead of window heap. Required for AEM_DETACHUNDO and AEM_ATTACHUNDO.

@@ -400,6 +400,7 @@ typedef struct {
   DWORD dwPaintOptions;
   int nFixedCharWidth;
   DWORD dwMScrollSpeed;
+  DWORD dwScrollPastEOF;
   DWORD dwCreateFile;
   DWORD dwEditStyle;
   BOOL bRichEditClass;

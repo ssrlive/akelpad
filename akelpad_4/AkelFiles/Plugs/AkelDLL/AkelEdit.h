@@ -241,7 +241,6 @@
 #define AECOE_INVERTHORZWHEEL         0x00000010  //Invert mouse horizontal wheel.
 #define AECOE_INVERTVERTWHEEL         0x00000020  //Invert mouse vertical wheel.
 #define AECOE_NOCARETHORZINDENT       0x00000040  //Caret horizontal indent isn't recovered after pressing VK_UP, VK_DOWN, VK_PRIOR, VK_NEXT.
-#define AECOE_SCROLLPASTEOF           0x00000080  //Scroll beyond last line.
 #define AECOE_NOPRINTCOLLAPSED        0x00001000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
@@ -382,25 +381,35 @@
 #define AEPFC_COLUMN         0x00000002  //Paste to column selection.
 #define AEPFC_SELECT         0x00000004  //Select pasted text.
 
-//AEM_LOCKUPDATE FLAGS
+//AEM_LOCKUPDATE flags
 #define AELU_SCROLLBAR  0x00000001
 #define AELU_CARET      0x00000002
+#define AELU_ERASEBKGND 0x00000004
 
 //AEM_SETDOCUMENT flags
 #define AESWD_NOCHECKFOCUS        0x00000001  //Don't update focus state.
 #define AESWD_NODRAGDROP          0x00000002  //Don't register drag-and-drop with a new IDropTarget.
-#define AESWD_NOSHOWSCROLLBARS    0x00000004  //Don't update scrollbars visibility.
-#define AESWD_NOUPDATESCROLLBARS  0x00000008  //Don't update scrollbars position.
-#define AESWD_NOUPDATECARET       0x00000010  //Don't update caret.
+#define AESWD_NOUPDATESIZE        0x00000004  //Don't update document size according to edit window.
+#define AESWD_NOSHOWSCROLLBARS    0x00000008  //Don't update scrollbars visibility.
+#define AESWD_NOUPDATESCROLLBARS  0x00000010  //Don't update scrollbars position.
 #define AESWD_NOINVALIDATERECT    0x00000020  //Don't redraw edit window.
+#define AESWD_NOUPDATECARET       0x00000040  //Don't update caret.
+#define AESWD_PRESYNCSCROLLBARS   0x00001000  //Before set new document, change in old document scroll bars visibility as in new one.
+#define AESWD_SYNCSCROLLBARS      0x00002000  //Change scroll bars visibility as in old one.
 
-#define AESWD_NOREDRAW  (AESWD_NOUPDATESCROLLBARS |\
-                         AESWD_NOUPDATECARET      |\
-                         AESWD_NOINVALIDATERECT)
-#define AESWD_NOALL     (AESWD_NOCHECKFOCUS     |\
-                         AESWD_NODRAGDROP       |\
-                         AESWD_NOSHOWSCROLLBARS |\
-                         AESWD_NOREDRAW)
+#define AESWD_NOREDRAW (AESWD_NOUPDATESCROLLBARS |\
+                        AESWD_NOINVALIDATERECT   |\
+                        AESWD_NOUPDATECARET)
+#define AESWD_NOALL    (AESWD_NOCHECKFOCUS     |\
+                        AESWD_NODRAGDROP       |\
+                        AESWD_NOUPDATESIZE     |\
+                        AESWD_NOSHOWSCROLLBARS |\
+                        AESWD_NOREDRAW)
+
+//AEM_UPDATESIZE flags
+#define AEUS_NOUPDATEWRAP        0x00000001  //Don't update wrap.
+#define AEUS_NOUPDATESCROLLBARS  0x00000002  //Don't update scrollbars position.
+#define AEUS_NOINVALIDATERECT    0x00000004  //Don't redraw edit window.
 
 //AEM_DRAGDROP flags
 #define AEDD_GETDRAGWINDOW   1  //Return dragging window handle.
@@ -617,6 +626,7 @@
 
 //AEM_SCROLLTOPOINT flags
 #define AESC_TEST            0x00000001  //Only test for scroll. Returns result, but not actually scroll.
+#define AESC_NOREDRAW        0x00000002  //Don't redraw edit window.
 #define AESC_POINTCARET      0x00000010  //Caret position is used and AESCROLLTOPOINT.ptPos is ignored.
 #define AESC_POINTGLOBAL     0x00000020  //AESCROLLTOPOINT.ptPos is position in the virtual text space coordinates.
 #define AESC_POINTCLIENT     0x00000040  //AESCROLLTOPOINT.ptPos is position in the client area coordinates (default).
@@ -1847,6 +1857,7 @@ typedef struct {
 #define AEM_FIXEDCHARWIDTH        (WM_USER + 2244)
 #define AEM_GETSCROLLSPEED        (WM_USER + 2245)
 #define AEM_SETSCROLLSPEED        (WM_USER + 2246)
+#define AEM_SCROLLPASTEOF         (WM_USER + 2247)
 
 //Draw
 #define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
@@ -5185,7 +5196,7 @@ Example:
 
 
 AEM_GETSCROLLSPEED
-___________________
+__________________
 
 Retrieve MButton scroll speed in percentage.
 
@@ -5200,7 +5211,7 @@ Example:
 
 
 AEM_SETSCROLLSPEED
-___________________
+__________________
 
 Set MButton scroll speed.
 
@@ -5214,20 +5225,38 @@ Example:
  SendMessage(hWndEdit, AEM_SETSCROLLSPEED, 50, 0);
 
 
+AEM_SCROLLPASTEOF
+_________________
+
+Scroll beyond last line.
+
+(DWORD)wParam == formatting edit rectangle height in percentage (maximum is 100). Turn off if zero.
+                 If -1, return current percentage.
+lParam        == not used.
+
+Return Value
+ Previous percentage.
+
+Example:
+ SendMessage(hWndEdit, AEM_SCROLLPASTEOF, 60, 0);
+
+
 AEM_SHOWSCROLLBAR
 _________________
 
-Show or hide scroll bars in the edit control.
+Show (turn on) or hide (turn off) scroll bars in the edit control.
 
 (int)wParam  == SB_BOTH  horizontal and vertical scroll bars.
                 SB_HORZ  horizontal scroll bar.
                 SB_VERT  vertical scroll bar.
-                -1       only retrieve current SB_* visibility, lParam is ignored.
+                -1       only retrieve turned on scroll bars, lParam is ignored.
+                -2       only retrieve visible scroll bars, lParam is ignored.
 (BOOL)lParam == TRUE   show.
                 FALSE  hide.
 
 Return Value
- Previous SB_* visibility or -1 if no visibile scroll bars.
+ Previous turned on scroll bars (SB_*) or -1 if no scroll bars was turned on.
+ If wParam == -2, current scroll bars (SB_*) visibility or -1 if no scroll bars visible.
 
 Example:
  SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_BOTH, FALSE);
@@ -5271,11 +5300,12 @@ ______________
 
 Update edit control after window resizing. Useful for virtual document handle.
 
-wParam == not used.
-lParam == not used.
+(DWORD)wParam == see AEUS_* defines.
+lParam        == not used.
 
 Return Value
- Zero.
+ TRUE   size updated.
+ FALSE  update not needed.
 
 Example:
  SendMessage(hWndEdit, AEM_UPDATESIZE, 0, 0);
