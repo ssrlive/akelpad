@@ -13,7 +13,7 @@
   #else
     #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
   #endif
-  #define RC_VERSIONCOPYRIGHT "\xa9 2014 pvagner"
+  #define RC_VERSIONCOPYRIGHT "\xA9 2014 pvagner"
   #define RC_VERSIONNAME "Slovak.dll"
 #endif
 #include "winresrc.h"
@@ -916,23 +916,25 @@ BEGIN
                     WS_TABSTOP,9,59,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
     LTEXT           "Predvolen· prÌpona pri ukladanÌ",IDC_STATIC,37,77,171,8
-    GROUPBOX        "DialÛg hæadaù / nahradiù",IDC_STATIC,9,96,200,66
+    GROUPBOX        "DialÛg hæadaù / nahradiù",IDC_STATIC,9,96,200,78
     CONTROL         "TlaËidlo &Nahradiù vöetko zatvorÌ dialÛg",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
     CONTROL         """Replace all"" without message",
                     IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
+    CONTROL         """Find"" without message",IDC_OPTIONS_FIND_NOMSG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
     CONTROL         "Vyhæad·vaù vo v˝bere, ak je vybrat˝ text",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,133,185,10
+                    WS_TABSTOP,17,145,185,10
     CONTROL         "Cycle search",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,157,102,10
     CONTROL         "Prompt",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,157,83,10
     CONTROL         "Save position of modeless dialogs",
                     IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,169,185,10
+                    WS_TABSTOP,9,181,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -990,7 +992,7 @@ BEGIN
     "  #else\r\n"
     "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
     "  #endif\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""\xa9 2014 pvagner""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""\xA9 2014 pvagner""\r\n"
     "  #define RC_VERSIONNAME ""Slovak.dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"

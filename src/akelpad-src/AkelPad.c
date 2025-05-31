@@ -28,15 +28,18 @@
 //Include stack functions
 #ifndef AKELEDIT_STATICBUILD
   #define StackInsertBefore
+  #define StackInsertAfter
   #define StackDelete
   #define StackJoin
+  #define StackCopy
 #else
   #define StackInsertBefore_INCLUDED
+  #define StackInsertAfter_INCLUDED
   #define StackDelete_INCLUDED
   #define StackJoin_INCLUDED
+  #define StackCopy_INCLUDED
 #endif
 #define StackGetElement
-#define StackInsertAfter
 #define StackInsertIndex
 #define StackMoveAfter
 #define StackMoveBefore
@@ -876,6 +879,7 @@ EXTERN_C int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPTSTR lpCmd
   //moInit.dwPaintOptions=0;
   //moInit.nFixedCharWidth=0;
   //moInit.dwMScrollSpeed=0;
+  //moInit.dwScrollPastEOF=0;
   //moInit.dwCreateFile=0;
   //moInit.dwEditStyle=0;
   //moInit.bRichEditClass=FALSE;
@@ -1094,6 +1098,7 @@ EXTERN_C int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPTSTR lpCmd
           (moInit.dwSearchOptions & FRF_ALLFILES) |
           (moInit.dwSearchOptions & FRF_REPLACEALLANDCLOSE) |
           (moInit.dwSearchOptions & FRF_REPLACEALLNOMSG) |
+          (moInit.dwSearchOptions & FRF_FINDNOMSG) |
           (moInit.dwSearchOptions & FRF_CHECKINSELIFSEL) |
           (moInit.dwSearchOptions & FRF_CYCLESEARCH) |
           (moInit.dwSearchOptions & FRF_CYCLESEARCHPROMPT);
@@ -2597,6 +2602,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return moCur.dwWordBreakCustom;
           case MI_MSCROLLSPEED:
             return moCur.dwMScrollSpeed;
+          case MI_SCROLLPASTEOF:
+            return moCur.dwScrollPastEOF;
           case MI_FIXEDCHARWIDTH:
             return moCur.nFixedCharWidth;
           case MI_PAINTOPTIONS:
@@ -2876,6 +2883,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return SetOption(lParam, &moCur.dwWordBreakCustom, sizeof(DWORD), INI_DWORD);
           case MIS_MSCROLLSPEED:
             return SetOption(lParam, &moCur.dwMScrollSpeed, sizeof(DWORD), INI_DWORD);
+          case MIS_SCROLLPASTEOF:
+            return SetOption(lParam, &moCur.dwScrollPastEOF, sizeof(DWORD), INI_DWORD);
           case MIS_FIXEDCHARWIDTH:
             return SetOption(lParam, &moCur.nFixedCharWidth, sizeof(DWORD), INI_DWORD);
           case MIS_PAINTOPTIONS:

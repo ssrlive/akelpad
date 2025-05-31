@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 5, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 8, 0)
 
 
 //// Defines
@@ -290,6 +290,7 @@
 #define MI_STATUSUSERFORMAT          112  //Return: copied chars. (wchar_t *)lParam - buffer that receives "StatusUserFormat" string.
 #define MI_WORDBREAKCUSTOM           117  //Return: "WordBreak" flags.
 #define MI_MSCROLLSPEED              118  //Return: "MScrollSpeed" value.
+#define MI_SCROLLPASTEOF             119  //Return: "ScrollPastEOF" value.
 #define MI_FIXEDCHARWIDTH            120  //Return: "FixedCharWidth" value.
 #define MI_PAINTOPTIONS              121  //Return: "PaintOptions" flags, see PAINT_* defines.
 #define MI_EDITSTYLE                 122  //Return: "EditStyle" flags, see EDS_* defines.
@@ -370,6 +371,7 @@
 #define MIS_STATUSUSERFORMAT          112  //(wchar_t *)lParam - "StatusUserFormat" string.
 #define MIS_WORDBREAKCUSTOM           117  //(DWORD)lParam - "WordBreak" flags. Changes are applied for a new edit windows.
 #define MIS_MSCROLLSPEED              118  //(DWORD)lParam - "MScrollSpeed" value. Changes are applied for a new edit windows.
+#define MIS_SCROLLPASTEOF             119  //(DWORD)lParam - "ScrollPastEOF" value. Changes are applied for a new edit windows.
 #define MIS_FIXEDCHARWIDTH            120  //(int)lParam - "FixedCharWidth" value. Changes are applied for a new edit windows.
 #define MIS_PAINTOPTIONS              121  //(DWORD)lParam - "PaintOptions" flags, see PAINT_* defines. Changes are applied for a new edit windows.
 #define MIS_EDITSTYLE                 122  //(DWORD)lParam - "EditStyle" flags, see EDS_* defines. Changes are applied for a new edit windows.
@@ -801,6 +803,7 @@
 #define FRF_CYCLESEARCH        0x08000000
 #define FRF_CYCLESEARCHPROMPT  0x10000000
 #define FRF_REPLACEALLNOMSG    0x20000000
+#define FRF_FINDNOMSG          0x40000000
 #define FRF_TEST               0x80000000  //Test only. Without text replacement and selection.
 
 //Replace flags

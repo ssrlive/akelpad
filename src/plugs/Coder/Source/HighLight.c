@@ -2000,7 +2000,7 @@ BOOL IsMatchMark(AEMARKTEXTITEMW *lpMarkItem, STACKDELIM *lpDelimiterStack, HWND
   BOOL bMatched;
 
   if (lpMarkItem->dwFlags & AEHLF_REGEXP)
-    return (IsMatchRE(lpMarkItem->lpREGroupStack, &ft->crFound, ciChar) >= 0);
+    return (IsMatchRE(lpMarkItem->lpREGroupStack, &ft->crFound, ciChar, TRUE) >= 0);
   if (lpMarkItem->dwFlags & AEHLF_WHOLEWORD)
     if (!IsDelimiterFromLeft(lpDelimiterStack, hWnd, ciChar))
       return FALSE;

@@ -66,6 +66,9 @@
 #define AEHID_BACK          0x00000001  //Check backward.
 #define AEHID_LINEEDGE      0x00000002  //Check AEHLF_ATLINESTART and AEHLF_ATLINEEND flags.
 
+//AE_ScrollEditWindow flags
+#define AESEW_NOREDRAW      0x00000001
+
 //AE_VPos flags
 #define AEVPF_LINEFROMVPOS     0x00000001
 #define AEVPF_VPOSFROMLINE     0x00000002
@@ -113,6 +116,13 @@
 #define AEUN_EXTRAOFFSET     0x00000800
 #define AEUN_UNDOONLY        0x00001000
 #define AEUN_REDOONLY        0x00002000
+
+//AE_CloneUpdate flags
+#define AECU_SAVESELECTION     0x00000001
+#define AECU_RESTORESELECTION  0x00000002
+#define AECU_SCROLLBAR         0x00000004
+#define AECU_INVALIDATERECT    0x00000008
+#define AECU_FIRSTDRAWLINE     0x00000010 //Used with AECU_SAVESELECTION or AECU_RESTORESELECTION
 
 #ifndef IDC_HAND
   #define IDC_HAND  MAKEINTRESOURCE(32649)
@@ -499,6 +509,7 @@ typedef struct {
   //Scroll
   INT_PTR nHScrollMax;
   INT_PTR nVScrollMax;
+  INT_PTR nVTextMax;
 
   //Text size
   INT_PTR nLastCharOffset;
@@ -558,10 +569,11 @@ typedef struct {
   int nOutputNewLine;
   int nVScrollLock;
   int nHScrollLock;
-  DWORD dwVScrollMaxOffset;
   DWORD dwMScrollSpeed;
+  DWORD dwScrollPastEOF;
   BOOL bHideSelection;
   DWORD dwLockUpdate;
+  DWORD dwUpdateSizeAddFlags;
   BOOL bHeapSerialize;
   AECOLORS aec;
   AECOLORS aecEnable;
@@ -657,6 +669,8 @@ typedef struct _AKELEDIT {
   POINT ptActiveColumnDraw;
   BOOL bHScrollShow;
   BOOL bVScrollShow;
+  BOOL bHScrollVisible;
+  BOOL bVScrollVisible;
   BOOL bCaretVisible;
   BOOL bPrinting;
 
@@ -717,6 +731,8 @@ typedef struct _AKELEDIT {
   AEPOINT *lpSelStartPoint;
   AEPOINT *lpSelEndPoint;
   AEPOINT *lpCaretPoint;
+  AEPOINT *lpFirstDrawLinePoint;
+  int nClonePointUse;
   //RECT rcCloneMargins;
 
   //Undo window heap or global heap
@@ -802,11 +818,12 @@ void AE_StackWindowFree(AESTACKEDIT *hStack);
 AECLONE* AE_StackCloneIndex(AKELEDIT *ae, DWORD dwIndex);
 AECLONE* AE_StackCloneGet(AKELEDIT *aeMaster, AKELEDIT *aeClone);
 AECLONE* AE_StackCloneAdd(AKELEDIT *aeMaster, AKELEDIT *aeClone);
-void AE_CloneActivate(AKELEDIT *lpPrev, AKELEDIT *ae);
-void AE_CloneRestoreSelection(AKELEDIT *ae);
 void AE_StackCloneDelete(AECLONE *aec);
 void AE_StackCloneDeleteAll(AKELEDIT *ae);
-void AE_StackCloneUpdate(AKELEDIT *ae);
+void AE_StackCloneUpdate(AKELEDIT *ae, DWORD dwFlags);
+void AE_CloneUpdate(AKELEDIT *ae, DWORD dwFlags);
+void AE_CloneRestoreSelection(AKELEDIT *ae);
+void AE_CloneSwitchSelection(AKELEDIT *ae, BOOL bUpdateSelection);
 AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae);
 AEERASE* AE_StackEraseInsert(AKELEDIT *ae, RECT *rcErase);
 BOOL AE_StackEraseMore(AKELEDIT *ae, RECT *rcErase);
@@ -841,7 +858,7 @@ void AE_FoldScroll(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags);
 INT_PTR AE_FoldUpdate(AKELEDIT *ae, int nFirstVisibleLine);
 int AE_LineFromVPos(AKELEDIT *ae, INT_PTR nVPos);
 INT_PTR AE_VPosFromLine(AKELEDIT *ae, int nLine);
-INT_PTR AE_GetVScrollMax(AKELEDIT *ae);
+void AE_UpdateVScrollMax(AKELEDIT *ae, BOOL bTextUpdate);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
 void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags);
 void AE_StackPointUnreserve(AKELEDIT *ae);
@@ -954,7 +971,7 @@ void AE_ScrollToCaret(AKELEDIT *ae, const POINT64 *ptCaret, DWORD dwSelFlags, DW
 DWORD AE_ScrollToPoint(AKELEDIT *ae, POINT64 *ptPosition);
 DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT64 *ptPosition, int nOffsetX, int nOffsetY);
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar);
-INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos);
+INT_PTR AE_ScrollEditWindow(AKELEDIT *ae, int nBar, INT_PTR nPos, DWORD dwFlags);
 void AE_SetScrollPos(AKELEDIT *ae, INT_PTR nHPos, INT_PTR nVPos);
 INT_PTR AE_HScroll(AKELEDIT *ae, int nAction, DWORD dwAlign);
 INT_PTR AE_VScroll(AKELEDIT *ae, int nAction, DWORD dwAlign);
@@ -981,7 +998,7 @@ void AE_GetHighLight(AKELEDIT *ae, AEGETHIGHLIGHT *gh);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
 void AE_ActiveColumnDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom);
-void AE_UpdateSize(AKELEDIT *ae);
+BOOL AE_UpdateSize(AKELEDIT *ae, DWORD dwFlags);
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase);
 BOOL AE_ColumnMarkerSet(AKELEDIT *ae, DWORD dwType, int nPos, BOOL bMouse);
 void AE_ColumnMarkerDraw(AKELEDIT *ae, HDC hDC, int nTop, int nBottom);

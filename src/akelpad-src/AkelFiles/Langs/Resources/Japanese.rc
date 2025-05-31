@@ -13,7 +13,7 @@
   #else
     #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
   #endif
-  #define RC_VERSIONCOPYRIGHT "\xa9 2014 Nardog and others"
+  #define RC_VERSIONCOPYRIGHT "\xA9 2014 Nardog and others"
   #define RC_VERSIONNAME "Japanese.dll"
 #endif
 #include "winresrc.h"
@@ -101,7 +101,8 @@ BEGIN
 
             MENUITEM "末尾の空白を除去(&W)\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete selection whitespaces",
+
+            MENUITEM "Delete selection whitespaces", 
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
@@ -485,7 +486,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "検索"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -726,7 +727,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,75,185,10
     CONTROL         "コードページを記憶する",IDC_OPTIONS_SAVECODEPAGES,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,86,185,10
-    LTEXT           "最近使ったファイル:",IDC_STATIC,19,108,73,15,NOT WS_GROUP
+    LTEXT           "最近使ったファイル:",IDC_STATIC,19,108,73,15,NOT 
+                    WS_GROUP
     EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,106,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -902,23 +904,25 @@ BEGIN
                     WS_TABSTOP,9,59,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
     LTEXT           "保存時の既定の拡張子",IDC_STATIC,37,77,171,8
-    GROUPBOX        "検索/置換 ダイアログ",IDC_STATIC,9,96,200,66
+    GROUPBOX        "検索/置換 ダイアログ",IDC_STATIC,9,96,200,78
     CONTROL         """すべて置換"" のあとダイアログを閉じる",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
     CONTROL         """Replace all"" without message",
                     IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
+    CONTROL         """Find"" without message",IDC_OPTIONS_FIND_NOMSG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
     CONTROL         "範囲が選択されていれば ""選択範囲から"" をチェックする",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,133,185,10
+                    WS_TABSTOP,17,145,185,10
     CONTROL         "最初に戻って検索を続ける",IDC_OPTIONS_CYCLESEARCH,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,157,102,10
     CONTROL         "戻るときに通知する",IDC_OPTIONS_CYCLESEARCHPROMPT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,122,157,83,10
     CONTROL         "Save position of modeless dialogs",
                     IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,169,185,10
+                    WS_TABSTOP,9,181,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -976,7 +980,7 @@ BEGIN
     "  #else\r\n"
     "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
     "  #endif\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""\xa9 2014 Nardog and others""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""\xA9 2014 Nardog and others""\r\n"
     "  #define RC_VERSIONNAME ""Japanese.dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"
@@ -1030,11 +1034,11 @@ BEGIN
     MSG_WRONG_STRING        "不正な行番号です。"
     MSG_LONG_FILELIST       "選択したファイルの数が多すぎます。"
     MSG_DOCUMENT_CHANGED    "ドキュメントは変更されています。保存しますか?"
-    MSG_FILE_DOES_NOT_EXIST "新しいファイル ""%s"" を作成しますか?"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_FILE_DOES_NOT_EXIST "新しいファイル ""%s"" を作成しますか?"
     MSG_RECENTFILES_DELETED "削除された履歴: %d"
     MSG_SEARCH_ENDED        "検索が完了しました。"
     MSG_SEARCH_CYCLEPROMPT  "ファイル端に達しました。続行しますか？"

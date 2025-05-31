@@ -363,6 +363,7 @@ typedef struct _SYNTAXFILE {
   wchar_t wszSyntaxFileName[MAX_PATH];
   VARTHEME *lpVarThemeLink;
   AEHTHEME hThemeHighLight;
+  int nRef100Count;
   //HighLight
   DWORD dwFontFlags;
   LOGFONTW lfFont;

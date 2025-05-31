@@ -13,7 +13,7 @@
   #else
     #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
   #endif
-  #define RC_VERSIONCOPYRIGHT "\xa9 2014 Giovanni Fiocco aka Vecna"
+  #define RC_VERSIONCOPYRIGHT "\xA9 2014 Giovanni Fiocco aka Vecna"
   #define RC_VERSIONNAME "Italian.dll"
 #endif
 #include "winresrc.h"
@@ -53,7 +53,7 @@ BEGIN
         MENUITEM "Salva tutto come...",         IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Imposta pagina...",           IDM_FILE_PAGESETUP
-        MENUITEM "&Anteprima di stampa...",               IDM_FILE_PRINTPREVIEW
+        MENUITEM "&Anteprima di stampa...",     IDM_FILE_PRINTPREVIEW
         MENUITEM "Stampa...\tCtrl+P",           IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "File recenti"
@@ -101,7 +101,8 @@ BEGIN
 
             MENUITEM "Elimina gli spazi alla fine\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
-            MENUITEM "Delete selection whitespaces",
+
+            MENUITEM "Delete selection whitespaces", 
                                                     IDM_EDIT_DELETESELWHITESPACES
 
             MENUITEM SEPARATOR
@@ -138,7 +139,7 @@ BEGIN
     END
     POPUP "&Opzioni"
     BEGIN
-        MENUITEM "Plug-i&n...\tAlt+P",         IDM_OPTIONS_PLUGINS
+        MENUITEM "Plug-i&n...\tAlt+P",          IDM_OPTIONS_PLUGINS
         MENUITEM "&Esegui\tCtrl+F5",            IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
         MENUITEM "&Mantieni gli spazi (tabulazione)\tCtrl+L", 
@@ -199,9 +200,9 @@ BEGIN
     POPUP "&Aiuto"
     BEGIN
         MENUITEM "&Manuale",                    IDM_MANUAL
-        MENUITEM "&Aggiornamento...",                  IDM_UPDATE
+        MENUITEM "&Aggiornamento...",           IDM_UPDATE
         MENUITEM SEPARATOR
-        MENUITEM "&Informazioni su...",               IDM_ABOUT
+        MENUITEM "&Informazioni su...",         IDM_ABOUT
     END
 END
 
@@ -417,8 +418,8 @@ STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE |
 CAPTION "Salva tutto come"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Codifica:",IDC_SAVEALLAS_CODEPAGE_CHECK,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
+    CONTROL         "Codifica:",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
     GROUPBOX        "",IDC_STATIC,9,16,182,35
     COMBOBOX        IDC_SAVEALLAS_CODEPAGE_LIST,18,29,131,82,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
@@ -624,7 +625,8 @@ BEGIN
                     IDC_COLORS_BKIMAGEFILE_LABEL,14,189,190,8,NOT WS_GROUP
     EDITTEXT        IDC_COLORS_BKIMAGEFILE_EDIT,10,200,177,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_COLORS_BKIMAGEFILE_BROWSE,190,200,14,13
-    LTEXT           "Canale alfa:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,8
+    LTEXT           "Canale alfa:",IDC_COLORS_BKIMAGEALPHA_LABEL,211,189,40,
+                    8
     EDITTEXT        IDC_COLORS_BKIMAGEALPHA_EDIT,211,200,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_COLORS_BKIMAGEALPHA_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,233,
@@ -675,7 +677,8 @@ BEGIN
     LTEXT           "Buffer:",IDC_STATIC,170,107,37,8
     EDITTEXT        IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER,168,118,40,13,
                     ES_NUMBER
-    LTEXT           "Codifica carattere predefinita:",IDC_STATIC,12,144,150,8
+    LTEXT           "Codifica carattere predefinita:",IDC_STATIC,12,144,150,
+                    8
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,155,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Filtro",IDC_OPTIONS_CODEPAGE_FILTER,168,155,40,13
@@ -739,7 +742,8 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,113,106,11,13
     PUSHBUTTON      "Svuota",IDC_OPTIONS_RECENTFILES_CLEAR,141,105,54,14
-    LTEXT           "Cronologia delle ricerche:",IDC_STATIC,19,128,73,15,NOT WS_GROUP
+    LTEXT           "Cronologia delle ricerche:",IDC_STATIC,19,128,73,15,NOT 
+                    WS_GROUP
     EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
@@ -880,14 +884,14 @@ BEGIN
                     IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,169,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,180,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Ripristina",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Ripristina",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,180,
+                    50,13,BS_CENTER
     CONTROL         "Delimitatori a capo:",
                     IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,200,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Ripristina",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Ripristina",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,211,
+                    50,13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
@@ -914,23 +918,25 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,75,24,13,ES_AUTOHSCROLL
     LTEXT           "salvataggio estensioni predefinito",IDC_STATIC,37,77,
                     171,8
-    GROUPBOX        "Finestra Trova/Sostituisci",IDC_STATIC,9,96,200,66
+    GROUPBOX        "Finestra Trova/Sostituisci",IDC_STATIC,9,96,200,78
     CONTROL         "Sostituisci tutto - chiudi la finestra",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
     CONTROL         """Replace all"" without message",
                     IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
+    CONTROL         """Find"" without message",IDC_OPTIONS_FIND_NOMSG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
     CONTROL         "Spunta ""Nella selezione"" se la selezione non è vuota",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,133,185,10
+                    WS_TABSTOP,17,145,185,10
     CONTROL         "Ricerca continua",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,157,102,10
     CONTROL         "Suggerimento",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,157,83,10
     CONTROL         "Save position of modeless dialogs",
                     IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,169,185,10
+                    WS_TABSTOP,9,181,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -988,7 +994,7 @@ BEGIN
     "  #else\r\n"
     "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
     "  #endif\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""\xa9 2014 Giovanni Fiocco aka Vecna""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""\xA9 2014 Giovanni Fiocco aka Vecna""\r\n"
     "  #define RC_VERSIONNAME ""Italian.dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"
@@ -1042,11 +1048,11 @@ BEGIN
     MSG_WRONG_STRING        "Numero di riga non valido."
     MSG_LONG_FILELIST       "Sono stati scelti troppi file."
     MSG_DOCUMENT_CHANGED    "Il documento è stato modificato. Si desidera salvarlo?"
-    MSG_FILE_DOES_NOT_EXIST "Creare il nuovo file ""%s""?"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_FILE_DOES_NOT_EXIST "Creare il nuovo file ""%s""?"
     MSG_RECENTFILES_DELETED "Cancellazione registrazioni: %d"
     MSG_SEARCH_ENDED        "Ricerca terminata."
     MSG_SEARCH_CYCLEPROMPT  "Superato la fine del file. Continuare?"

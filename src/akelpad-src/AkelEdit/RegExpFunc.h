@@ -1,7 +1,7 @@
 /******************************************************************
- *                  RegExp functions header v2.5                  *
+ *                  RegExp functions header v2.7                  *
  *                                                                *
- * 2023 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2025 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *                                                                *
  * RegExpFunc.h header uses functions:                            *
@@ -9,7 +9,7 @@
  *   WideCharUpper, WideCharLower, xmemcpy, xmemset,              *
  *   xstrlenW, xstrcpyW, xstrcmpnW, xstrcmpinW, xatoiW, hex2decW  *
  * 2. From StackFunc.h header                                     *
- *   StackInsertBefore, StackDelete, StackJoin                    *
+ *   StackInsertBefore, StackDelete, StackJoin, StackCopy         *
  *****************************************************************/
 
 #ifndef _REGEXPFUNC_H_
@@ -27,7 +27,8 @@
 #define REO_MULTILINE         0x0002 //Multiline search. Symbols ^ and $ specifies the line edge.
 #define REO_WHOLEWORD         0x0004 //Whole word match.
 #define REO_NONEWLINEDOT      0x0008 //Symbol . specifies any character except new line.
-#define REO_REFEXIST          0x1000 //Internal.
+#define REO_REFEXIST          0x1000 //Flag is set by PatCompile, if any backreferences found.
+#define REO_REF100EXIST       0x2000 //Flag is set by PatCompile, if backreferences >= 100 found (\101 matches \1 in ref100, \102 matches \2 and so on).
 
 //REGROUP flags
 #define REGF_MATCHCASE        0x00000001 //Case-sensitive search.
@@ -302,6 +303,7 @@ REGROUP* PatNextGroupNoChild(REGROUP *lpREGroupItem);
 REGROUP* PatNextGroupForExec(REGROUP *lpREGroupItem);
 REGROUP* PatPrevGroup(REGROUP *lpREGroupItem);
 INT_PTR PatGroupStr(PATGROUPSTR *pgs);
+void PatCopy(STACKREGROUP *hStackSrc, STACKREGROUP *hStackDst);
 void PatReset(STACKREGROUP *hStack);
 void PatFree(STACKREGROUP *hStack);
 
@@ -477,6 +479,8 @@ __inline INT_PTR PatCompile(STACKREGROUP *hStack, const wchar_t *wpPat, const wc
         {
           lpREGroupRef->dwFlags|=REGF_REFEXIST;
           hStack->dwOptions|=REO_REFEXIST;
+          if (nPatRefIndex >= 100)
+            hStack->dwOptions|=REO_REF100EXIST;
           if (lpREGroupItem->nGroupLen != -1)
           {
             if (lpREGroupRef->nGroupLen != -1)
@@ -2317,6 +2321,43 @@ __inline INT_PTR PatGroupStr(PATGROUPSTR *pgs)
   return (wpBufCount - pgs->wszResult);
 }
 
+__inline void PatCopy(STACKREGROUP *hStackSrc, STACKREGROUP *hStackDst)
+{
+  REGROUP *lpREGroupSrc;
+  REGROUP *lpREGroupDst;
+  REGROUP *lpREChildDst;
+
+  //Copy root
+  xmemcpy(hStackDst, hStackSrc, sizeof(STACKREGROUP));
+  hStackDst->first=NULL;
+  hStackDst->last=NULL;
+  StackCopy((stack *)hStackSrc->first, (stack *)hStackSrc->last, (stack **)&hStackDst->first, (stack **)&hStackDst->last, sizeof(REGROUP));
+
+  //Copy hierarchy
+  lpREGroupSrc=hStackSrc->first;
+  lpREGroupDst=hStackDst->first;
+
+  if (lpREGroupSrc)
+  {
+    for (;;)
+    {
+      lpREGroupDst->firstChild=NULL;
+      lpREGroupDst->lastChild=NULL;
+      StackCopy((stack *)lpREGroupSrc->firstChild, (stack *)lpREGroupSrc->lastChild, (stack **)&lpREGroupDst->firstChild, (stack **)&lpREGroupDst->lastChild, sizeof(REGROUP));
+
+      for (lpREChildDst=lpREGroupDst->firstChild; lpREChildDst; lpREChildDst=lpREChildDst->next)
+      {
+        lpREChildDst->parent=lpREGroupDst;
+        if (lpREChildDst->conditionRef)
+          lpREChildDst->conditionRef=PatGetGroup(hStackDst, lpREChildDst->conditionRef->nIndex);
+      }
+      if (!(lpREGroupSrc=PatNextGroup(lpREGroupSrc)))
+        break;
+      lpREGroupDst=PatNextGroup(lpREGroupDst);
+    }
+  }
+}
+
 __inline void PatReset(STACKREGROUP *hStack)
 {
   REGROUP *lpREGroupItem=hStack->first;
@@ -3279,6 +3320,7 @@ __inline int PatStructExec(PATEXEC *pe)
       if (pe->nErrorOffset=PatCompile(pe->lpREGroupStack, pe->wpPat, pe->wpMaxPat))
         return 0;
     }
+    else return 0;
   }
   if (!(lpREGroupRoot=pe->lpREGroupStack->first))
     return 0;
@@ -3697,8 +3739,10 @@ _declspec(selectany) AECHARINDEX RegExpGlobal_ciMaxStr={0x7FFFFFFF, NULL, 0};
 
 //Include stack functions
 #define StackInsertBefore
+#define StackInsertAfter
 #define StackDelete
 #define StackJoin
+#define StackCopy
 #include "StackFunc.h"
 
 //Include RegExp functions

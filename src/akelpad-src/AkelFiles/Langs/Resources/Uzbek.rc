@@ -13,7 +13,7 @@
   #else
     #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
   #endif
-  #define RC_VERSIONCOPYRIGHT "\xa9 2015 Shamsiddinov Zafar"
+  #define RC_VERSIONCOPYRIGHT "\xA9 2015 Shamsiddinov Zafar"
   #define RC_VERSIONNAME "Uzbek.dll"
 #endif
 #include "winresrc.h"
@@ -916,23 +916,25 @@ BEGIN
     LTEXT           "sukut bo‘yicha hujjatni saqlash kengaytmasi",IDC_STATIC,
                     37,77,171,8
     GROUPBOX        "Izlash/almashtirish muloqot oynasi",IDC_STATIC,9,96,200,
-                    66
+                    78
     CONTROL         """Barini almash"" oynani yopsin",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX |
                     WS_TABSTOP,17,109,185,10
     CONTROL         """Barini almash"" xabarsiz",
                     IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX |
                     WS_TABSTOP,17,121,185,10
+    CONTROL         """Find"" without message",IDC_OPTIONS_FIND_NOMSG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
     CONTROL         "Bekor qilmoq ""Belgilangandan"", agar belgilash bo‘lsa",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX |
-                    WS_TABSTOP,17,133,185,10
+                    WS_TABSTOP,17,145,185,10
     CONTROL         "Aylanasiga izlash",IDC_OPTIONS_CYCLESEARCH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,145,102,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,157,102,10
     CONTROL         "So‘rov",IDC_OPTIONS_CYCLESEARCHPROMPT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,122,145,83,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,157,83,10
     CONTROL         "Modal bo‘lmagan oynalar o‘rnini saqlamoq",
                     IDC_OPTIONS_MODELESSSAVEPOS,"Button",BS_AUTOCHECKBOX |
-                    WS_TABSTOP,9,169,185,10
+                    WS_TABSTOP,9,181,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -990,7 +992,7 @@ BEGIN
     "  #else\r\n"
     "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
     "  #endif\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""\xa9 2015 Shamsiddinov Zafar""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""\xA9 2015 Shamsiddinov Zafar""\r\n"
     "  #define RC_VERSIONNAME ""Uzbek.dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"

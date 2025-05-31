@@ -3530,6 +3530,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                       {
                         lpSkipInfo->sregEnd.first->dwFlags&=~REGF_ROOTANY;
                         nSkipEndLen=(int)lpSkipInfo->sregEnd.first->nGroupLen;
+                        if (lpSkipInfo->sregEnd.dwOptions & REO_REF100EXIST)
+                          ++lpSyntaxFile->nRef100Count;
                       }
                       else
                       {
@@ -3719,6 +3721,8 @@ SYNTAXFILE* StackLoadSyntaxFile(STACKSYNTAXFILE *hStack, SYNTAXFILE *lpSyntaxFil
                       {
                         lpFoldInfo->sregEnd.first->dwFlags&=~REGF_ROOTANY;
                         lpFoldInfo->nFoldEndPointLen=(int)lpFoldInfo->sregEnd.first->nGroupLen;
+                        if (lpFoldInfo->sregEnd.dwOptions & REO_REF100EXIST)
+                          ++lpSyntaxFile->nRef100Count;
                       }
                       else
                       {

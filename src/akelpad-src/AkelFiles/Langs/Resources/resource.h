@@ -319,6 +319,7 @@
 #define IDC_OPTIONS_CYCLESEARCH                  3710
 #define IDC_OPTIONS_CYCLESEARCHPROMPT            3711
 #define IDC_OPTIONS_MODELESSSAVEPOS              3712
+#define IDC_OPTIONS_FIND_NOMSG                   3713
 #define IDC_ABOUT_ICON                           3901
 #define IDC_ABOUT_VERSION                        3902
 #define IDC_ABOUT_HOMEPAGE                       3903
