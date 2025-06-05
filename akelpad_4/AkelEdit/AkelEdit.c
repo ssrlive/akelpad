@@ -7255,7 +7255,7 @@ void AE_UpdateVScrollMax(AKELEDIT *ae, BOOL bTextUpdate)
       dwScrollPastEOF=ae->rcDraw.bottom - ae->rcDraw.top;
     else
       dwScrollPastEOF=ae->popt->dwScrollPastEOF * (ae->rcDraw.bottom - ae->rcDraw.top) / 100;
-    ae->ptxt->nVScrollMax+=max(dwScrollPastEOF - ae->ptxt->nCharHeight - 1, 0);
+    ae->ptxt->nVScrollMax+=max((int)dwScrollPastEOF - ae->ptxt->nCharHeight - 1, 0);
   }
 }
 
