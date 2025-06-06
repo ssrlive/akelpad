@@ -128,7 +128,7 @@ BEGIN
         MENUITEM "A ca&po automatico\tCtrl+U",  IDM_VIEW_WORDWRAP
         MENUITEM "&Dividi finestra",            IDM_VIEW_SPLIT_WINDOW_ONOFF
         MENUITEM "S&empre in primo piano\tCtrl+T", IDM_VIEW_ONTOP
-        MENUITEM "&Barra di Stato",             IDM_VIEW_SHOW_STATUSBAR
+        MENUITEM "&Barra di stato",             IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "&Lingua"
         BEGIN
@@ -174,7 +174,7 @@ BEGIN
             MENUITEM "P&ulsanti piatti",            IDM_WINDOW_TABTYPE_FLATBUTTONS
 
             MENUITEM SEPARATOR
-            MENUITEM "S&uccessivo-Precedente",      IDM_WINDOW_TABSWITCH_NEXTPREV
+            MENUITEM "S&uccessiva-Precedente",      IDM_WINDOW_TABSWITCH_NEXTPREV
 
             MENUITEM "&Destra-Sinistra",            IDM_WINDOW_TABSWITCH_RIGHTLEFT
 
@@ -196,7 +196,7 @@ BEGIN
     POPUP "&Aiuto"
     BEGIN
         MENUITEM "&Guida",                      IDM_MANUAL
-        MENUITEM "&Aggiornamento...",           IDM_UPDATE
+        MENUITEM "&Aggiornamenti...",           IDM_UPDATE
         MENUITEM SEPARATOR
         MENUITEM "&Info su...",                 IDM_ABOUT
     END
@@ -238,10 +238,10 @@ BEGIN
     END
     POPUP "HeadlinePopup"
     BEGIN
-        MENUITEM "Numero di pagina[prima pagina]\t%n[1]", 
+        MENUITEM "Numero di pagina [la prima]\t%n[1]", 
                                                 IDM_POPUP_HEADLINE_PAGE_NUMBER
 
-        MENUITEM "Nome del file\t%f",           IDM_POPUP_HEADLINE_FILENAME
+        MENUITEM "Nome file\t%f",           IDM_POPUP_HEADLINE_FILENAME
         MENUITEM "Cartella file\t%d",           IDM_POPUP_HEADLINE_FILEDIR
         MENUITEM "Simbolo %\t%%",               IDM_POPUP_HEADLINE_SYMBOL
         MENUITEM SEPARATOR
@@ -914,10 +914,10 @@ BEGIN
     CONTROL         """Sostituisci tutto"" chiude il dialogo",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,109,185,10
-    CONTROL         """Sostituisci tutto"" senza confermare",
+    CONTROL         """Sostituisci tutto"" senza messaggio",
                     IDC_OPTIONS_REPLACEALL_NOMSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,121,185,10
-    CONTROL         """Find"" without message",IDC_OPTIONS_FIND_NOMSG,"Button",
+    CONTROL         """Trova"" senza messaggio",IDC_OPTIONS_FIND_NOMSG,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,133,185,10
     CONTROL         "Spunta ""Nella selezione"" se la selezione non è vuota",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
@@ -1123,7 +1123,7 @@ BEGIN
     STR_ONLYMODIFIED        "Modificato"
     STR_ONLYUNMODIFIED      "Non modificato"
     STR_INVERTSELECTION     "Inverti selezione"
-    STR_NEWLINEDOT          ". simili \\n"
+    STR_NEWLINEDOT          ". simile \\n"
     STR_MESSAGEBOX_OK       "OK"
     STR_MESSAGEBOX_YES      "Sì"
     STR_MESSAGEBOX_NO       "No"
