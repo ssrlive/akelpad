@@ -72,6 +72,7 @@ extern const wchar_t *wpCmdLineDo;
 extern wchar_t *wpCmdParamsStart;
 extern wchar_t *wpCmdParamsEnd;
 extern DWORD dwCmdLineOptions;
+extern int nParseCmdLineType;
 
 //Language
 extern HMODULE hLangModule;
@@ -19936,6 +19937,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType, DWORD dwFlags)
   BOOL bIgnoreNextArg=FALSE;
   int nResult=PCLE_SUCCESS;
 
+  nParseCmdLineType=nType;
+
   if (wppCmdLine && *wppCmdLine)
   {
     wpCmdLine=*wppCmdLine;
@@ -20679,7 +20682,7 @@ int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
         else
           wpParseCmd=wpIfFalse;
         if (nError == IEE_SUCCESS)
-          nResult=ParseCmdLine(&wpParseCmd, PCL_ONCALL, 0);
+          nResult=ParseCmdLine(&wpParseCmd, nParseCmdLineType, 0);
       }
     }
     MethodFreeParameters(&hParamStack);

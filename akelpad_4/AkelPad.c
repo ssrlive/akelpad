@@ -287,6 +287,7 @@ const wchar_t *wpCmdLineDo=NULL;
 wchar_t *wpCmdParamsStart=NULL;
 wchar_t *wpCmdParamsEnd=NULL;
 DWORD dwCmdLineOptions=0;
+int nParseCmdLineType=0;
 
 //Language
 HMODULE hLangModule;
@@ -2550,6 +2551,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return nMainOnStart;
           case MI_ONFINISH:
             return nMainOnFinish;
+          case MI_PARSECMDLINETYPE:
+            return nParseCmdLineType;
           case MI_AKELEXEA:
             return xstrcpynA((void *)lParam, szExeFile, MAX_PATH);
           case MI_AKELEXEW:

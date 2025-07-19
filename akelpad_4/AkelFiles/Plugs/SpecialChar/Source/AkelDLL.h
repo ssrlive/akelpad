@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 8, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 9, 0)
 
 
 //// Defines
@@ -58,6 +58,13 @@
 #define CLO_MSGSAVELOSTSYMBOLSNO  0x0080  //Don't save file, if symbols will be lost.
 #define CLO_VARNOSYSTEM           0x1000  //Don't expand system variables (for example, %windir%).
 #define CLO_VARNOAKELPAD          0x2000  //Don't expand program variables %f,%d,%a. If flag set, then symbol % must be specified as is (without %%).
+
+//ParseCmdLine type
+#define PCL_INI              1  //Check ini file.
+#define PCL_ONLOAD           2  //Before main window created.
+#define PCL_ONSHOW           3  //After main window created.
+#define PCL_ONMESSAGE        4  //On AKD_PARSECMDLINEW message.
+#define PCL_ONMENU           5  //On menu.
 
 //PARSECMDLINESENDW, PARSECMDLINEPOSTW flags
 #define PCLF_OPENINNEWWINDOW 0x0001  //Open all documents in new windows. If not set, open first document in current window and next in new windows (SDI).
@@ -274,6 +281,7 @@
 //Execution
 #define MI_ONSTART                   90   //Return: see MOS_* defines.
 #define MI_ONFINISH                  91   //Return: see MOF_* defines.
+#define MI_PARSECMDLINETYPE          92   //Return: last command line parsing type, see PCL_* defines.
 #define MI_AKELEXEA                  95   //Return: copied chars. (char *)lParam - buffer that receives AkelPad executable string.
 #define MI_AKELEXEW                  96   //Return: copied chars. (wchar_t *)lParam - buffer that receives AkelPad executable string.
 #define MI_AKELINIA                  97   //Return: copied chars. (char *)lParam - buffer that receives AkelPad ini file.
