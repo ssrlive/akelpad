@@ -238,7 +238,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, VARIANT vtD
   {
     //Call function
     nResult=AsmCallSysFunc(&sf->hSysParamStack, &sf->hSaveStack, lpProcedure);
-    
+
     //Get last error
     sf->dwLastError=GetLastError();
   }
@@ -349,6 +349,12 @@ HRESULT STDMETHODCALLTYPE SystemFunction_RegisterCallback(ISystemFunction *this,
 
   vtFunction->vt=VT_DISPATCH;
   vtFunction->pdispVal=objCallback;
+  if (objCallback)
+  {
+    //We already call AddRef for objCallback in StackInsertCallback,
+    //but jscript9Legacy.dll will release it without second call
+    objCallback->lpVtbl->AddRef(objCallback);
+  }
   return hr;
 }
 
