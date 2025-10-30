@@ -971,7 +971,7 @@ void _WinMain()
   if (bOldWindows ? !xstrcmpinA("/Ini(", (char *)mc.pCmdLine, (UINT_PTR)-1) :
                     !xstrcmpinW(L"/Ini(", (wchar_t *)mc.pCmdLine, (UINT_PTR)-1))
   {
-    wpCmdLineDo=GetCommandLineParamsWide(mc.pCmdLine, NULL, NULL);
+    wpCmdLineDo=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
     if (wpCmdLineDo)
       ParseCmdLine(&wpCmdLineDo, PCL_INI, 0);
     bAkelPadIniChanged=TRUE;
@@ -983,7 +983,8 @@ void _WinMain()
   nMDI=moInit.nMDI;
 
   //Parse commmand line on load
-  wpCmdLineDo=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
+  if (!wpCmdLineDo)
+    wpCmdLineDo=GetCommandLineParamsWide(mc.pCmdLine, &wpCmdParamsStart, &wpCmdParamsEnd);
   if (wpCmdLineDo)
     nParseCmdLineOnLoad=ParseCmdLine(&wpCmdLineDo, PCL_ONLOAD, 0);
 
@@ -5305,6 +5306,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AESELECTION aes;
         AECHARINDEX ciCaret;
         POINT64 ptDocumentPos;
+        int nFirstVisLine;
 
         if (!nMDI) return (LRESULT)NULL;
 
@@ -5312,12 +5314,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETSEL, (WPARAM)&ciCaret, (LPARAM)&aes);
           SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
+          nFirstVisLine=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0);
+          //Convert to unwrapped line because LineBoard and Coder::CodeFold panels updated later
+          nFirstVisLine=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETUNWRAPLINE, (WPARAM)nFirstVisLine, 0);
 
           if (OpenDocument(NULL, NULL, lpFrameCurrent->wszFile, OD_ADT_DETECTBOM|OD_NOSCROLL, lpFrameCurrent->ei.nCodePage, FALSE) == EOD_SUCCESS)
           {
             lpFrameClone=lpFrameCurrent;
             aes.dwFlags|=AESELT_LOCKSCROLL|AESELT_INDEXUPDATE;
             SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETSEL, (WPARAM)&ciCaret, (LPARAM)&aes);
+
+            nFirstVisLine=(int)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETWRAPLINE, nFirstVisLine, (LPARAM)NULL);
+            ptDocumentPos.y=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_VPOSFROMLINE, AECT_GLOBAL, nFirstVisLine);
             SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
           }
         }
