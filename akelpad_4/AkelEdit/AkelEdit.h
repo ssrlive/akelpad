@@ -134,10 +134,7 @@
 #define AEDELT_LOCKUPDATECARET   0x00000010
 #define AEDELT_LOCKUPDATETEXT    0x00000020
 #define AEDELT_SAVECOLUMNSEL     0x00000040
-#define AEDELT_LOCKUPDATEALL    (AEDELT_LOCKUPDATEHSCROLL |\
-                                 AEDELT_LOCKUPDATEVSCROLL |\
-                                 AEDELT_LOCKUPDATECARET   |\
-                                 AEDELT_LOCKUPDATETEXT)
+#define AEDELT_LOCKUPDATEWRAP    0x00000080
 
 //AEN_POINT types
 #define AEPTT_SETTEXT           0x00000001  //All document text has been changed. All points reset to first character.

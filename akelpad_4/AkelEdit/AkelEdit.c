@@ -1730,10 +1730,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         //if ((int)wParam >= 0)
         {
           POINT64 ptFirstVisLine;
-          int nFirstVisibleLine=0;
+          int nFirstVisLine=0;
 
           if (!ae->popt->nVScrollLock)
-            nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+            nFirstVisLine=AE_GetFirstVisibleLine(ae);
           ae->ptxt->nCharHeight=(ae->ptxt->nCharHeight - ae->ptxt->nLineGap) + (int)wParam;
           ae->ptxt->nCharHeight=max(ae->ptxt->nCharHeight, 1);
           ae->ptxt->nLineGap=(int)wParam;
@@ -1745,7 +1745,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
           if (!ae->popt->nVScrollLock)
           {
-            ptFirstVisLine.y=AE_VPosFromLine(ae, nFirstVisibleLine);
+            ptFirstVisLine.y=AE_VPosFromLine(ae, nFirstVisLine);
             AE_ScrollToPointEx(ae, AESC_NOREDRAW|AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
           }
           AE_UpdateCaret(ae, ae->bFocus);
@@ -2170,14 +2170,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case AEM_DELETEFOLD:
     {
-      int nFirstVisibleLine=-1;
+      int nFirstVisLine=-1;
       int nResult;
       BOOL bUpdate=(BOOL)lParam;
 
       if (bUpdate)
       {
         if (!ae->popt->nVScrollLock)
-          nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+          nFirstVisLine=AE_GetFirstVisibleLine(ae);
       }
 
       if (wParam)
@@ -2187,7 +2187,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (bUpdate && nResult)
       {
-        AE_FoldUpdate(ae, nFirstVisibleLine);
+        AE_FoldUpdate(ae, nFirstVisLine);
       }
       return nResult;
     }
@@ -2217,13 +2217,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     case AEM_COLLAPSELINE:
     case AEM_COLLAPSEFOLD:
     {
-      int nFirstVisibleLine=-1;
+      int nFirstVisLine=-1;
       int nResult;
 
       if (!(lParam & AECF_NOUPDATE))
       {
         if (!ae->popt->nVScrollLock)
-          nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+          nFirstVisLine=AE_GetFirstVisibleLine(ae);
       }
 
       if (uMsg == AEM_COLLAPSELINE)
@@ -2234,7 +2234,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (nResult && !(lParam & AECF_NOUPDATE))
       {
-        AE_FoldUpdate(ae, nFirstVisibleLine);
+        AE_FoldUpdate(ae, nFirstVisLine);
       }
       return nResult;
     }
@@ -3711,10 +3711,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     case WM_SETFONT:
     {
       POINT64 ptFirstVisLine;
-      int nFirstVisibleLine=0;
+      int nFirstVisLine=0;
 
       if (!ae->popt->nVScrollLock)
-        nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+        nFirstVisLine=AE_GetFirstVisibleLine(ae);
 
       if (!ae->bUnicodeWindow)
         AE_SetEditFontA(ae, (HFONT)wParam, FALSE);
@@ -3729,7 +3729,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKNOTIFY);
       if (!ae->popt->nVScrollLock)
       {
-        ptFirstVisLine.y=AE_VPosFromLine(ae, nFirstVisibleLine);
+        ptFirstVisLine.y=AE_VPosFromLine(ae, nFirstVisLine);
         AE_ScrollToPointEx(ae, AESC_NOREDRAW|AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
       }
       AE_UpdateCaret(ae, ae->bFocus);
@@ -5800,7 +5800,7 @@ void AE_StackCloneDelete(AECLONE *aec)
     if (!aeMaster->nCloneCount)
     {
       //Last clone deleted - update selection of master window
-      AE_CloneRestoreSelection(aeMaster);
+      AE_CloneRestoreSelection(aeMaster, TRUE);
     }
   }
 }
@@ -5863,7 +5863,7 @@ void AE_CloneUpdate(AKELEDIT *ae, DWORD dwFlags)
         ae->lpFirstDrawLinePoint=AE_StackPointInsert(ae, &ciFirstDrawLine);
       }
     }
-    else AE_CloneRestoreSelection(ae);
+    else AE_CloneRestoreSelection(ae, FALSE);
 
     ++ae->nClonePointUse;
   }
@@ -5875,7 +5875,7 @@ void AE_CloneUpdate(AKELEDIT *ae, DWORD dwFlags)
     if (ae->nClonePointUse)
       return;
 
-    AE_CloneRestoreSelection(ae);
+    AE_CloneRestoreSelection(ae, FALSE);
     if ((dwFlags & AECU_FIRSTDRAWLINE) && ae->lpFirstDrawLinePoint)
       bScrollToPoint=TRUE;
 
@@ -5904,7 +5904,7 @@ void AE_CloneUpdate(AKELEDIT *ae, DWORD dwFlags)
   }
 }
 
-void AE_CloneRestoreSelection(AKELEDIT *ae)
+void AE_CloneRestoreSelection(AKELEDIT *ae, BOOL bUpdateSelection)
 {
   if (ae->lpSelStartPoint)
   {
@@ -5936,7 +5936,8 @@ void AE_CloneRestoreSelection(AKELEDIT *ae)
       ae->liFirstDrawLine.nLine=ae->lpFirstDrawLinePoint->ciPoint.nLine;
       ae->liFirstDrawLine.lpLine=ae->lpFirstDrawLinePoint->ciPoint.lpLine;
     }
-    AE_UpdateSelection(ae, (ae->dwMouseSelType?AESELT_MOUSE:0)|AESELT_COLUMNASIS|AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING|AESELT_RESETSELECTION);
+    if (bUpdateSelection)
+      AE_UpdateSelection(ae, (ae->dwMouseSelType?AESELT_MOUSE:0)|AESELT_COLUMNASIS|AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING|AESELT_RESETSELECTION);
   }
 }
 
@@ -7028,9 +7029,9 @@ void AE_FoldScroll(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
   }
 }
 
-INT_PTR AE_FoldUpdate(AKELEDIT *ae, int nFirstVisibleLine)
+INT_PTR AE_FoldUpdate(AKELEDIT *ae, int nFirstVisLine)
 {
-  INT_PTR nFirstVisiblePos;
+  INT_PTR nFirstVisPos;
   INT_PTR nScrolled=0;
 
   AE_UpdateVScrollMax(ae, TRUE);
@@ -7038,10 +7039,10 @@ INT_PTR AE_FoldUpdate(AKELEDIT *ae, int nFirstVisibleLine)
   ae->ptCaret.x=0;
   ae->ptCaret.y=0;
   AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-  if (!ae->popt->nVScrollLock && nFirstVisibleLine >= 0)
+  if (!ae->popt->nVScrollLock && nFirstVisLine >= 0)
   {
-    nFirstVisiblePos=AE_VPosFromLine(ae, nFirstVisibleLine);
-    nScrolled=AE_ScrollEditWindow(ae, SB_VERT, nFirstVisiblePos, 0);
+    nFirstVisPos=AE_VPosFromLine(ae, nFirstVisLine);
+    nScrolled=AE_ScrollEditWindow(ae, SB_VERT, nFirstVisPos, 0);
   }
   InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
   AE_StackCloneUpdate(ae, AECU_SCROLLBAR|AECU_INVALIDATERECT);
@@ -9100,7 +9101,7 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
 {
   AECHARINDEX ciSelStart=ae->ciSelStartIndex;
   AECHARINDEX ciSelEnd=ae->ciSelEndIndex;
-  AECHARINDEX ciFirstVisibleLineAfterWrap={0};
+  AECHARINDEX ciFirstVisLineAfterWrap={0};
   AEPOINT *lpPointOne;
   AEPOINT *lpPointTwo;
   AEPOINT *lpPointThree=NULL;
@@ -9120,8 +9121,8 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
   lpPointTwo=AE_StackPointInsert(ae, &ciSelEnd);
   if (!ae->popt->nVScrollLock)
   {
-    AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciFirstVisibleLineAfterWrap);
-    lpPointThree=AE_StackPointInsert(ae, &ciFirstVisibleLineAfterWrap);
+    AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciFirstVisLineAfterWrap);
+    lpPointThree=AE_StackPointInsert(ae, &ciFirstVisLineAfterWrap);
   }
   nWrapCount=AE_WrapLines(ae, liWrapStart, liWrapEnd, dwWrap);
 
@@ -9157,8 +9158,8 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
   //Update first visible line
   if (!ae->popt->nVScrollLock)
   {
-    ciFirstVisibleLineAfterWrap=lpPointThree->ciPoint;
-    ptFirstVisLine.y=AE_VPosFromLine(ae, ciFirstVisibleLineAfterWrap.nLine);
+    ciFirstVisLineAfterWrap=lpPointThree->ciPoint;
+    ptFirstVisLine.y=AE_VPosFromLine(ae, ciFirstVisLineAfterWrap.nLine);
     AE_StackPointDelete(ae, lpPointThree);
 
     AE_ScrollToPointEx(ae, AESC_NOREDRAW|AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
@@ -17647,7 +17648,7 @@ UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
       DWORD dwWrapLimit=ae->ptxt->dwWrapLimit;
 
       AE_StackUndoGroupStop(ae);
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEALL);
+      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEHSCROLL|AEDELT_LOCKUPDATEVSCROLL|AEDELT_LOCKUPDATECARET|AEDELT_LOCKUPDATETEXT);
 
       //When word wrap is off, AESF_SELECTION flag is slow for very long lines
       if (!dwWordWrap)
@@ -18356,7 +18357,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int 
   nHScrollPos=ae->nHScrollPos;
   nVScrollPos=ae->nVScrollPos;
   nVScrollMax=ae->ptxt->nVScrollMax;
-  if (AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_SAVECOLUMNSEL|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATECARET|AEDELT_LOCKUPDATEVSCROLL))
+  if (AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_SAVECOLUMNSEL|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATECARET|AEDELT_LOCKUPDATEVSCROLL|AEDELT_LOCKUPDATEWRAP))
   {
     if (nVScrollMax != ae->ptxt->nVScrollMax)
     {
@@ -18731,28 +18732,31 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
 
       if (ae->ptxt->dwWordWrap)
       {
-        AELINEINDEX liWrapStart;
-        AELINEINDEX liWrapEnd;
+        if (!(dwDeleteFlags & AEDELT_LOCKUPDATEWRAP))
+        {
+          AELINEINDEX liWrapStart;
+          AELINEINDEX liWrapEnd;
 
-        liWrapStart.nLine=ciFirstChar.nLine;
-        liWrapStart.lpLine=ciFirstChar.lpLine;
-        liWrapEnd.nLine=ciLastChar.nLine;
-        liWrapEnd.lpLine=ciLastChar.lpLine;
-        nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->ptxt->dwWordWrap);
-        ciFirstChar=lpPointOne->ciPoint;
-        ciLastChar=lpPointTwo->ciPoint;
+          liWrapStart.nLine=ciFirstChar.nLine;
+          liWrapStart.lpLine=ciFirstChar.lpLine;
+          liWrapEnd.nLine=ciLastChar.nLine;
+          liWrapEnd.lpLine=ciLastChar.lpLine;
+          nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->ptxt->dwWordWrap);
+          ciFirstChar=lpPointOne->ciPoint;
+          ciLastChar=lpPointTwo->ciPoint;
 
-        //Set control points to "delete from" position
-        AE_GetPosFromChar(ae, &ciFirstChar, &ae->ptCaret, NULL);
-        ae->ciCaretIndex=ciFirstChar;
-        ae->nSelStartCharOffset=nStartOffset;
-        ae->ciSelStartIndex=ciFirstChar;
-        ae->nSelEndCharOffset=nEndOffset - nRichTextCount;
-        ae->ciSelEndIndex=ciLastChar;
+          //Set control points to "delete from" position
+          AE_GetPosFromChar(ae, &ciFirstChar, &ae->ptCaret, NULL);
+          ae->ciCaretIndex=ciFirstChar;
+          ae->nSelStartCharOffset=nStartOffset;
+          ae->ciSelStartIndex=ciFirstChar;
+          ae->nSelEndCharOffset=nEndOffset - nRichTextCount;
+          ae->ciSelEndIndex=ciLastChar;
 
-        //Update scroll bars
-        ae->ptxt->nLineCount+=nWrapCount;
-        AE_UpdateVScrollMax(ae, TRUE);
+          //Update scroll bars
+          ae->ptxt->nLineCount+=nWrapCount;
+          AE_UpdateVScrollMax(ae, TRUE);
+        }
         if (nWrapCount)
         {
           if (!(dwDeleteFlags & AEDELT_LOCKUPDATEVSCROLL))
@@ -19002,28 +19006,31 @@ INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const 
 
       if (ae->ptxt->dwWordWrap)
       {
-        AELINEINDEX liWrapStart;
-        AELINEINDEX liWrapEnd;
+        if (!(dwDeleteFlags & AEDELT_LOCKUPDATEWRAP))
+        {
+          AELINEINDEX liWrapStart;
+          AELINEINDEX liWrapEnd;
 
-        liWrapStart.nLine=ciFirstChar.nLine;
-        liWrapStart.lpLine=ciFirstChar.lpLine;
-        liWrapEnd.nLine=ciLastChar.nLine;
-        liWrapEnd.lpLine=ciLastChar.lpLine;
-        nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->ptxt->dwWordWrap);
-        ciFirstChar=lpPointOne->ciPoint;
-        ciLastChar=lpPointTwo->ciPoint;
+          liWrapStart.nLine=ciFirstChar.nLine;
+          liWrapStart.lpLine=ciFirstChar.lpLine;
+          liWrapEnd.nLine=ciLastChar.nLine;
+          liWrapEnd.lpLine=ciLastChar.lpLine;
+          nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->ptxt->dwWordWrap);
+          ciFirstChar=lpPointOne->ciPoint;
+          ciLastChar=lpPointTwo->ciPoint;
 
-        //Set control points to "delete from" position
-        AE_GetPosFromChar(ae, &ciFirstChar, &ae->ptCaret, NULL);
-        ae->ciCaretIndex=ciFirstChar;
-        ae->nSelStartCharOffset=nStartOffset;
-        ae->ciSelStartIndex=ciFirstChar;
-        ae->nSelEndCharOffset=nStartOffset;
-        ae->ciSelEndIndex=ciFirstChar;
+          //Set control points to "delete from" position
+          AE_GetPosFromChar(ae, &ciFirstChar, &ae->ptCaret, NULL);
+          ae->ciCaretIndex=ciFirstChar;
+          ae->nSelStartCharOffset=nStartOffset;
+          ae->ciSelStartIndex=ciFirstChar;
+          ae->nSelEndCharOffset=nStartOffset;
+          ae->ciSelEndIndex=ciFirstChar;
 
-        //Update scroll bars
-        ae->ptxt->nLineCount+=nWrapCount;
-        AE_UpdateVScrollMax(ae, TRUE);
+          //Update scroll bars
+          ae->ptxt->nLineCount+=nWrapCount;
+          AE_UpdateVScrollMax(ae, TRUE);
+        }
         if (nLineCount + nWrapCount)
         {
           if (!(dwDeleteFlags & AEDELT_LOCKUPDATEVSCROLL))
@@ -21153,7 +21160,7 @@ BOOL AE_EditUndo(AKELEDIT *ae)
   AECHARINDEX ciInsertStart;
   AECHARINDEX ciInsertEnd;
   POINT64 ptFirstVisLine;
-  int nFirstVisibleLine=0;
+  int nFirstVisLine=0;
   BOOL bColumnSel;
 
   if (AE_IsReadOnly(ae) || !AE_EditCanUndo(ae))
@@ -21165,7 +21172,7 @@ BOOL AE_EditUndo(AKELEDIT *ae)
   if (ae->popt->dwOptions & AECO_NOSCROLLDELETEALL)
   {
     if (!ae->popt->nVScrollLock)
-      nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+      nFirstVisLine=AE_GetFirstVisibleLine(ae);
   }
 
   while (lpCurElement)
@@ -21218,7 +21225,7 @@ BOOL AE_EditUndo(AKELEDIT *ae)
           AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
         else
           AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
-        AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEALL);
+        AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEHSCROLL|AEDELT_LOCKUPDATEVSCROLL|AEDELT_LOCKUPDATECARET|AEDELT_LOCKUPDATETEXT);
       }
       else if (lpCurElement->dwFlags & AEUN_SETSEL)
       {
@@ -21263,7 +21270,7 @@ BOOL AE_EditUndo(AKELEDIT *ae)
   {
     if (!ae->popt->nVScrollLock)
     {
-      ptFirstVisLine.y=AE_VPosFromLine(ae, nFirstVisibleLine);
+      ptFirstVisLine.y=AE_VPosFromLine(ae, nFirstVisLine);
       AE_ScrollToPointEx(ae, AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
     }
   }
@@ -21281,7 +21288,7 @@ BOOL AE_EditRedo(AKELEDIT *ae)
   AECHARINDEX ciInsertStart;
   AECHARINDEX ciInsertEnd;
   POINT64 ptFirstVisLine;
-  int nFirstVisibleLine=0;
+  int nFirstVisLine=0;
   BOOL bColumnSel;
 
   if (AE_IsReadOnly(ae) || !AE_EditCanRedo(ae))
@@ -21296,7 +21303,7 @@ BOOL AE_EditRedo(AKELEDIT *ae)
   if (ae->popt->dwOptions & AECO_NOSCROLLDELETEALL)
   {
     if (!ae->popt->nVScrollLock)
-      nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+      nFirstVisLine=AE_GetFirstVisibleLine(ae);
   }
 
   while (lpCurElement)
@@ -21326,7 +21333,7 @@ BOOL AE_EditRedo(AKELEDIT *ae)
           AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
         else
           AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
-        AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEALL);
+        AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATEHSCROLL|AEDELT_LOCKUPDATEVSCROLL|AEDELT_LOCKUPDATECARET|AEDELT_LOCKUPDATETEXT);
       }
       else if (lpCurElement->dwFlags & AEUN_DELETE)
       {
@@ -21385,7 +21392,7 @@ BOOL AE_EditRedo(AKELEDIT *ae)
   {
     if (!ae->popt->nVScrollLock)
     {
-      ptFirstVisLine.y=AE_VPosFromLine(ae, nFirstVisibleLine);
+      ptFirstVisLine.y=AE_VPosFromLine(ae, nFirstVisLine);
       AE_ScrollToPointEx(ae, AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
     }
   }
