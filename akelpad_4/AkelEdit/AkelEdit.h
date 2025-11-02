@@ -338,6 +338,7 @@
 #define AESELT_MOUSE               0x00000200  //Don't use it. For internal code only.
 #define AESELT_RESETSELECTION      0x00000400  //Don't use it. For internal code only.
 #define AESELT_INDEXUPDATE         0x00000800  //Update lpLine member of the AEM_SETSEL message structures, to avoid dangling of a pointer after text change.
+#define AESELT_NOCLONESWITCH       0x00001000  //Don't use it. For internal code only.
 
 //AEM_REPLACESEL flags
 #define AEREPT_COLUMNON            0x00000001  //Make column selection ON.

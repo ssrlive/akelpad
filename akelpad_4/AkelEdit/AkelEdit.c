@@ -5956,7 +5956,7 @@ void AE_CloneSwitchSelection(AKELEDIT *ae, BOOL bUpdateSelection)
         AE_ClearSelLines(&lpAkelEditLastSel->ciSelStartIndex, &lpAkelEditLastSel->ciSelEndIndex);
     }
     if (bUpdateSelection && (ae->nCloneCount > 0 || ae->lpMaster))
-      AE_UpdateSelection(ae, (ae->dwMouseSelType?AESELT_MOUSE:0)|AESELT_COLUMNASIS|AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING|AESELT_RESETSELECTION);
+      AE_UpdateSelection(ae, AESELT_NOCLONESWITCH|(ae->dwMouseSelType?AESELT_MOUSE:0)|AESELT_COLUMNASIS|AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING|AESELT_RESETSELECTION);
   }
   lpAkelEditLastSel=ae;
 }
@@ -10057,7 +10057,8 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
   POINT64 ptSelEnd;
   BOOL bColumnSelOld;
 
-  AE_CloneSwitchSelection(ae, FALSE);
+  if (!(dwSelFlags & AESELT_NOCLONESWITCH))
+    AE_CloneSwitchSelection(ae, TRUE);
   if (ae->popt->dwOptionsEx & AECOE_LOCKSELECTION)
     return;
   if (ae->popt->dwOptions & AECO_NOSCROLLSELECTALL)
