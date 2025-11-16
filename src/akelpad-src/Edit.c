@@ -72,6 +72,7 @@ extern const wchar_t *wpCmdLineDo;
 extern wchar_t *wpCmdParamsStart;
 extern wchar_t *wpCmdParamsEnd;
 extern DWORD dwCmdLineOptions;
+extern int nParseCmdLineType;
 
 //Language
 extern HMODULE hLangModule;
@@ -2027,7 +2028,7 @@ BOOL DoEditModifyStringInSelection(HWND hWnd, int nAction, const wchar_t *wpStri
   INT_PTR nBufferLen;
   int nStringLen;
   int nStringBytes;
-  int nFirstLine=0;
+  int nFirstVisLine=0;
   INT_PTR a=0;
   INT_PTR b=0;
   INT_PTR i;
@@ -2062,7 +2063,7 @@ BOOL DoEditModifyStringInSelection(HWND hWnd, int nAction, const wchar_t *wpStri
       nStringBytes=nStringLen * sizeof(wchar_t);
 
       //Save scroll
-      nFirstLine=SaveLineScroll(hWnd);
+      nFirstVisLine=SaveLineScroll(hWnd);
 
       if (!bColumnSel && (nAction & STRSEL_FULLLINE))
         SetSel(hWnd, &crRange, AESELT_LOCKSCROLL, NULL);
@@ -2213,7 +2214,7 @@ BOOL DoEditModifyStringInSelection(HWND hWnd, int nAction, const wchar_t *wpStri
       }
 
       //Restore scroll
-      RestoreLineScroll(hWnd, nFirstLine);
+      RestoreLineScroll(hWnd, nFirstVisLine);
 
       API_FreeWide(wszRange);
       return bResult;
@@ -2231,7 +2232,7 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
   INT_PTR nRangeLen;
   INT_PTR a;
   INT_PTR b;
-  int nFirstLine=0;
+  int nFirstVisLine=0;
   BOOL bDelete;
   BOOL bCaretAtStart=FALSE;
 
@@ -2264,13 +2265,13 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
     wszRange[a]=L'\0';
 
     //Save scroll
-    nFirstLine=SaveLineScroll(hWnd);
+    nFirstVisLine=SaveLineScroll(hWnd);
 
     ReplaceSelW(hWnd, wszRange, a, AELB_ASINPUT, AEREPT_COLUMNASIS|AEREPT_LOCKSCROLL, &crRange.ciMin, &crRange.ciMax);
     SetSel(hWnd, &crRange, AESELT_COLUMNASIS|AESELT_LOCKSCROLL, bCaretAtStart?&crRange.ciMin:&crRange.ciMax);
 
     //Restore scroll
-    RestoreLineScroll(hWnd, nFirstLine);
+    RestoreLineScroll(hWnd, nFirstVisLine);
 
     FreeText(wszRange);
     return TRUE;
@@ -2290,7 +2291,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
   wchar_t *wpRead;
   wchar_t *wpWrite;
   wchar_t *wpMaxRead;
-  int nFirstLine=0;
+  int nFirstVisLine=0;
   BOOL bSelection;
   BOOL bCaretAtStart=FALSE;
   BOOL bResult=FALSE;
@@ -2301,7 +2302,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
     bCaretAtStart=TRUE;
 
   //Save scroll
-  nFirstLine=SaveLineScroll(hWnd);
+  nFirstVisLine=SaveLineScroll(hWnd);
 
   if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
   {
@@ -2354,7 +2355,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
   }
 
   //Restore scroll
-  RestoreLineScroll(hWnd, nFirstLine);
+  RestoreLineScroll(hWnd, nFirstVisLine);
 
   return bResult;
 }
@@ -2364,7 +2365,7 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelAllTextIfNoSel)
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCurCaret;
   wchar_t *wszRange;
-  int nFirstLine=0;
+  int nFirstVisLine=0;
   INT_PTR nRangeLen;
   BOOL bSelection;
   BOOL bCaretAtStart=FALSE;
@@ -2376,7 +2377,7 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelAllTextIfNoSel)
     bCaretAtStart=TRUE;
 
   //Save scroll
-  nFirstLine=SaveLineScroll(hWnd);
+  nFirstVisLine=SaveLineScroll(hWnd);
 
   if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
   {
@@ -2427,7 +2428,7 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase, BOOL bSelAllTextIfNoSel)
   }
 
   //Restore scroll
-  RestoreLineScroll(hWnd, nFirstLine);
+  RestoreLineScroll(hWnd, nFirstVisLine);
 
   return bResult;
 }
@@ -12880,7 +12881,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
   AECHARINDEX ciInitialCaret=ciCurCaret;
   wchar_t *wszSelText;
   wchar_t *wszText;
-  int nFirstLine=0;
+  int nFirstVisLine=0;
   INT_PTR nUnicodeLen;
   BOOL bCaretAtStart=FALSE;
   BOOL bSelection;
@@ -12893,7 +12894,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
       bCaretAtStart=TRUE;
 
     //Save scroll
-    nFirstLine=SaveLineScroll(lpFrame->ei.hWndEdit);
+    nFirstVisLine=SaveLineScroll(lpFrame->ei.hWndEdit);
   }
 
   if (!AEC_IndexCompare(&crCurSel.ciMin, &crCurSel.ciMax))
@@ -12952,7 +12953,7 @@ void RecodeTextW(FRAMEDATA *lpFrame, HWND hWndPreview, DWORD dwFlags, int *nCode
   if (!hWndPreview && !(dwFlags & RCS_DETECTONLY))
   {
     //Restore scroll
-    RestoreLineScroll(lpFrame->ei.hWndEdit, nFirstLine);
+    RestoreLineScroll(lpFrame->ei.hWndEdit, nFirstVisLine);
   }
 }
 
@@ -19936,6 +19937,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, int nType, DWORD dwFlags)
   BOOL bIgnoreNextArg=FALSE;
   int nResult=PCLE_SUCCESS;
 
+  nParseCmdLineType=nType;
+
   if (wppCmdLine && *wppCmdLine)
   {
     wpCmdLine=*wppCmdLine;
@@ -20679,7 +20682,7 @@ int CallMethod(const wchar_t *wpMethod, const wchar_t *wpUrlLink)
         else
           wpParseCmd=wpIfFalse;
         if (nError == IEE_SUCCESS)
-          nResult=ParseCmdLine(&wpParseCmd, PCL_ONCALL, 0);
+          nResult=ParseCmdLine(&wpParseCmd, nParseCmdLineType, 0);
       }
     }
     MethodFreeParameters(&hParamStack);

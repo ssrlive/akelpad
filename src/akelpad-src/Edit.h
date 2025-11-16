@@ -107,14 +107,6 @@
 #define EDIT_UNDOLIMIT             1000
 #define EDIT_BKIMAGEALPHA          128
 
-//ParseCmdLine flags
-#define PCL_INI              0
-#define PCL_ONLOAD           1
-#define PCL_ONSHOW           2
-#define PCL_ONMESSAGE        3
-#define PCL_ONCALL           4
-#define PCL_ONMENU           5
-
 //Command line variable flags
 #define CLVF_SYSTEM          0x1
 #define CLVF_AKELPAD         0x2

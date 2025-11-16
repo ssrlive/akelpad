@@ -10,11 +10,15 @@ Added: manual parameter "ScrollPastEOF" - vertical scroll beyond last line. As a
 Added: option "Find" without message.
 Added: manual parameter "VersionCheck" - possibility to turn off language module version check.
 
+Fixed: text replace in vertical selection with wrap.
 Fixed: splitting window with LineBoard plugin and PaintOptions with 256 flag could cause
        program error.
 Fixed: returning visibility of the first line could cause text to twitch before edit window
        was updated.
 Fixed: returning visibility of the first line in a split window with word wrap.
+Fixed: scroll restoring when cloning tab.
+Fixed: when specifying /ini parameter on the command line, some subsequent parameters were
+       ignored.
 Fixed: %se[text] of manual parameter "StatusUserFormat" not updated when cycle search is on and
        end of the document reached.
 
