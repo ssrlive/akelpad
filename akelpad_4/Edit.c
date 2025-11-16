@@ -9488,9 +9488,17 @@ BOOL IsCodePageValid(int nCodePage)
 
   if (IsCodePageUnicode(nCodePage))
     return TRUE;
+  if (nCodePage == CP_ACP ||
+      nCodePage == CP_OEMCP ||
+      nCodePage == CP_MACCP ||
+      nCodePage == CP_THREAD_ACP ||
+      nCodePage == CP_SYMBOL)
+  {
+    //MultiByteToWideChar special values for codepage
+    return FALSE;
+  }
   if (MultiByteToWideChar(nCodePage, 0, &ch, 1, &wch, 1))
     return TRUE;
-
   return FALSE;
 }
 
