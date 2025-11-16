@@ -55,6 +55,7 @@
 #define GetWindowLongPtrWide
 #define GetWindowTextLengthWide
 #define GetWindowTextWide
+#define SearchPathWide
 #define SetDlgItemTextWide
 #define SetWindowLongPtrWide
 #define SetWindowTextWide
@@ -293,6 +294,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
     if (nAction == DLLA_EXPLORER_GOTOPATH)
     {
       unsigned char *pPath=NULL;
+      wchar_t *wpFileName=NULL;
       EDITINFO ei;
 
       if (IsExtCallParamValid(pd->lParam, 2))
@@ -301,9 +303,11 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
       if (pPath)
       {
         if (pd->dwSupport & PDS_STRANSI)
-          MultiByteToWideChar(CP_ACP, 0, (char *)pPath, -1, wszGotoPath, MAX_PATH);
+          MultiByteToWideChar(CP_ACP, 0, (char *)pPath, -1, wszPath, MAX_PATH);
         else
-          xstrcpynW(wszGotoPath, (wchar_t *)pPath, MAX_PATH);
+          xstrcpynW(wszPath, (wchar_t *)pPath, MAX_PATH);
+        if (!SearchPathWide(NULL, wszPath, NULL, MAX_PATH, wszGotoPath, &wpFileName))
+          xstrcpynW(wszGotoPath, wszPath, MAX_PATH);
         if (!wszGotoPath[0])
         {
           if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei))
@@ -324,6 +328,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
     else if (nAction == DLLA_EXPLORER_ROOTPATH)
     {
       unsigned char *pPath=NULL;
+      wchar_t *wpFileName=NULL;
 
       if (IsExtCallParamValid(pd->lParam, 2))
         pPath=(unsigned char *)GetExtCallParam(pd->lParam, 2);
@@ -331,9 +336,11 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
       if (pPath)
       {
         if (pd->dwSupport & PDS_STRANSI)
-          MultiByteToWideChar(CP_ACP, 0, (char *)pPath, -1, wszRootDirectory, MAX_PATH);
+          MultiByteToWideChar(CP_ACP, 0, (char *)pPath, -1, wszPath, MAX_PATH);
         else
-          xstrcpynW(wszRootDirectory, (wchar_t *)pPath, MAX_PATH);
+          xstrcpynW(wszPath, (wchar_t *)pPath, MAX_PATH);
+        if (!SearchPathWide(NULL, wszPath, NULL, MAX_PATH, wszRootDirectory, &wpFileName))
+          xstrcpynW(wszRootDirectory, wszPath, MAX_PATH);
         if (xatoiW(wszRootDirectory, NULL) == -1)
         {
           wszRootDirectory[0]=L'\0';
