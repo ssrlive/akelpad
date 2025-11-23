@@ -23380,10 +23380,15 @@ BOOL DeleteTabItem(HWND hWnd, int nIndex)
 {
   if (SendMessage(hWnd, TCM_DELETEITEM, nIndex, 0))
   {
-    if (nIndex == nDocumentIndex)
+    if (nIndex <= nDocumentIndex)
     {
-      if ((nDocumentIndex=(int)SendMessage(hWnd, TCM_GETCURSEL, 0, 0)) == -1)
-        nDocumentIndex=0;
+      if (nIndex == nDocumentIndex)
+      {
+        if ((nDocumentIndex=(int)SendMessage(hWnd, TCM_GETCURSEL, 0, 0)) == -1)
+          nDocumentIndex=0;
+      }
+      else if (nIndex < nDocumentIndex)
+        --nDocumentIndex;
       UpdateStatusUser(lpFrameCurrent, CSB_DOCUMENTINDEX);
     }
     return TRUE;
