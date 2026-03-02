@@ -85,15 +85,18 @@
 #define STRID_AUTOFIND             17
 #define STRID_SINGLECLICK          18
 #define STRID_SETSAVELOCATION      19
-#define STRID_CREATEDIR            20
-#define STRID_CREATEFILE           21
-#define STRID_LOADFIRST            22
-#define STRID_PLUGIN               23
-#define STRID_OK                   24
-#define STRID_CANCEL               25
-#define STRID_DEFAULTCODER         26
-#define STRID_DEFAULTINCLUDE       27
-#define STRID_DEFAULTEXCLUDE       28
+#define STRID_COLORS               20
+#define STRID_SYSTEM               21
+#define STRID_PROGRAM              22
+#define STRID_CREATEDIR            23
+#define STRID_CREATEFILE           24
+#define STRID_LOADFIRST            25
+#define STRID_PLUGIN               26
+#define STRID_OK                   27
+#define STRID_CANCEL               28
+#define STRID_DEFAULTCODER         29
+#define STRID_DEFAULTINCLUDE       30
+#define STRID_DEFAULTEXCLUDE       31
 
 #define DLLA_EXPLORER_GOTOPATH  1
 #define DLLA_EXPLORER_REFRESH   2
@@ -118,6 +121,10 @@
 #define DKT_NOUNLOAD       0x1
 #define DKT_ONMAINFINISH   0x2
 #define DKT_KEEPAUTOLOAD   0x4
+
+//Tree colors
+#define TCO_SYSTEM        0
+#define TCO_PROGRAM       1
 
 //Filter
 #define FILTER_NONE       0
@@ -177,6 +184,7 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int CALLBACK BrowseCallbackProc(HWND hWnd, UINT uMsg, LPARAM lParam, LPARAM lpData);
 BOOL CALLBACK InputBoxProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void SetTreeColors(HWND hWnd, AECOLORS *aec);
 void ClearTreeView(HWND hWndTreeView, BOOL bRedraw);
 void PopulateTree(HWND hWnd, int nRootSpecial, const wchar_t *wpRootDirectory);
 void FillTreeView(HWND hWnd, LPSHELLFOLDER psfRoot, LPITEMIDLIST pidlRoot, HTREEITEM hParent);
@@ -263,6 +271,7 @@ BOOL bShowHidden=FALSE;
 BOOL bAutoFind=TRUE;
 BOOL bSingleClick=FALSE;
 BOOL bSetSaveLocation=FALSE;
+int nTreeColors=TCO_SYSTEM;
 BOOL bRenaming=FALSE;
 BOOL bOnMainStart=FALSE;
 WNDPROCDATA *NewMainProcData=NULL;
@@ -540,6 +549,11 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage(hMainWnd, AKD_SETBUTTONDRAW, (WPARAM)hWndFilterItem, (LPARAM)&bd);
     }
 
+    if (nTreeColors == TCO_PROGRAM)
+    {
+      SetTreeColors(hWndBrowseTree, NULL);
+    }
+
     //Fill combobox
     FilterComboboxFill(hWndFilterCombo);
     EnableWindow(hWndFilterCombo, nFilterType);
@@ -570,7 +584,6 @@ BOOL CALLBACK DockDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else
       hImageList=(HIMAGELIST)SHGetFileInfoWPtr(L"C:\\", 0, &sfiW, sizeof(SHFILEINFOW), SHGFI_SYSICONINDEX|SHGFI_SMALLICON);
     if (hImageList) SendMessage(hWndBrowseTree, TVM_SETIMAGELIST, (WPARAM)TVSIL_NORMAL, (LPARAM)hImageList);
-
     PopulateTree(hWndBrowseTree, nRootSpecial, wszRootDirectory);
 
     if (*wszGotoPath)
@@ -1278,7 +1291,9 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndAutoFind;
   static HWND hWndSingleClick;
   static HWND hWndSetSaveLocation;
-  BOOL bState;
+  static HWND hWndSystemColor;
+  static HWND hWndProgramColor;
+  INT_PTR nState;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -1293,6 +1308,8 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndAutoFind=GetDlgItem(hDlg, IDC_SETUP_AUTOFIND);
     hWndSingleClick=GetDlgItem(hDlg, IDC_SETUP_SINGLECLICK);
     hWndSetSaveLocation=GetDlgItem(hDlg, IDC_SETUP_SETSAVELOCATION);
+    hWndSystemColor=GetDlgItem(hDlg, IDC_SETUP_SYSTEMCOLOR);
+    hWndProgramColor=GetDlgItem(hDlg, IDC_SETUP_PROGRAMCOLOR);
 
     SetWindowTextWide(hDlg, wszPluginTitle);
     SetDlgItemTextWide(hDlg, IDC_SETUP_ROOT_GROUP, GetLangStringW(wLangModule, STRID_ROOTDIRECTORY));
@@ -1301,6 +1318,9 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SetDlgItemTextWide(hDlg, IDC_SETUP_AUTOFIND, GetLangStringW(wLangModule, STRID_AUTOFIND));
     SetDlgItemTextWide(hDlg, IDC_SETUP_SINGLECLICK, GetLangStringW(wLangModule, STRID_SINGLECLICK));
     SetDlgItemTextWide(hDlg, IDC_SETUP_SETSAVELOCATION, GetLangStringW(wLangModule, STRID_SETSAVELOCATION));
+    SetDlgItemTextWide(hDlg, IDC_SETUP_COLORS_GROUP, GetLangStringW(wLangModule, STRID_COLORS));
+    SetDlgItemTextWide(hDlg, IDC_SETUP_SYSTEMCOLOR, GetLangStringW(wLangModule, STRID_SYSTEM));
+    SetDlgItemTextWide(hDlg, IDC_SETUP_PROGRAMCOLOR, GetLangStringW(wLangModule, STRID_PROGRAM));
     SetDlgItemTextWide(hDlg, IDOK, GetLangStringW(wLangModule, STRID_OK));
     SetDlgItemTextWide(hDlg, IDCANCEL, GetLangStringW(wLangModule, STRID_CANCEL));
 
@@ -1311,6 +1331,10 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (bAutoFind) SendMessage(hWndAutoFind, BM_SETCHECK, BST_CHECKED, 0);
     if (bSingleClick) SendMessage(hWndSingleClick, BM_SETCHECK, BST_CHECKED, 0);
     if (bSetSaveLocation) SendMessage(hWndSetSaveLocation, BM_SETCHECK, BST_CHECKED, 0);
+    if (nTreeColors == TCO_SYSTEM)
+      SendMessage(hWndSystemColor, BM_SETCHECK, BST_CHECKED, 0);
+    else if (nTreeColors == TCO_PROGRAM)
+      SendMessage(hWndProgramColor, BM_SETCHECK, BST_CHECKED, 0);
 
     SendMessage(hDlg, WM_COMMAND, IDC_SETUP_ROOTMYCOMPUTER, 0);
   }
@@ -1348,8 +1372,8 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDC_SETUP_ROOTMYCOMPUTER)
     {
-      bState=(BOOL)SendMessage(hWndRootMyComputer, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndRootDirectoryEdit, !bState);
+      nState=SendMessage(hWndRootMyComputer, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndRootDirectoryEdit, !nState);
     }
     else if (LOWORD(wParam) == IDOK)
     {
@@ -1363,14 +1387,24 @@ BOOL CALLBACK SetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       bShowHidden=(BOOL)SendMessage(hWndShowHidden, BM_GETCHECK, 0, 0);
       bAutoFind=(BOOL)SendMessage(hWndAutoFind, BM_GETCHECK, 0, 0);
-      bState=(BOOL)SendMessage(hWndSingleClick, BM_GETCHECK, 0, 0);
-      if (bState != bSingleClick)
+      nState=SendMessage(hWndSingleClick, BM_GETCHECK, 0, 0);
+      if (nState != bSingleClick)
       {
-        bSingleClick=bState;
+        bSingleClick=(BOOL)nState;
         dwStyle=(DWORD)GetWindowLongPtrWide(hWndBrowseTree, GWL_STYLE);
         SetWindowLongPtrWide(hWndBrowseTree, GWL_STYLE, bSingleClick?(dwStyle | TVS_TRACKSELECT):(dwStyle & ~TVS_TRACKSELECT));
       }
       bSetSaveLocation=(BOOL)SendMessage(hWndSetSaveLocation, BM_GETCHECK, 0, 0);
+
+      if (SendMessage(hWndProgramColor, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nState=TCO_PROGRAM;
+      else
+        nState=TCO_SYSTEM;
+      if (nState != nTreeColors)
+      {
+        nTreeColors=(int)nState;
+        SetTreeColors(hWndBrowseTree, NULL);
+      }
 
       dwSaveFlags|=OF_SETTINGS;
 
@@ -1477,6 +1511,18 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (((DOCK *)wParam)->hWnd == dkExplorerDlg->hWnd)
       dwSaveFlags|=OF_RECT;
   }
+  else if (uMsg == AKD_SETFRAMEINFO)
+  {
+    if (nTreeColors == TCO_PROGRAM)
+    {
+      FRAMEINFO *fi=(FRAMEINFO *)wParam;
+
+      if (fi->nType == FIS_COLORS)
+      {
+        SetTreeColors(hWndBrowseTree, (AECOLORS *)fi->dwData);
+      }
+    }
+  }
   else if (uMsg == AKDN_OPENDOCUMENT_START)
   {
     NOPENDOCUMENT *nod=(NOPENDOCUMENT *)lParam;
@@ -1543,6 +1589,36 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   //Call next procedure
   return NewMainProcData->NextProc(hWnd, uMsg, wParam, lParam);
+}
+
+void SetTreeColors(HWND hWnd, AECOLORS *aec)
+{
+  COLORREF crBk=(COLORREF)-1;
+  COLORREF crText=(COLORREF)-1;
+
+  if (nTreeColors == TCO_PROGRAM)
+  {
+    if (!aec)
+    {
+      FRAMEINFO fi;
+      AECOLORS aec;
+
+      fi.nType=FI_COLORS;
+      fi.dwData=(UINT_PTR)&aec;
+      if (SendMessage(hMainWnd, AKD_GETFRAMEINFO, (WPARAM)&fi, (LPARAM)NULL))
+      {
+        crBk=aec.crBasicBk;
+        crText=aec.crBasicText;
+      }
+    }
+    else
+    {
+      crBk=aec->crBasicBk;
+      crText=aec->crBasicText;
+    }
+  }
+  SendMessage(hWnd, TVM_SETBKCOLOR, 0, (LPARAM)crBk);
+  SendMessage(hWnd, TVM_SETTEXTCOLOR, 0, (LPARAM)crText);
 }
 
 void ClearTreeView(HWND hWndTreeView, BOOL bRedraw)
@@ -2431,6 +2507,7 @@ void ReadOptions(DWORD dwFlags)
     WideOption(hOptions, L"AutoFind", PO_DWORD, (LPBYTE)&bAutoFind, sizeof(DWORD));
     WideOption(hOptions, L"SingleClick", PO_DWORD, (LPBYTE)&bSingleClick, sizeof(DWORD));
     WideOption(hOptions, L"SetSaveLocation", PO_DWORD, (LPBYTE)&bSetSaveLocation, sizeof(DWORD));
+    WideOption(hOptions, L"TreeColors", PO_DWORD, (LPBYTE)&nTreeColors, sizeof(DWORD));
     WideOption(hOptions, L"FilterOptions", PO_DWORD, (LPBYTE)&nFilterType, sizeof(DWORD));
 
     //Include filter
@@ -2499,6 +2576,7 @@ void SaveOptions(DWORD dwFlags)
       WideOption(hOptions, L"AutoFind", PO_DWORD, (LPBYTE)&bAutoFind, sizeof(DWORD));
       WideOption(hOptions, L"SingleClick", PO_DWORD, (LPBYTE)&bSingleClick, sizeof(DWORD));
       WideOption(hOptions, L"SetSaveLocation", PO_DWORD, (LPBYTE)&bSetSaveLocation, sizeof(DWORD));
+      WideOption(hOptions, L"TreeColors", PO_DWORD, (LPBYTE)&nTreeColors, sizeof(DWORD));
     }
     if (dwFlags & OF_FILTER)
     {
@@ -2598,6 +2676,12 @@ XML (*.manifest;*.vcproj;*.csproj;*.vbproj;*.vdproj;*.wixobj;*.wixout;*.wixlib;*
       return L"\x041E\x0434\x0438\x043D\x0430\x0440\x043D\x044B\x0439\x0020\x043A\x043B\x0438\x043A";
     if (nStringID == STRID_SETSAVELOCATION)
       return L"\x041F\x0435\x0440\x0435\x0434\x0430\x0442\x044C\x0020\x043F\x0430\x043F\x043A\x0443\x0020\x0434\x043B\x044F\x0020\x0441\x043E\x0445\x0440\x0430\x043D\x0435\x043D\x0438\x044F";
+    if (nStringID == STRID_COLORS)
+      return L"\x0426\x0432\x0435\x0442\x0430";
+    if (nStringID == STRID_SYSTEM)
+      return L"\x0421\x0438\x0441\x0442\x0435\x043C\x0430";
+    if (nStringID == STRID_PROGRAM)
+      return L"\x041F\x0440\x043E\x0433\x0440\x0430\x043C\x043C\x0430";
     if (nStringID == STRID_CREATEDIR)
       return L"\x0421\x043E\x0437\x0434\x0430\x0442\x044C\x0020\x043F\x0430\x043F\x043A\x0443:";
     if (nStringID == STRID_CREATEFILE)
@@ -2663,6 +2747,12 @@ XML (*.manifest;*.vcproj;*.csproj;*.vbproj;*.vdproj;*.wixobj;*.wixout;*.wixlib;*
       return L"Single click";
     if (nStringID == STRID_SETSAVELOCATION)
       return L"Set save location";
+    if (nStringID == STRID_COLORS)
+      return L"Colors";
+    if (nStringID == STRID_SYSTEM)
+      return L"System";
+    if (nStringID == STRID_PROGRAM)
+      return L"Program";
     if (nStringID == STRID_CREATEDIR)
       return L"Create folder:";
     if (nStringID == STRID_CREATEFILE)
