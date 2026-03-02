@@ -21492,7 +21492,7 @@ BOOL AE_EditCopyToClipboard(AKELEDIT *ae, AECHARRANGE *cr, int nNewLine, BOOL bC
 
   if (AEC_IndexCompare(lpSelStart, lpSelEnd))
   {
-    if (OpenClipboard(NULL))
+    if (OpenClipboard(ae->hWndEdit))
     {
       EmptyClipboard();
 
@@ -21563,7 +21563,7 @@ INT_PTR AE_EditPasteFromClipboard(AKELEDIT *ae, DWORD dwFlags, int nNewLine)
   if (AE_IsReadOnly(ae)) return nResult;
   bColumnSel=IsClipboardFormatAvailable(cfAkelEditColumnSel);
 
-  if (OpenClipboard(NULL))
+  if (OpenClipboard(ae->hWndEdit))
   {
     //Get AkelEdit clipboard text length
     if (hDataInfo=GetClipboardData(cfAkelEditText))

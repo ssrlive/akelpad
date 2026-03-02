@@ -3121,11 +3121,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         UINT_PTR *lpdwData;
         UINT_PTR dwSize=sizeof(UINT_PTR);
 
-        if (!lpFrame)
-        {
-          if (lpFrameCurrent->hWndEditParent)
-            lpFrame=lpFrameCurrent;
-        }
+        if (!lpFrame) lpFrame=lpFrameCurrent;
+
         if (wParam > 0xFFFF)
         {
           FRAMEINFO *fi=(FRAMEINFO *)wParam;
