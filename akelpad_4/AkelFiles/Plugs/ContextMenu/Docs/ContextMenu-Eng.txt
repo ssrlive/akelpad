@@ -87,7 +87,7 @@ Special menu items:
       SET(64, If("expression"[, IfTrue, IfFalse]))
         parse following lines, if result not equal to zero.
           "expression"
-            Expression could consist of::
+            Expression could consist of:
             - mathematical operations:
               +, -, *, /, %, &, |, ^.
             - logical operations:

@@ -5787,9 +5787,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
 {\r\
     \"\x0411\x0438\x0440\x044E\x0437\x043E\x0432\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#9BFFFF\", 1, 0, 11) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 6)\r\
     \"\x041E\x0440\x0430\x043D\x0436\x0435\x0432\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#FFCD9B\", 1, 0, 12) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 7)\r\
-    \"\x0416\x0435\x043B\x0442\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#FFFF9B\", 1, 0, 13) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 8)\r\
+    \"\x0416\x0451\x043B\x0442\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#FFFF9B\", 1, 0, 13) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 8)\r\
     \"\x0424\x0438\x043E\x043B\x0435\x0442\x043E\x0432\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#BE7DFF\", 1, 0, 14) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 9)\r\
-    \"\x0417\x0435\x043B\x0435\x043D\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#88E188\", 1, 0, 15) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 10)\r\
+    \"\x0417\x0435\x043B\x0451\x043D\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#88E188\", 1, 0, 15) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 10)\r\
+    \"\x0421\x0435\x0440\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#A9A9A9\", 1, 0, 16) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 15)\r\
+    \"\x041A\x0440\x0430\x0441\x043D\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#FF5959\", 1, 0, 17) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 14)\r\
+    \"\x0421\x0438\x043D\x0438\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#68A7FF\", 1, 0, 18) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
     SEPARATOR1\r\
     \"\x0423\x0431\x0440\x0430\x0442\x044C\x0020\x0432\x0441\x0435\x0020\x043E\x0442\x043C\x0435\x0442\x043A\x0438\" Call(\"Coder::HighLight\", 3, 0) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 11)\r\
 }\r\
@@ -6192,7 +6195,7 @@ SET(32, \"%a\\AkelFiles\\Plugs\\Scroll.dll\")\r\
 UNSET(32)\r\
 SEPARATOR1\r\
 SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
-    \"\x041E\x0442\x043C\x0435\x0442\x0438\x0442\x044C\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
+    \"\x041E\x0442\x043C\x0435\x0442\x0438\x0442\x044C\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 7)\r\
     \"\x0421\x0438\x043D\x0442\x0430\x043A\x0441\x0438\x0447\x0435\x0441\x043A\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"\x0426\x0432\x0435\x0442\x043E\x0432\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
 UNSET(32)\r\
@@ -6384,6 +6387,9 @@ EXPLORER\r";
     \"Yellow\" Call(\"Coder::HighLight\", 2, 0, \"#FFFF9B\", 1, 0, 13) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 8)\r\
     \"Violet\" Call(\"Coder::HighLight\", 2, 0, \"#BE7DFF\", 1, 0, 14) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 9)\r\
     \"Green\" Call(\"Coder::HighLight\", 2, 0, \"#88E188\", 1, 0, 15) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 10)\r\
+    \"Gray\" Call(\"Coder::HighLight\", 2, 0, \"#A9A9A9\", 1, 0, 16) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 15)\r\
+    \"Red\" Call(\"Coder::HighLight\", 2, 0, \"#FF5959\", 1, 0, 17) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 14)\r\
+    \"Blue\" Call(\"Coder::HighLight\", 2, 0, \"#68A7FF\", 1, 0, 18) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
     SEPARATOR1\r\
     \"Remove all marks\" Call(\"Coder::HighLight\", 3, 0) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 11)\r\
 }\r\
@@ -6785,7 +6791,7 @@ SET(32, \"%a\\AkelFiles\\Plugs\\Scroll.dll\")\r\
 UNSET(32)\r\
 SEPARATOR1\r\
 SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
-    \"Mark\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
+    \"Mark\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 7)\r\
     \"Syntax theme\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"Color theme\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
 UNSET(32)\r\

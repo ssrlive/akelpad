@@ -3154,7 +3154,7 @@ SEPARATOR1\r\
 " L"\
 SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
     \"\x041F\x0440\x043E\x0433\x0440\x0430\x043C\x043C\x0438\x0440\x043E\x0432\x0430\x043D\x0438\x0435\" Menu(\"CODER\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 12)\r\
-    \"\x041E\x0442\x043C\x0435\x0442\x0438\x0442\x044C\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
+    \"\x041E\x0442\x043C\x0435\x0442\x0438\x0442\x044C\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 7)\r\
     \"\x0421\x0438\x043D\x0442\x0430\x043A\x0441\x0438\x0447\x0435\x0441\x043A\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"\x0426\x0432\x0435\x0442\x043E\x0432\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
     \"\x041F\x0430\x043D\x0435\x043B\x044C CodeFold\" Call(\"Coder::CodeFold\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 3)\r\
@@ -3373,7 +3373,7 @@ SEPARATOR1\r\
 " L"\
 SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
     \"Programming\" Menu(\"CODER\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 12)\r\
-    \"Mark\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
+    \"Mark\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 7)\r\
     \"Syntax theme\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"Color theme\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
     \"CodeFold panel\" Call(\"Coder::CodeFold\", 1) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 3)\r\

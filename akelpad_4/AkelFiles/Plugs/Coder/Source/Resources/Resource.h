@@ -15,7 +15,9 @@
 #define IDI_MARKCOLOR_05                111
 #define IDI_MARKCOLOR_06                112
 #define IDI_CODER                       113
-#define IDI_MARK                        114
+#define IDI_MARKCOLOR_07                114
+#define IDI_MARKCOLOR_08                115
+#define IDI_MARKCOLOR_09                116
 #define IDD_GENERAL_SETUP               1001
 #define IDD_GENERAL_VAREDIT             1002
 #define IDD_GENERAL_LINK                1003
