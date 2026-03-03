@@ -2328,9 +2328,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!hWndEdit)
           hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
-        if (lParam & PASTE_CASE)
-          return PasteCase(hWndEdit, (DWORD)(lParam & PASTE_ANSI));
-        if (lParam & PASTE_SINGLELINE)
+        if (dwFlags & PASTE_CASE)
+          return PasteCase(hWndEdit, (DWORD)(dwFlags & PASTE_ANSI));
+        if (dwFlags & PASTE_SINGLELINE)
           return PasteInEditAsRichEdit(hWndEdit, 0);
         return DoEditPaste(hWndEdit, dwFlags, nNewLine);
       }

@@ -11786,7 +11786,7 @@ BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght)
   LPVOID pData;
   BOOL bResult=FALSE;
 
-  if (OpenClipboard(hWnd))
+  if (OpenClipboard(NULL))
   {
     if (!bOldWindows && (hData=GetClipboardData(CF_UNICODETEXT)))
     {
@@ -11983,8 +11983,10 @@ INT_PTR SetClipboardText(const wchar_t *wpText, INT_PTR nUnicodeLen)
 
   if (!wpText) wpText=L"";
 
-  if (OpenClipboard(NULL))
+  if (OpenClipboard(hMainWnd))
   {
+    EmptyClipboard();
+
     //Unicode
     if (nUnicodeLen == -1)
       nUnicodeLen=xstrlenW(wpText);
@@ -11996,26 +11998,27 @@ INT_PTR SetClipboardText(const wchar_t *wpText, INT_PTR nUnicodeLen)
       {
         xmemcpy(pData, wpText, nUnicodeLen * sizeof(wchar_t));
         GlobalUnlock(hDataW);
+
+        //ANSI
+        nAnsiLen=WideCharToMultiByte64(CP_ACP, 0, wpText, nUnicodeLen, NULL, 0, NULL, NULL);
+
+        if (hDataA=GlobalAlloc(GMEM_MOVEABLE, nAnsiLen))
+        {
+          if (pData=GlobalLock(hDataA))
+          {
+            WideCharToMultiByte64(CP_ACP, 0, wpText, nUnicodeLen, (char *)pData, nAnsiLen, NULL, NULL);
+            GlobalUnlock(hDataA);
+          }
+        }
       }
     }
-
-    //ANSI
-    nAnsiLen=WideCharToMultiByte(CP_ACP, 0, wpText, (int)nUnicodeLen, NULL, 0, NULL, NULL);
-
-    if (hDataA=GlobalAlloc(GMEM_MOVEABLE, nAnsiLen))
-    {
-      if (pData=GlobalLock(hDataA))
-      {
-        WideCharToMultiByte(CP_ACP, 0, wpText, (int)nUnicodeLen, (char *)pData, (int)nAnsiLen, NULL, NULL);
-        GlobalUnlock(hDataA);
-      }
-    }
-    EmptyClipboard();
     if (hDataW) SetClipboardData(CF_UNICODETEXT, hDataW);
     if (hDataA) SetClipboardData(CF_TEXT, hDataA);
     CloseClipboard();
   }
-  return nUnicodeLen;
+  if (hDataA)
+    return nUnicodeLen;
+  return 0;
 }
 
 void ShowStandardViewMenu(HWND hWnd, HMENU hMenu, BOOL bMouse)

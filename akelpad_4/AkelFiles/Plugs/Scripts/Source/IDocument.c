@@ -1054,8 +1054,10 @@ HRESULT STDMETHODCALLTYPE Document_SetClipboardText(IDocument *this, BSTR wpText
 
   if (!wpText) wpText=L"";
 
-  if (OpenClipboard(NULL))
+  if (OpenClipboard(hMainWnd))
   {
+    EmptyClipboard();
+
     //Unicode
     nUnicodeLen=SysStringLen(wpText) + 1;
 
@@ -1079,7 +1081,6 @@ HRESULT STDMETHODCALLTYPE Document_SetClipboardText(IDocument *this, BSTR wpText
         GlobalUnlock(hDataA);
       }
     }
-    EmptyClipboard();
     if (hDataW) SetClipboardData(CF_UNICODETEXT, hDataW);
     if (hDataA) SetClipboardData(CF_TEXT, hDataA);
     CloseClipboard();
