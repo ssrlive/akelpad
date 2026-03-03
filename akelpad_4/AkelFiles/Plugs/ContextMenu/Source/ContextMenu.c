@@ -1052,7 +1052,6 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           AECHARRANGE aecrUrl;
           AECHARRANGE aecrSel;
-          CHARRANGE64 recrUrl;
 
           if (SendMessage(ncm->hWnd, AEM_EXGETOPTIONS, 0, 0) & AECOE_DETECTURL)
           {
@@ -1069,9 +1068,9 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   AEC_IndexCompare(&aecrSel.ciMax, &aecrUrl.ciMax) <= 0 &&
                   AEC_IndexCompare(&aecrSel.ciMax, &aecrUrl.ciMin) > 0)
               {
-                recrUrl.cpMin=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMin);
-                recrUrl.cpMax=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMax);
-                ShowUrlMenu(ncm->hWnd, &recrUrl, ncm->pt.x, ncm->pt.y);
+                crUrlMenuShow.cpMin=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMin);
+                crUrlMenuShow.cpMax=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMax);
+                ShowUrlMenu(ncm->hWnd, &crUrlMenuShow, ncm->pt.x, ncm->pt.y);
                 ncm->bProcess=FALSE;
               }
             }
@@ -4035,9 +4034,8 @@ void ShowUrlMenu(HWND hWnd, CHARRANGE64 *crUrl, int x, int y)
   MENUITEM *lpElement;
   EXTPARAM *lpParameter;
   GETTEXTRANGE gtr;
-  CHARRANGE64 cr;
+  INT_PTR nTextLen;
   int nCmd;
-  int nLockScroll;
   BOOL bResult=TRUE;
 
   if (GetCurFile(wszCurrentFile, MAX_PATH))
@@ -4066,32 +4064,20 @@ void ShowUrlMenu(HWND hWnd, CHARRANGE64 *crUrl, int x, int y)
 
               if (nCommand)
               {
-                if (nCommand == URL_OPEN)
+                if (nCommand == URL_OPEN ||
+                    nCommand == URL_COPY)                
                 {
                   gtr.cpMin=crUrl->cpMin;
                   gtr.cpMax=crUrl->cpMax;
 
-                  if (SendMessage(hMainWnd, AKD_GETTEXTRANGEW, (LPARAM)hWnd, (WPARAM)&gtr))
+                  if (nTextLen=SendMessage(hMainWnd, AKD_GETTEXTRANGEW, (LPARAM)hWnd, (WPARAM)&gtr))
                   {
-                    ShellExecuteWide(hWnd, L"open", (wchar_t *)gtr.pText, NULL, NULL, SW_SHOWNORMAL);
+                    if (nCommand == URL_OPEN)
+                      ShellExecuteWide(hWnd, L"open", (wchar_t *)gtr.pText, NULL, NULL, SW_SHOWNORMAL);
+                    else if (nCommand == URL_COPY)
+                      SendMessage(hMainWnd, AKD_SETCLIPBOARDTEXT, (WPARAM)gtr.pText, nTextLen);
                     SendMessage(hMainWnd, AKD_FREETEXT, 0, (WPARAM)gtr.pText);
                   }
-                }
-                else if (nCommand == URL_COPY)
-                {
-                  SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
-                  if ((nLockScroll=(int)SendMessage(hWnd, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
-                    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
-
-                  SendMessage(hWnd, EM_EXGETSEL64, 0, (WPARAM)&cr);
-                  SendMessage(hWnd, EM_EXSETSEL64, 0, (WPARAM)crUrl);
-                  SendMessage(hMainWnd, AKD_COPY, (WPARAM)hWnd, 0);
-                  SendMessage(hWnd, EM_EXSETSEL64, 0, (WPARAM)&cr);
-
-                  if (nLockScroll == -1)
-                    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
-                  SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-                  InvalidateRect(hWnd, NULL, FALSE);
                 }
                 else if (nCommand == URL_SELECT)
                 {
@@ -4372,11 +4358,13 @@ void CallContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nItem)
     static wchar_t wszCurrentFileDir[MAX_PATH];
     MENUITEM *lpElement;
     EXTPARAM *lpParameter;
-    EXPPARAM ep[]={{L"%f", 2, (INT_PTR)wszCurrentFile, 0},
-                   {L"%d", 2, (INT_PTR)wszCurrentFileDir, 0},
+    EXPPARAM ep[]={{L"%f", 2, (INT_PTR)wszCurrentFile, EXPPARAM_WIDE},
+                   {L"%d", 2, (INT_PTR)wszCurrentFileDir, EXPPARAM_WIDE},
                    {L"%m", 2, (INT_PTR)hMenuStack->hPopupMenu, EXPPARAM_INT},
                    {L"%i", 2, nItem, EXPPARAM_INT},
-                   {L"%u", 2, (INT_PTR)wszUrlLink, 0},
+                   {L"%u", 2, (INT_PTR)wszUrlLink, EXPPARAM_WIDE},
+                   {L"%lb", 3, crUrlMenuShow.cpMin, EXPPARAM_INT},
+                   {L"%le", 3, crUrlMenuShow.cpMax, EXPPARAM_INT},
                    {0, 0, 0, 0}};
 
     if (lpElement=GetContextMenuItem(hMenuStack, hManualStack, nItem))
