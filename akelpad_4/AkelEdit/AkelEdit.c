@@ -20316,10 +20316,10 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
         if ((!(ft->dwFlags & AEFR_WHOLEWORD) ||
              (AE_IsDelimiter(ae, &hREGroupStack.first->ciStrStart, AEDLM_WORD|AEDLM_PREVCHAR) &&
               AE_IsDelimiter(ae, &hREGroupStack.first->ciStrEnd, AEDLM_WORD))) &&
-            (hREGroupStack.first->nStrLen || (ft->dwFlags & AEFR_REGEXPMINMATCH) ||
-             ((ft->dwFlags & AEFR_DOWN) ? AEC_IndexCompare(&ft->crSearch.ciMin, &hREGroupStack.first->ciStrEnd) < 0 :
-                                         (AEC_IndexCompare(&ft->crSearch.ciMax, &hREGroupStack.first->ciStrStart) > 0
-                                          && (!bFound || AEC_IndexCompare(&ft->crFound.ciMax, &hREGroupStack.first->ciStrEnd) < 0))))) //ft->pText == ".*" with REO_NONEWLINEDOT
+            (hREGroupStack.first->nStrLen || 
+             ((ft->dwFlags & AEFR_DOWN) ? ((ft->dwFlags & AEFR_REGEXPMINMATCH) || AEC_IndexCompare(&ft->crSearch.ciMin, &hREGroupStack.first->ciStrEnd) < 0) :
+                                         (((ft->dwFlags & AEFR_REGEXPMINMATCH) || AEC_IndexCompare(&ft->crSearch.ciMax, &hREGroupStack.first->ciStrStart) > 0)
+                                            && (!bFound || AEC_IndexCompare(&ft->crFound.ciMax, &hREGroupStack.first->ciStrEnd) < 0))))) //ft->pText == ".*" with REO_NONEWLINEDOT
         {
           ft->crFound.ciMin=hREGroupStack.first->ciStrStart;
           ft->crFound.ciMax=hREGroupStack.first->ciStrEnd;

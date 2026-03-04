@@ -10486,6 +10486,8 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   ft.dwFlags=dwFlags & (AEFR_DOWN|AEFR_WHOLEWORD|AEFR_MATCHCASE|AEFR_REGEXP);
   if (dwFlags & FRF_REGEXPNONEWLINEDOT)
     ft.dwFlags|=AEFR_REGEXPNONEWLINEDOT;
+  if (dwFlags & FRF_REGEXPMINMATCH)
+    ft.dwFlags|=AEFR_REGEXPMINMATCH;
   ft.pText=wszFindItEsc;
   ft.dwTextLen=nFindItLenEsc;
   ft.nNewLine=AELB_R;
@@ -10511,7 +10513,8 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   {
     SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
     SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
-    ft.dwFlags|=AEFR_REGEXPMINMATCH;
+    if (dwFlags & FRF_REGEXP)
+      ft.dwFlags|=AEFR_REGEXPMINMATCH;
   }
   else if (dwFlags & FRF_DOWN)
   {
@@ -10578,7 +10581,8 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
       }
       if (nAnswer == IDOK)
       {
-        ft.dwFlags|=AEFR_REGEXPMINMATCH;
+        if (dwFlags & FRF_REGEXP)
+          ft.dwFlags|=AEFR_REGEXPMINMATCH;
         bCycleCheck=FALSE;
         goto FindIt;
       }
