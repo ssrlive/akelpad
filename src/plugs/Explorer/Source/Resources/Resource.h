@@ -23,7 +23,10 @@
 #define IDC_SETUP_SHOWHIDDEN            1205
 #define IDC_SETUP_AUTOFIND              1206
 #define IDC_SETUP_SINGLECLICK           1207
-#define IDC_SETUP_SETSAVELOCATION       1208
+#define IDC_SETUP_SETSAVELOCATION       1208 
+#define IDC_SETUP_COLORS_GROUP          1209   
+#define IDC_SETUP_SYSTEMCOLOR           1210
+#define IDC_SETUP_PROGRAMCOLOR          1211
 #define IDC_INPUTBOX_LABEL              1301
 #define IDC_INPUTBOX_EDIT               1302
 #define IDM_SETUP                       2001

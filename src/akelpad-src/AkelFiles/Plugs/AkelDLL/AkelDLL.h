@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 9, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 10, 0)
 
 
 //// Defines
@@ -687,7 +687,7 @@
 #define PO_DWORD     1   //32-bit number.
 #define PO_BINARY    2   //Binary data in any form.
 #define PO_STRING    3   //Null-terminated string.
-#define PO_REMOVE    10  //Delete option.
+#define PO_REMOVE    10  //Delete option. Valid only for POB_SAVE.
 #define PO_ENUM      11  //Enumerate option names. PLUGINOPTION.pOptionName is the zero based index of the option. Valid only for POB_READ.
 
 //Support flags
@@ -799,6 +799,7 @@
 #define FRF_WHOLEWORDGOODSTART 0x00000010  //Internal.
 #define FRF_WHOLEWORDGOODEND   0x00000020  //Internal.
 #define FRF_FINDFROMREPLACE    0x00000040  //Internal.
+#define FRF_REGEXPMINMATCH     0x00020000  //Allow zero length match at string edges. For example: "^" at the string beginning or "$" at the string ending. Uses with FRF_REGEXP. Only for Find.
 #define FRF_REGEXPNONEWLINEDOT 0x00040000  //Symbol . specifies any character except new line. Uses with FRF_REGEXP.
 #define FRF_REGEXP             0x00080000  //Same as AEFR_REGEXP.
 #define FRF_UP                 0x00100000
@@ -2486,6 +2487,12 @@ typedef struct {
 #define AKD_CHECKHOTKEY            (WM_USER + 314)
 
 //Plugin options
+#define AKD_READOPTION             (WM_USER + 325)
+#define AKD_READOPTIONA            (WM_USER + 326)
+#define AKD_READOPTIONW            (WM_USER + 327)
+#define AKD_SAVEOPTION             (WM_USER + 328)
+#define AKD_SAVEOPTIONA            (WM_USER + 329)
+#define AKD_SAVEOPTIONW            (WM_USER + 330)
 #define AKD_BEGINOPTIONS           (WM_USER + 331)
 #define AKD_BEGINOPTIONSA          (WM_USER + 332)
 #define AKD_BEGINOPTIONSW          (WM_USER + 333)
@@ -5235,10 +5242,46 @@ __________  ___________  ___________
 Read or save plugin option.
 
 (HANDLE)wParam         == HANDLE returned by AKD_BEGINOPTIONS.
+                          Must not be created with combined flags POB_READ|POB_SAVE. Use AKD_READOPTION or AKD_SAVEOPTION otherwise.
+(PLUGINOPTION *)lParam == pointer to a PLUGINOPTION structure.
+
+Return Value
+ If HANDLE created with POB_READ flag:
+   Size of the data copied to the buffer. -1 if error.
+ If HANDLE created with POB_SAVE flag:
+   TRUE   success.
+   FALSE  failed.
+
+Example:
+ See AKD_BEGINOPTIONS examples.
+
+
+AKD_READOPTION, AKD_READOPTIONA, AKD_READOPTIONW
+______________  _______________  _______________
+
+Read plugin option.
+
+(HANDLE)wParam         == HANDLE returned by AKD_BEGINOPTIONS created with POB_READ or POB_READ|POB_SAVE.
 (PLUGINOPTION *)lParam == pointer to a PLUGINOPTION structure.
 
 Return Value
  Size of the data copied to the buffer. -1 if error.
+
+Example:
+ See AKD_BEGINOPTIONS examples.
+
+
+AKD_SAVEOPTION, AKD_SAVEOPTIONA, AKD_SAVEOPTIONW
+______________  _______________  _______________
+
+Save plugin option.
+
+(HANDLE)wParam         == HANDLE returned by AKD_BEGINOPTIONS created with POB_SAVE or POB_READ|POB_SAVE.
+(PLUGINOPTION *)lParam == pointer to a PLUGINOPTION structure.
+
+Return Value
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  See AKD_BEGINOPTIONS examples.

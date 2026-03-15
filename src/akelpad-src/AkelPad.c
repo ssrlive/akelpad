@@ -2334,9 +2334,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!hWndEdit)
           hWndEdit=lpFrameCurrent->ei.hWndEdit;
 
-        if (lParam & PASTE_CASE)
-          return PasteCase(hWndEdit, (DWORD)(lParam & PASTE_ANSI));
-        if (lParam & PASTE_SINGLELINE)
+        if (dwFlags & PASTE_CASE)
+          return PasteCase(hWndEdit, (DWORD)(dwFlags & PASTE_ANSI));
+        if (dwFlags & PASTE_SINGLELINE)
           return PasteInEditAsRichEdit(hWndEdit, 0);
         return DoEditPaste(hWndEdit, dwFlags, nNewLine);
       }
@@ -3127,11 +3127,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         UINT_PTR *lpdwData;
         UINT_PTR dwSize=sizeof(UINT_PTR);
 
-        if (!lpFrame)
-        {
-          if (lpFrameCurrent->hWndEditParent)
-            lpFrame=lpFrameCurrent;
-        }
+        if (!lpFrame) lpFrame=lpFrameCurrent;
+
         if (wParam > 0xFFFF)
         {
           FRAMEINFO *fi=(FRAMEINFO *)wParam;
@@ -4187,21 +4184,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
             else xprintfW(rh->wszKey, L"%s\\Options", APP_REGHOMEW);
 
-            if (rh->dwType & POB_READ)
-            {
-              if (RegOpenKeyExWide(HKEY_CURRENT_USER, rh->wszKey, 0, KEY_READ, &rh->hKey) != ERROR_SUCCESS)
-              {
-                API_HeapFree(hHeap, 0, (LPVOID)rh);
-                rh=NULL;
-              }
-            }
-            else if (rh->dwType & POB_SAVE)
+            if (rh->dwType & POB_SAVE)
             {
               if (rh->dwType & POB_CLEAR)
               {
                 RegClearKeyWide(HKEY_CURRENT_USER, rh->wszKey);
               }
               if (RegCreateKeyExWide(HKEY_CURRENT_USER, rh->wszKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &rh->hKey, NULL) != ERROR_SUCCESS)
+              {
+                API_HeapFree(hHeap, 0, (LPVOID)rh);
+                rh=NULL;
+              }
+            }
+            else if (rh->dwType & POB_READ)
+            {
+              if (RegOpenKeyExWide(HKEY_CURRENT_USER, rh->wszKey, 0, KEY_READ, &rh->hKey) != ERROR_SUCCESS)
               {
                 API_HeapFree(hHeap, 0, (LPVOID)rh);
                 rh=NULL;
@@ -4246,6 +4243,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       case AKD_OPTION:
       case AKD_OPTIONA:
       case AKD_OPTIONW:
+      case AKD_READOPTION:
+      case AKD_READOPTIONA:
+      case AKD_READOPTIONW:
+      case AKD_SAVEOPTION:
+      case AKD_SAVEOPTIONA:
+      case AKD_SAVEOPTIONW:
       {
         PLUGINOPTIONW *po=(PLUGINOPTIONW *)lParam;
         wchar_t *wpOptionName;
@@ -4253,7 +4256,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int nResult=0;
         BOOL bAnsi;
 
-        if (uMsg == AKD_OPTIONA || (bOldWindows && uMsg == AKD_OPTION))
+        if (uMsg == AKD_OPTIONA ||
+            uMsg == AKD_READOPTIONA ||
+            uMsg == AKD_SAVEOPTIONA ||
+            (bOldWindows && (uMsg == AKD_OPTION ||
+                             uMsg == AKD_READOPTION ||
+                             uMsg == AKD_SAVEOPTION)))
         {
           bAnsi=TRUE;
           wpOptionName=AllocWide((char *)po->pOptionName);
@@ -4277,9 +4285,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           else if (po->dwType == PO_STRING)
             dwType=REG_SZ;
 
-          if (rh->dwType & POB_READ)
+          if (uMsg == AKD_READOPTION ||
+              uMsg == AKD_READOPTIONA ||
+              uMsg == AKD_READOPTIONW ||
+              ((rh->dwType & POB_READ) && (uMsg == AKD_OPTION ||
+                                           uMsg == AKD_OPTIONA ||
+                                           uMsg == AKD_OPTIONW)))
           {
-            if (po->dwType != PO_REMOVE)
+            //Read option
+            if (rh->dwType & POB_READ)
             {
               if (po->dwType == PO_ENUM)
               {
@@ -4311,6 +4325,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           else if (rh->dwType & POB_SAVE)
           {
+            //Save option
             if (po->dwType == PO_REMOVE)
             {
               if (RegDeleteValueWide(rh->hKey, wpOptionName) == ERROR_SUCCESS)
@@ -4334,9 +4349,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           else if (po->dwType == PO_STRING)
             dwType=bAnsi?INI_STRINGANSI:INI_STRINGUNICODE;
 
-          if (ih->dwType & POB_READ)
+          if (uMsg == AKD_READOPTION ||
+              uMsg == AKD_READOPTIONA ||
+              uMsg == AKD_READOPTIONW ||
+              ((ih->dwType & POB_READ) && (uMsg == AKD_OPTION ||
+                                           uMsg == AKD_OPTIONA ||
+                                           uMsg == AKD_OPTIONW)))
           {
-            if (po->dwType != PO_REMOVE)
+            //Read option
+            if (ih->dwType & POB_READ)
             {
               if (po->dwType == PO_ENUM)
                 nResult=IniEnumKey(&ih->hIniFile, L"Options", (int)(UINT_PTR)wpOptionName, (LPBYTE)po->lpData, po->dwData);
@@ -4346,6 +4367,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           else if (ih->dwType & POB_SAVE)
           {
+            //Save option
             if (po->dwType == PO_REMOVE)
               nResult=IniDelKey(&ih->hIniFile, L"Options", wpOptionName);
             else

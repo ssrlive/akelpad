@@ -20319,9 +20319,10 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
         if ((!(ft->dwFlags & AEFR_WHOLEWORD) ||
              (AE_IsDelimiter(ae, &hREGroupStack.first->ciStrStart, AEDLM_WORD|AEDLM_PREVCHAR) &&
               AE_IsDelimiter(ae, &hREGroupStack.first->ciStrEnd, AEDLM_WORD))) &&
-            (hREGroupStack.first->nStrLen || ((ft->dwFlags & AEFR_REGEXPMINMATCH) ||
-             ((ft->dwFlags & AEFR_DOWN) ? AEC_IndexCompare(&ft->crSearch.ciMin, &hREGroupStack.first->ciStrEnd) :
-                                          AEC_IndexCompare(&ft->crSearch.ciMax, &hREGroupStack.first->ciStrStart)))))
+            (hREGroupStack.first->nStrLen || 
+             ((ft->dwFlags & AEFR_DOWN) ? ((ft->dwFlags & AEFR_REGEXPMINMATCH) || AEC_IndexCompare(&ft->crSearch.ciMin, &hREGroupStack.first->ciStrEnd) < 0) :
+                                         (((ft->dwFlags & AEFR_REGEXPMINMATCH) || AEC_IndexCompare(&ft->crSearch.ciMax, &hREGroupStack.first->ciStrStart) > 0)
+                                            && (!bFound || AEC_IndexCompare(&ft->crFound.ciMax, &hREGroupStack.first->ciStrEnd) < 0))))) //ft->pText == ".*" with REO_NONEWLINEDOT
         {
           ft->crFound.ciMin=hREGroupStack.first->ciStrStart;
           ft->crFound.ciMax=hREGroupStack.first->ciStrEnd;
@@ -21471,11 +21472,11 @@ BOOL AE_EditCut(AKELEDIT *ae, DWORD dwFlags, int nNewLine)
 
 BOOL AE_EditCopyToClipboard(AKELEDIT *ae, AECHARRANGE *cr, int nNewLine, BOOL bColumnSel)
 {
-  HGLOBAL hDataTargetA=NULL;
-  HGLOBAL hDataTargetW=NULL;
+  HGLOBAL hDataA=NULL;
+  HGLOBAL hDataW=NULL;
   HGLOBAL hDataInfo=NULL;
-  LPVOID pDataTargetA;
-  LPVOID pDataTargetW;
+  LPVOID pDataA;
+  LPVOID pDataW;
   AECLIPBOARDINFO *pDataInfo;
   UINT_PTR dwAnsiLen=0;
   UINT_PTR dwUnicodeLen=0;
@@ -21495,35 +21496,35 @@ BOOL AE_EditCopyToClipboard(AKELEDIT *ae, AECHARRANGE *cr, int nNewLine, BOOL bC
 
   if (AEC_IndexCompare(lpSelStart, lpSelEnd))
   {
-    if (OpenClipboard(NULL))
+    if (OpenClipboard(ae->hWndEdit))
     {
       EmptyClipboard();
 
       if (dwUnicodeLen=AE_GetTextRange(ae, lpSelStart, lpSelEnd, NULL, 0, nNewLine, bColumnSel, TRUE))
       {
-        if (hDataTargetW=GlobalAlloc(GMEM_MOVEABLE, dwUnicodeLen * sizeof(wchar_t)))
+        if (hDataW=GlobalAlloc(GMEM_MOVEABLE, dwUnicodeLen * sizeof(wchar_t)))
         {
-          if (pDataTargetW=GlobalLock(hDataTargetW))
+          if (pDataW=GlobalLock(hDataW))
           {
-            AE_GetTextRange(ae, lpSelStart, lpSelEnd, (wchar_t *)pDataTargetW, (UINT_PTR)-1, nNewLine, bColumnSel, TRUE);
+            AE_GetTextRange(ae, lpSelStart, lpSelEnd, (wchar_t *)pDataW, (UINT_PTR)-1, nNewLine, bColumnSel, TRUE);
 
             //Get Ansi text
-            dwAnsiLen=WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, NULL, 0, NULL, NULL);
+            dwAnsiLen=WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataW, dwUnicodeLen, NULL, 0, NULL, NULL);
 
-            if (hDataTargetA=GlobalAlloc(GMEM_MOVEABLE, dwAnsiLen))
+            if (hDataA=GlobalAlloc(GMEM_MOVEABLE, dwAnsiLen))
             {
-              if (pDataTargetA=GlobalLock(hDataTargetA))
+              if (pDataA=GlobalLock(hDataA))
               {
-                WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, (char *)pDataTargetA, dwAnsiLen, NULL, NULL);
-                GlobalUnlock(hDataTargetA);
+                WideCharToMultiByte64(CP_ACP, 0, (wchar_t *)pDataW, dwUnicodeLen, (char *)pDataA, dwAnsiLen, NULL, NULL);
+                GlobalUnlock(hDataA);
               }
             }
-            GlobalUnlock(hDataTargetW);
+            GlobalUnlock(hDataW);
           }
         }
       }
-      if (hDataTargetW) SetClipboardData(CF_UNICODETEXT, hDataTargetW);
-      if (hDataTargetA) SetClipboardData(CF_TEXT, hDataTargetA);
+      if (hDataW) SetClipboardData(CF_UNICODETEXT, hDataW);
+      if (hDataA) SetClipboardData(CF_TEXT, hDataA);
 
       //Special clipboard formats
       if (bColumnSel)

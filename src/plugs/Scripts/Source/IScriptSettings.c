@@ -158,7 +158,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *This, VARIANT vtO
     SetVariantIntPtr(vtData, nDataSize);
     return hr;
   }
-  if (nDataSize >= 0)
+  if (nDataSize > 0)
   {
     if (lpData=(unsigned char *)GlobalAlloc(GPTR, nDataSize))
     {

@@ -1,8 +1,8 @@
 *****************************************************************
-***                Explorer AkelPad plugin v6.4               ***
+***                Explorer AkelPad plugin v6.6               ***
 *****************************************************************
 
-2008-2024 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+2008-2026 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
 
 
 *** Description ***
@@ -23,7 +23,7 @@ Call("Explorer::Main", 1, "PATH")
     1
       Open dialog and go to specified path.
     "PATH"
-      Path, for example: "C:\Program Files". If "", then go to current file.
+      Path to a directory or file, for example: "C:\Program Files\". Can contain relative paths. If "", then go to current file.
 
 Call("Explorer::Main", 2)
   Parameters:
@@ -58,4 +58,4 @@ Call("Explorer::Main", 4, "PATH")
     4
       Set root directory.
     "PATH"
-      Path, for example: "C:\Program Files". If "-1", then set "My Computer" as root directory.
+      Path to a directory, for example: "C:\Program Files\". Can contain relative paths. If "-1", then set "My Computer" as root directory.

@@ -9488,9 +9488,17 @@ BOOL IsCodePageValid(int nCodePage)
 
   if (IsCodePageUnicode(nCodePage))
     return TRUE;
+  if (nCodePage == CP_ACP ||
+      nCodePage == CP_OEMCP ||
+      nCodePage == CP_MACCP ||
+      nCodePage == CP_THREAD_ACP ||
+      nCodePage == CP_SYMBOL)
+  {
+    //MultiByteToWideChar special values for codepage
+    return FALSE;
+  }
   if (MultiByteToWideChar(nCodePage, 0, &ch, 1, &wch, 1))
     return TRUE;
-
   return FALSE;
 }
 
@@ -10478,6 +10486,8 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   ft.dwFlags=dwFlags & (AEFR_DOWN|AEFR_WHOLEWORD|AEFR_MATCHCASE|AEFR_REGEXP);
   if (dwFlags & FRF_REGEXPNONEWLINEDOT)
     ft.dwFlags|=AEFR_REGEXPNONEWLINEDOT;
+  if (dwFlags & FRF_REGEXPMINMATCH)
+    ft.dwFlags|=AEFR_REGEXPMINMATCH;
   ft.pText=wszFindItEsc;
   ft.dwTextLen=nFindItLenEsc;
   ft.nNewLine=AELB_R;
@@ -10503,7 +10513,8 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
   {
     SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
     SendMessage(lpFrame->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
-    ft.dwFlags|=AEFR_REGEXPMINMATCH;
+    if (dwFlags & FRF_REGEXP)
+      ft.dwFlags|=AEFR_REGEXPMINMATCH;
   }
   else if (dwFlags & FRF_DOWN)
   {
@@ -10570,7 +10581,8 @@ INT_PTR TextFindW(FRAMEDATA *lpFrame, DWORD dwFlags, const wchar_t *wpFindIt, in
       }
       if (nAnswer == IDOK)
       {
-        ft.dwFlags|=AEFR_REGEXPMINMATCH;
+        if (dwFlags & FRF_REGEXP)
+          ft.dwFlags|=AEFR_REGEXPMINMATCH;
         bCycleCheck=FALSE;
         goto FindIt;
       }
@@ -11778,7 +11790,7 @@ BOOL PasteInEditAsRichEdit(HWND hWnd, int nMaxLenght)
   LPVOID pData;
   BOOL bResult=FALSE;
 
-  if (OpenClipboard(hWnd))
+  if (OpenClipboard(NULL))
   {
     if (!bOldWindows && (hData=GetClipboardData(CF_UNICODETEXT)))
     {
@@ -11975,8 +11987,10 @@ INT_PTR SetClipboardText(const wchar_t *wpText, INT_PTR nUnicodeLen)
 
   if (!wpText) wpText=L"";
 
-  if (OpenClipboard(NULL))
+  if (OpenClipboard(hMainWnd))
   {
+    EmptyClipboard();
+
     //Unicode
     if (nUnicodeLen == -1)
       nUnicodeLen=xstrlenW(wpText);
@@ -11988,26 +12002,27 @@ INT_PTR SetClipboardText(const wchar_t *wpText, INT_PTR nUnicodeLen)
       {
         xmemcpy(pData, wpText, nUnicodeLen * sizeof(wchar_t));
         GlobalUnlock(hDataW);
+
+        //ANSI
+        nAnsiLen=WideCharToMultiByte64(CP_ACP, 0, wpText, nUnicodeLen, NULL, 0, NULL, NULL);
+
+        if (hDataA=GlobalAlloc(GMEM_MOVEABLE, nAnsiLen))
+        {
+          if (pData=GlobalLock(hDataA))
+          {
+            WideCharToMultiByte64(CP_ACP, 0, wpText, nUnicodeLen, (char *)pData, nAnsiLen, NULL, NULL);
+            GlobalUnlock(hDataA);
+          }
+        }
       }
     }
-
-    //ANSI
-    nAnsiLen=WideCharToMultiByte(CP_ACP, 0, wpText, (int)nUnicodeLen, NULL, 0, NULL, NULL);
-
-    if (hDataA=GlobalAlloc(GMEM_MOVEABLE, nAnsiLen))
-    {
-      if (pData=GlobalLock(hDataA))
-      {
-        WideCharToMultiByte(CP_ACP, 0, wpText, (int)nUnicodeLen, (char *)pData, (int)nAnsiLen, NULL, NULL);
-        GlobalUnlock(hDataA);
-      }
-    }
-    EmptyClipboard();
     if (hDataW) SetClipboardData(CF_UNICODETEXT, hDataW);
     if (hDataA) SetClipboardData(CF_TEXT, hDataA);
     CloseClipboard();
   }
-  return nUnicodeLen;
+  if (hDataA)
+    return nUnicodeLen;
+  return 0;
 }
 
 void ShowStandardViewMenu(HWND hWnd, HMENU hMenu, BOOL bMouse)
@@ -23372,10 +23387,15 @@ BOOL DeleteTabItem(HWND hWnd, int nIndex)
 {
   if (SendMessage(hWnd, TCM_DELETEITEM, nIndex, 0))
   {
-    if (nIndex == nDocumentIndex)
+    if (nIndex <= nDocumentIndex)
     {
-      if ((nDocumentIndex=(int)SendMessage(hWnd, TCM_GETCURSEL, 0, 0)) == -1)
-        nDocumentIndex=0;
+      if (nIndex == nDocumentIndex)
+      {
+        if ((nDocumentIndex=(int)SendMessage(hWnd, TCM_GETCURSEL, 0, 0)) == -1)
+          nDocumentIndex=0;
+      }
+      else if (nIndex < nDocumentIndex)
+        --nDocumentIndex;
       UpdateStatusUser(lpFrameCurrent, CSB_DOCUMENTINDEX);
     }
     return TRUE;

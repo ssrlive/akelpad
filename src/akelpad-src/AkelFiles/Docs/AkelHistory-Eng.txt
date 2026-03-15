@@ -11,6 +11,7 @@ Added: option "Find" without message.
 Added: manual parameter "VersionCheck" - possibility to turn off language module version check.
 
 Fixed: text replace in vertical selection with wrap.
+Fixed: clipboard data may not be transferred to third-party applications.
 Fixed: splitting window with LineBoard plugin and PaintOptions with 256 flag could cause
        program error.
 Fixed: returning visibility of the first line could cause text to twitch before edit window

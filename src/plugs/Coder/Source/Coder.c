@@ -693,7 +693,7 @@ void ExportToRtf(HWND hWndEdit, DWORD dwFlags, wchar_t *wszRtfFile)
       if (dwFlags & HLEXP_COPY)
       {
         //Set RTF text
-        if (OpenClipboard(NULL))
+        if (OpenClipboard(hWndEdit))
         {
           AETEXTRANGEW tr;
           HGLOBAL hDataA=NULL;

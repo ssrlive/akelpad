@@ -1,8 +1,8 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v19.3              ***
+***                 Scripts AkelPad plugin v19.5              ***
 *****************************************************************
 
-2007-2025 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
+2007-2026 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
 
 
 *** Description ***
@@ -884,6 +884,7 @@ Arguments
     0x00000001  //FRF_DOWN                Find down.
     0x00000002  //FRF_WHOLEWORD           Find whole word.
     0x00000004  //FRF_MATCHCASE           Search is case-sensitive.
+    0x00020000  //FRF_REGEXPMINMATCH      Allow zero length match at string edges. For example: "^" at the string beginning or "$" at the string ending (usage: FRF_REGEXP|FRF_REGEXPMINMATCH).
     0x00040000  //FRF_REGEXPNONEWLINEDOT  Symbol . in regular expressions specifies any character except new line (usage: FRF_REGEXP|FRF_REGEXPNONEWLINEDOT).
     0x00080000  //FRF_REGEXP              Search with regular expressions.
     0x00100000  //FRF_UP                  Find up.

@@ -1054,7 +1054,6 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           AECHARRANGE aecrUrl;
           AECHARRANGE aecrSel;
-          CHARRANGE64 recrUrl;
 
           if (SendMessage(ncm->hWnd, AEM_EXGETOPTIONS, 0, 0) & AECOE_DETECTURL)
           {
@@ -1071,9 +1070,9 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   AEC_IndexCompare(&aecrSel.ciMax, &aecrUrl.ciMax) <= 0 &&
                   AEC_IndexCompare(&aecrSel.ciMax, &aecrUrl.ciMin) > 0)
               {
-                recrUrl.cpMin=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMin);
-                recrUrl.cpMax=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMax);
-                ShowUrlMenu(ncm->hWnd, &recrUrl, ncm->pt.x, ncm->pt.y);
+                crUrlMenuShow.cpMin=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMin);
+                crUrlMenuShow.cpMax=SendMessage(ncm->hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecrUrl.ciMax);
+                ShowUrlMenu(ncm->hWnd, &crUrlMenuShow, ncm->pt.x, ncm->pt.y);
                 ncm->bProcess=FALSE;
               }
             }
@@ -4037,9 +4036,8 @@ void ShowUrlMenu(HWND hWnd, CHARRANGE64 *crUrl, int x, int y)
   MENUITEM *lpElement;
   EXTPARAM *lpParameter;
   GETTEXTRANGE gtr;
-  CHARRANGE64 cr;
+  INT_PTR nTextLen;
   int nCmd;
-  int nLockScroll;
   BOOL bResult=TRUE;
 
   if (GetCurFile(wszCurrentFile, MAX_PATH))
@@ -4068,32 +4066,20 @@ void ShowUrlMenu(HWND hWnd, CHARRANGE64 *crUrl, int x, int y)
 
               if (nCommand)
               {
-                if (nCommand == URL_OPEN)
+                if (nCommand == URL_OPEN ||
+                    nCommand == URL_COPY)                
                 {
                   gtr.cpMin=crUrl->cpMin;
                   gtr.cpMax=crUrl->cpMax;
 
-                  if (SendMessage(hMainWnd, AKD_GETTEXTRANGEW, (LPARAM)hWnd, (WPARAM)&gtr))
+                  if (nTextLen=SendMessage(hMainWnd, AKD_GETTEXTRANGEW, (LPARAM)hWnd, (WPARAM)&gtr))
                   {
-                    ShellExecuteWide(hWnd, L"open", (wchar_t *)gtr.pText, NULL, NULL, SW_SHOWNORMAL);
+                    if (nCommand == URL_OPEN)
+                      ShellExecuteWide(hWnd, L"open", (wchar_t *)gtr.pText, NULL, NULL, SW_SHOWNORMAL);
+                    else if (nCommand == URL_COPY)
+                      SendMessage(hMainWnd, AKD_SETCLIPBOARDTEXT, (WPARAM)gtr.pText, nTextLen);
                     SendMessage(hMainWnd, AKD_FREETEXT, 0, (WPARAM)gtr.pText);
                   }
-                }
-                else if (nCommand == URL_COPY)
-                {
-                  SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
-                  if ((nLockScroll=(int)SendMessage(hWnd, AEM_LOCKSCROLL, (WPARAM)-1, 0)) == -1)
-                    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
-
-                  SendMessage(hWnd, EM_EXGETSEL64, 0, (WPARAM)&cr);
-                  SendMessage(hWnd, EM_EXSETSEL64, 0, (WPARAM)crUrl);
-                  SendMessage(hMainWnd, AKD_COPY, (WPARAM)hWnd, 0);
-                  SendMessage(hWnd, EM_EXSETSEL64, 0, (WPARAM)&cr);
-
-                  if (nLockScroll == -1)
-                    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
-                  SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-                  InvalidateRect(hWnd, NULL, FALSE);
                 }
                 else if (nCommand == URL_SELECT)
                 {
@@ -4374,11 +4360,13 @@ void CallContextMenu(POPUPMENU *hMenuStack, POPUPMENU *hManualStack, int nItem)
     static wchar_t wszCurrentFileDir[MAX_PATH];
     MENUITEM *lpElement;
     EXTPARAM *lpParameter;
-    EXPPARAM ep[]={{L"%f", 2, (INT_PTR)wszCurrentFile, 0},
-                   {L"%d", 2, (INT_PTR)wszCurrentFileDir, 0},
+    EXPPARAM ep[]={{L"%f", 2, (INT_PTR)wszCurrentFile, EXPPARAM_WIDE},
+                   {L"%d", 2, (INT_PTR)wszCurrentFileDir, EXPPARAM_WIDE},
                    {L"%m", 2, (INT_PTR)hMenuStack->hPopupMenu, EXPPARAM_INT},
                    {L"%i", 2, nItem, EXPPARAM_INT},
-                   {L"%u", 2, (INT_PTR)wszUrlLink, 0},
+                   {L"%u", 2, (INT_PTR)wszUrlLink, EXPPARAM_WIDE},
+                   {L"%lb", 3, crUrlMenuShow.cpMin, EXPPARAM_INT},
+                   {L"%le", 3, crUrlMenuShow.cpMax, EXPPARAM_INT},
                    {0, 0, 0, 0}};
 
     if (lpElement=GetContextMenuItem(hMenuStack, hManualStack, nItem))
@@ -5789,9 +5777,12 @@ const wchar_t* GetLangStringW(LANGID wLangID, int nStringID)
 {\r\
     \"\x0411\x0438\x0440\x044E\x0437\x043E\x0432\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#9BFFFF\", 1, 0, 11) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 6)\r\
     \"\x041E\x0440\x0430\x043D\x0436\x0435\x0432\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#FFCD9B\", 1, 0, 12) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 7)\r\
-    \"\x0416\x0435\x043B\x0442\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#FFFF9B\", 1, 0, 13) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 8)\r\
+    \"\x0416\x0451\x043B\x0442\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#FFFF9B\", 1, 0, 13) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 8)\r\
     \"\x0424\x0438\x043E\x043B\x0435\x0442\x043E\x0432\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#BE7DFF\", 1, 0, 14) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 9)\r\
-    \"\x0417\x0435\x043B\x0435\x043D\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#88E188\", 1, 0, 15) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 10)\r\
+    \"\x0417\x0435\x043B\x0451\x043D\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#88E188\", 1, 0, 15) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 10)\r\
+    \"\x0421\x0435\x0440\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#A9A9A9\", 1, 0, 16) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 15)\r\
+    \"\x041A\x0440\x0430\x0441\x043D\x044B\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#FF5959\", 1, 0, 17) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 14)\r\
+    \"\x0421\x0438\x043D\x0438\x043C\" Call(\"Coder::HighLight\", 2, 0, \"#68A7FF\", 1, 0, 18) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
     SEPARATOR1\r\
     \"\x0423\x0431\x0440\x0430\x0442\x044C\x0020\x0432\x0441\x0435\x0020\x043E\x0442\x043C\x0435\x0442\x043A\x0438\" Call(\"Coder::HighLight\", 3, 0) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 11)\r\
 }\r\
@@ -6194,7 +6185,7 @@ SET(32, \"%a\\AkelFiles\\Plugs\\Scroll.dll\")\r\
 UNSET(32)\r\
 SEPARATOR1\r\
 SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
-    \"\x041E\x0442\x043C\x0435\x0442\x0438\x0442\x044C\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
+    \"\x041E\x0442\x043C\x0435\x0442\x0438\x0442\x044C\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 7)\r\
     \"\x0421\x0438\x043D\x0442\x0430\x043A\x0441\x0438\x0447\x0435\x0441\x043A\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"\x0426\x0432\x0435\x0442\x043E\x0432\x0430\x044F\x0020\x0442\x0435\x043C\x0430\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
 UNSET(32)\r\
@@ -6386,6 +6377,9 @@ EXPLORER\r";
     \"Yellow\" Call(\"Coder::HighLight\", 2, 0, \"#FFFF9B\", 1, 0, 13) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 8)\r\
     \"Violet\" Call(\"Coder::HighLight\", 2, 0, \"#BE7DFF\", 1, 0, 14) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 9)\r\
     \"Green\" Call(\"Coder::HighLight\", 2, 0, \"#88E188\", 1, 0, 15) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 10)\r\
+    \"Gray\" Call(\"Coder::HighLight\", 2, 0, \"#A9A9A9\", 1, 0, 16) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 15)\r\
+    \"Red\" Call(\"Coder::HighLight\", 2, 0, \"#FF5959\", 1, 0, 17) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 14)\r\
+    \"Blue\" Call(\"Coder::HighLight\", 2, 0, \"#68A7FF\", 1, 0, 18) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
     SEPARATOR1\r\
     \"Remove all marks\" Call(\"Coder::HighLight\", 3, 0) Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 11)\r\
 }\r\
@@ -6787,7 +6781,7 @@ SET(32, \"%a\\AkelFiles\\Plugs\\Scroll.dll\")\r\
 UNSET(32)\r\
 SEPARATOR1\r\
 SET(32, \"%a\\AkelFiles\\Plugs\\Coder.dll\")\r\
-    \"Mark\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 13)\r\
+    \"Mark\" Menu(\"MARK\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 7)\r\
     \"Syntax theme\" Menu(\"SYNTAXTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 4)\r\
     \"Color theme\" Menu(\"COLORTHEME\") Icon(\"%a\\AkelFiles\\Plugs\\Coder.dll\", 5)\r\
 UNSET(32)\r\
@@ -6806,12 +6800,12 @@ UNSET(32)\r";
     //Default tabs menu
     if (nStringID == STRID_DEFAULTTAB)
       return L"\
+\"Clone\" Command(4322)\r\
+\"Copy path\" Command(4323)\r\
+SEPARATOR1\r\
 \"Close\" Command(4318)\r\
 \"Close all\" Command(4319)\r\
 \"Close all but active\" Command(4320)\r\
-SEPARATOR1\r\
-\"Clone\" Command(4322)\r\
-\"Copy path\" Command(4323)\r\
 SEPARATOR1\r\
 SET(4)\r\
     #Only for MDI\r\
