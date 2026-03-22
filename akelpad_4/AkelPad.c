@@ -3767,6 +3767,22 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Windows
+      case AKD_GETSCALE:
+      {
+        if (wParam == SCA_MAIN)
+        {
+          xmemcpy((SCALE *)lParam, &scMain, sizeof(SCALE));
+          return sizeof(SCALE);
+        }
+        else if (wParam == SCA_X)
+        {
+          return ScaleX(&scMain, (int)lParam);
+        }
+        else if (wParam == SCA_Y)
+        {
+          return ScaleY(&scMain, (int)lParam);
+        }
+      }
       case AKD_GETMODELESS:
       {
         int *lpnType=(int *)lParam;

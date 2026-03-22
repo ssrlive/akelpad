@@ -668,11 +668,6 @@ typedef struct {
   BOOL bBOM;
 } STATUSSTATE;
 
-typedef struct {
-  POINT ptUnitCur;
-  POINT ptUnit96;
-} SCALE;
-
 typedef struct _ASSOCICON {
   struct _ASSOCICON *next;
   struct _ASSOCICON *prev;

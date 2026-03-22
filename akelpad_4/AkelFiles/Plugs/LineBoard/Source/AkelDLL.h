@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 10, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 11, 0)
 
 
 //// Defines
@@ -843,6 +843,11 @@
 
 //AKD_RECODESEL flags
 #define RCS_DETECTONLY   0x00000001  //Don't do text replacement, only detect codepages.
+
+//AKD_GETSCALE action
+#define SCA_MAIN      1 //Return: copied bytes. (SCALE *)lParam - buffer that receives main window scale parameters.
+#define SCA_X         2 //Return: scaled value. (int)lParam - value for x scaling.
+#define SCA_Y         3 //Return: scaled value. (int)lParam - value for y scaling.
 
 //AKD_GETMODELESS types
 #define MLT_NONE      0 //No modeless dialog.
@@ -1683,6 +1688,11 @@ typedef struct _DOCK {
   WNDPROC lpOldDockProc;  //Procedure address before subclassing.
 } DOCK;
 
+typedef struct {
+  POINT ptUnitCur;
+  POINT ptUnit96;
+} SCALE;
+
 typedef struct _MODELESS {
   struct _MODELESS *next;
   struct _MODELESS *prev;
@@ -2429,6 +2439,7 @@ typedef struct {
 #define AKD_SETEDITNOTIFY          (WM_USER + 216)
 
 //Windows
+#define AKD_GETSCALE               (WM_USER + 250)
 #define AKD_GETMODELESS            (WM_USER + 251)
 #define AKD_SETMODELESS            (WM_USER + 252)
 #define AKD_RESIZE                 (WM_USER + 253)
@@ -4234,6 +4245,23 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SETEDITNOTIFY, (LPARAM)hWndEdit, 0);
+
+
+AKD_GETSCALE
+____________
+
+Main window scale parameters.
+
+(int)wParam  == see SCA_* defines.
+(void)lParam == depend on wParam.
+
+Return Value
+ Depend on wParam.
+
+Example:
+ SCALE sc={0};
+
+ SendMessage(pd->hMainWnd, AKD_GETSCALE, SCA_MAIN, (LPARAM)&sc);
 
 
 AKD_GETMODELESS
