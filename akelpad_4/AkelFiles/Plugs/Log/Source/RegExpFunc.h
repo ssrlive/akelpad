@@ -1,7 +1,7 @@
 /******************************************************************
- *                  RegExp functions header v2.7                  *
+ *                  RegExp functions header v2.8                  *
  *                                                                *
- * 2025 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2026 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *                                                                *
  * RegExpFunc.h header uses functions:                            *
@@ -1488,6 +1488,7 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               continue;
             }
           }
+          if (*wpPat == L']') break;
           ++wpPat;
         }
         if (!bExclude) goto EndLoop;
@@ -2842,6 +2843,7 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               continue;
             }
           }
+          if (*wpPat == L']') break;
           ++wpPat;
         }
         if (!bExclude) goto EndLoop;
