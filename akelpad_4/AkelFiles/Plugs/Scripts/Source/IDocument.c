@@ -1700,8 +1700,9 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
   else
   {
     #ifdef _WIN64
-      //jscript9Legacy.dll on x64 when copy string pointer vtData to allocated user structure vtPointer,
-      //change pointer after MemCopy and structure became useless. So we copy string to buffer and return buffer pointer.
+      //Windows 11:
+      //On x64, when copying string pointer vtData to allocated user structure vtPointer, jscript9Legacy.dll modifies
+      //this pointer after MemCopy returns and structure became useless. So we copy string to buffer and use buffer pointer.
       STRITEM *lpStrItem;
       wchar_t *wpString;
       UINT_PTR dwSize;
