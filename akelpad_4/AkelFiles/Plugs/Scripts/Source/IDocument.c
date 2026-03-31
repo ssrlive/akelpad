@@ -31,6 +31,7 @@ const IDocumentVtbl MyIDocumentVtbl={
   Document_IsOldWindows,
   Document_IsAkelEdit,
   Document_IsMDI,
+  Document_IsJScript9Legacy,
   Document_GetEditWnd,
   Document_SetEditWnd,
   Document_GetEditDoc,
@@ -331,6 +332,14 @@ HRESULT STDMETHODCALLTYPE Document_IsAkelEdit(IDocument *this, VARIANT vtWnd, in
 HRESULT STDMETHODCALLTYPE Document_IsMDI(IDocument *this, int *nIsMDI)
 {
   *nIsMDI=nMDI;
+  return NOERROR;
+}
+
+HRESULT STDMETHODCALLTYPE Document_IsJScript9Legacy(IDocument *this, int *nIsJScript9Legacy)
+{
+  SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
+
+  *nIsJScript9Legacy=lpScriptThread->nJScript9Legacy;
   return NOERROR;
 }
 
@@ -1132,7 +1141,7 @@ HRESULT STDMETHODCALLTYPE Document_CallExW(IDocument *this, DWORD dwFlags, BSTR 
 HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **psa, VARIANT *vtResult)
 {
   POINTERSTACK hStringsStack={0};
-  POINTERITEM *lpElement=NULL;
+  POINTERITEM *lpPointerItem=NULL;
   VARIANT *pvtParameter;
   unsigned char *lpData;
   unsigned char *lpStructure=NULL;
@@ -1180,10 +1189,10 @@ HRESULT CallPlugin(DWORD dwFlags, DWORD dwSupport, BSTR wpFunction, SAFEARRAY **
             {
               WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nStringLenW, szString, nStringLenA, NULL, NULL);
 
-              if (lpElement=StackInsertPointer(&hStringsStack))
+              if (lpPointerItem=StackInsertPointer(&hStringsStack))
               {
-                lpElement->lpData=szString;
-                lpElement->dwSize=nStringLenA;
+                lpPointerItem->lpData=szString;
+                lpPointerItem->dwSize=nStringLenA;
               }
             }
             dwParameter=(UINT_PTR)szString;
@@ -1577,7 +1586,7 @@ HRESULT STDMETHODCALLTYPE Document_MemAlloc(IDocument *this, VARIANT vtSize, VAR
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   UINT_PTR dwSize=GetVariantInt(&vtSize, NULL);
-  POINTERITEM *lpElement=NULL;
+  POINTERITEM *lpPointerItem=NULL;
   INT_PTR nPointer;
   HRESULT hr=NOERROR;
 
@@ -1589,10 +1598,10 @@ HRESULT STDMETHODCALLTYPE Document_MemAlloc(IDocument *this, VARIANT vtSize, VAR
 
   if (nPointer=(INT_PTR)GlobalAlloc(GPTR, dwSize))
   {
-    if (lpElement=StackInsertPointer(&lpScriptThread->hPointersStack))
+    if (lpPointerItem=StackInsertPointer(&lpScriptThread->hPointersStack))
     {
-      lpElement->lpData=(void *)nPointer;
-      lpElement->dwSize=dwSize;
+      lpPointerItem->lpData=(void *)nPointer;
+      lpPointerItem->dwSize=dwSize;
     }
   }
   else hr=E_OUTOFMEMORY;
@@ -1606,7 +1615,7 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   INT_PTR nPointer=GetVariantInt(&vtPointer, NULL);
   UINT_PTR dwNumber;
-  POINTERITEM *lpElement=NULL;
+  POINTERITEM *lpPointerItem=NULL;
   VARIANT *pvtData=&vtData;
   unsigned char *lpString=NULL;
   int nStringLen;
@@ -1635,9 +1644,9 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
     }
   }
 
-  if (nPointer && (lpScriptThread && lpScriptThread->dwDebug & DBG_MEMWRITE))
+  if (nPointer && (lpScriptThread->dwDebug & DBG_MEMWRITE))
   {
-    if (!(lpElement=StackGetPointer(&lpScriptThread->hPointersStack, (void *)nPointer, 1)))
+    if (!(lpPointerItem=StackGetPointer(&lpScriptThread->hPointersStack, (void *)nPointer, 1)))
     {
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMLOCATE), nPointer);
       return E_POINTER;
@@ -1652,7 +1661,7 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
 
       if (nPointer)
       {
-        if (lpElement && (LPBYTE)lpElement->lpData + lpElement->dwSize < (LPBYTE)nPointer + *nBytes + sizeof(char))
+        if (lpPointerItem && (LPBYTE)lpPointerItem->lpData + lpPointerItem->dwSize < (LPBYTE)nPointer + *nBytes + sizeof(char))
         {
           xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMWRITE));
           return E_POINTER;
@@ -1674,7 +1683,7 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
 
       if (nPointer)
       {
-        if (lpElement && (LPBYTE)lpElement->lpData + lpElement->dwSize < (LPBYTE)nPointer + *nBytes + sizeof(wchar_t))
+        if (lpPointerItem && (LPBYTE)lpPointerItem->lpData + lpPointerItem->dwSize < (LPBYTE)nPointer + *nBytes + sizeof(wchar_t))
         {
           xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMWRITE));
           return E_POINTER;
@@ -1690,6 +1699,35 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
   }
   else
   {
+    #ifdef _WIN64
+      //jscript9Legacy.dll on x64 when copy string pointer vtData to allocated user structure vtPointer,
+      //change pointer after MemCopy and structure became useless. So we copy string to buffer and return buffer pointer.
+      STRITEM *lpStrItem;
+      wchar_t *wpString;
+      UINT_PTR dwSize;
+
+      if (lpString && lpScriptThread->nJScript9Legacy && nPointer)
+      {
+        if (lpPointerItem=StackGetPointer(&lpScriptThread->hPointersStack, (void *)nPointer, 1))
+        {
+          dwSize=(nStringLen + 1) * sizeof(wchar_t);
+
+          if (wpString=(wchar_t *)GlobalAlloc(GPTR, dwSize))
+          {
+            xmemcpy(wpString, lpString, dwSize);
+
+            if (lpStrItem=StackInsertString(&lpPointerItem->hStrStack))
+            {
+              lpStrItem->wpStr=wpString;
+              lpStrItem->dwSize=dwSize;
+              dwNumber=(UINT_PTR)wpString;
+            }
+          }
+          else return E_OUTOFMEMORY;
+        }
+      }
+    #endif
+
     if (dwType == DT_QWORD)
       *nBytes=sizeof(UINT_PTR);
     else if (dwType == DT_DWORD)
@@ -1701,7 +1739,7 @@ HRESULT STDMETHODCALLTYPE Document_MemCopy(IDocument *this, VARIANT vtPointer, V
 
     if (nPointer)
     {
-      if (lpElement && (LPBYTE)lpElement->lpData + lpElement->dwSize < (LPBYTE)nPointer + *nBytes)
+      if (lpPointerItem && (LPBYTE)lpPointerItem->lpData + lpPointerItem->dwSize < (LPBYTE)nPointer + *nBytes)
       {
         xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMWRITE));
         return E_POINTER;
@@ -1716,14 +1754,14 @@ HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, VARIANT vtPointer, D
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   INT_PTR nPointer=GetVariantInt(&vtPointer, NULL);
-  POINTERITEM *lpElement=NULL;
+  POINTERITEM *lpPointerItem=NULL;
   wchar_t *wszString;
   int nStringLen;
   HRESULT hr=NOERROR;
 
-  if (lpScriptThread && lpScriptThread->dwDebug & DBG_MEMREAD)
+  if (lpScriptThread->dwDebug & DBG_MEMREAD)
   {
-    if (!(lpElement=StackGetPointer(&lpScriptThread->hPointersStack, (void *)nPointer, 1)))
+    if (!(lpPointerItem=StackGetPointer(&lpScriptThread->hPointersStack, (void *)nPointer, 1)))
     {
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMLOCATE), nPointer);
       return E_POINTER;
@@ -1738,7 +1776,7 @@ HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, VARIANT vtPointer, D
     else
       nStringLen=nDataLen;
 
-    if (lpElement && (LPBYTE)lpElement->lpData + lpElement->dwSize < (LPBYTE)nPointer + nStringLen)
+    if (lpPointerItem && (LPBYTE)lpPointerItem->lpData + lpPointerItem->dwSize < (LPBYTE)nPointer + nStringLen)
     {
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMREAD));
       return E_POINTER;
@@ -1760,7 +1798,7 @@ HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, VARIANT vtPointer, D
     else
       nStringLen=nDataLen;
 
-    if (lpElement && (LPBYTE)lpElement->lpData + lpElement->dwSize < (LPBYTE)((wchar_t *)nPointer + nStringLen))
+    if (lpPointerItem && (LPBYTE)lpPointerItem->lpData + lpPointerItem->dwSize < (LPBYTE)((wchar_t *)nPointer + nStringLen))
     {
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMREAD));
       return E_POINTER;
@@ -1771,7 +1809,7 @@ HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, VARIANT vtPointer, D
   }
   else if (dwType == DT_QWORD)
   {
-    if (lpElement && (LPBYTE)lpElement->lpData + lpElement->dwSize < (LPBYTE)nPointer + sizeof(UINT_PTR))
+    if (lpPointerItem && (LPBYTE)lpPointerItem->lpData + lpPointerItem->dwSize < (LPBYTE)nPointer + sizeof(UINT_PTR))
     {
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMREAD));
       return E_POINTER;
@@ -1780,7 +1818,7 @@ HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, VARIANT vtPointer, D
   }
   else if (dwType == DT_DWORD)
   {
-    if (lpElement && (LPBYTE)lpElement->lpData + lpElement->dwSize < (LPBYTE)nPointer + sizeof(DWORD))
+    if (lpPointerItem && (LPBYTE)lpPointerItem->lpData + lpPointerItem->dwSize < (LPBYTE)nPointer + sizeof(DWORD))
     {
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMREAD));
       return E_POINTER;
@@ -1790,7 +1828,7 @@ HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, VARIANT vtPointer, D
   }
   else if (dwType == DT_WORD)
   {
-    if (lpElement && (LPBYTE)lpElement->lpData + lpElement->dwSize < (LPBYTE)nPointer + sizeof(WORD))
+    if (lpPointerItem && (LPBYTE)lpPointerItem->lpData + lpPointerItem->dwSize < (LPBYTE)nPointer + sizeof(WORD))
     {
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMREAD));
       return E_POINTER;
@@ -1800,7 +1838,7 @@ HRESULT STDMETHODCALLTYPE Document_MemRead(IDocument *this, VARIANT vtPointer, D
   }
   else if (dwType == DT_BYTE)
   {
-    if (lpElement && (LPBYTE)lpElement->lpData + lpElement->dwSize < (LPBYTE)nPointer + sizeof(BYTE))
+    if (lpPointerItem && (LPBYTE)lpPointerItem->lpData + lpPointerItem->dwSize < (LPBYTE)nPointer + sizeof(BYTE))
     {
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMREAD));
       return E_POINTER;
@@ -1838,17 +1876,17 @@ HRESULT STDMETHODCALLTYPE Document_MemFree(IDocument *this, VARIANT vtPointer)
 {
   SCRIPTTHREAD *lpScriptThread=(SCRIPTTHREAD *)((IRealDocument *)this)->lpScriptThread;
   INT_PTR nPointer=GetVariantInt(&vtPointer, NULL);
-  POINTERITEM *lpElement=NULL;
+  POINTERITEM *lpPointerItem=NULL;
 
-  if (!(lpElement=StackGetPointer(&lpScriptThread->hPointersStack, (void *)nPointer, 1)))
+  if (!(lpPointerItem=StackGetPointer(&lpScriptThread->hPointersStack, (void *)nPointer, 1)))
   {
-    if (lpScriptThread && lpScriptThread->dwDebug & DBG_MEMFREE)
+    if (lpScriptThread->dwDebug & DBG_MEMFREE)
     {
       xprintfW(wszErrorMsg, GetLangStringW(wLangModule, STRID_DEBUG_MEMFREE), nPointer);
       return E_POINTER;
     }
   }
-  else StackDeletePointer(&lpScriptThread->hPointersStack, lpElement);
+  else StackDeletePointer(&lpScriptThread->hPointersStack, lpPointerItem);
 
   GlobalFree((HGLOBAL)nPointer);
   return NOERROR;
@@ -3156,6 +3194,26 @@ void StackFreeIncludes(INCLUDESTACK *hStack)
   hStack->nElements=0;
 }
 
+STRITEM* StackInsertString(STRSTACK *hStack)
+{
+  STRITEM *lpElement=NULL;
+
+  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(STRITEM));
+
+  return lpElement;
+}
+
+void StackFreeStrings(STRSTACK *hStack)
+{
+  STRITEM *lpElement;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->wpStr) GlobalFree((HGLOBAL)lpElement->wpStr);
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
 POINTERITEM* StackInsertPointer(POINTERSTACK *hStack)
 {
   POINTERITEM *lpElement=NULL;
@@ -3183,6 +3241,7 @@ POINTERITEM* StackGetPointer(POINTERSTACK *hStack, void *lpData, INT_PTR nRange)
 
 void StackDeletePointer(POINTERSTACK *hStack, POINTERITEM *lpPointer)
 {
+  StackFreeStrings(&lpPointer->hStrStack);
   if (!StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpPointer))
     --hStack->nElements;
 }
@@ -3193,6 +3252,7 @@ void StackFreePointers(POINTERSTACK *hStack)
 
   while (lpElement)
   {
+    StackFreeStrings(&lpElement->hStrStack);
     if (lpElement->lpData) GlobalFree((HGLOBAL)lpElement->lpData);
 
     lpElement=lpElement->next;

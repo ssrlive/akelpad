@@ -28,6 +28,7 @@ DECLARE_INTERFACE_ (INTERFACE, IDispatch)
   STDMETHOD_(HRESULT, Document_IsOldWindows)(THIS_ BOOL *) PURE;
   STDMETHOD_(HRESULT, Document_IsAkelEdit)(THIS_ VARIANT, int *) PURE;
   STDMETHOD_(HRESULT, Document_IsMDI)(THIS_ int *) PURE;
+  STDMETHOD_(HRESULT, Document_IsJScript9Legacy)(THIS_ int *) PURE;
   STDMETHOD_(HRESULT, Document_GetEditWnd)(THIS_ VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_SetEditWnd)(THIS_ VARIANT, VARIANT *) PURE;
   STDMETHOD_(HRESULT, Document_GetEditDoc)(THIS_ VARIANT *) PURE;
@@ -238,11 +239,24 @@ typedef struct {
   int nElements;
 } INCLUDESTACK;
 
+typedef struct _STRITEM {
+  struct _STRITEM *next;
+  struct _STRITEM *prev;
+  wchar_t *wpStr;
+  UINT_PTR dwSize;
+} STRITEM;
+
+typedef struct {
+  STRITEM *first;
+  STRITEM *last;
+} STRSTACK;
+
 typedef struct _POINTERITEM {
   struct _POINTERITEM *next;
   struct _POINTERITEM *prev;
   void *lpData;
   UINT_PTR dwSize;
+  STRSTACK hStrStack;
 } POINTERITEM;
 
 typedef struct {
@@ -366,6 +380,7 @@ HRESULT STDMETHODCALLTYPE Document_GetLangId(IDocument *this, int nType, int *nL
 HRESULT STDMETHODCALLTYPE Document_IsOldWindows(IDocument *this, BOOL *bIsOld);
 HRESULT STDMETHODCALLTYPE Document_IsAkelEdit(IDocument *this, VARIANT vtWnd, int *nIsAkelEdit);
 HRESULT STDMETHODCALLTYPE Document_IsMDI(IDocument *this, int *nIsMDI);
+HRESULT STDMETHODCALLTYPE Document_IsJScript9Legacy(IDocument *this, int *nIsJScript9Legacy);
 HRESULT STDMETHODCALLTYPE Document_GetEditWnd(IDocument *this, VARIANT *vtWnd);
 HRESULT STDMETHODCALLTYPE Document_SetEditWnd(IDocument *this, VARIANT vtWnd, VARIANT *vtWndResult);
 HRESULT STDMETHODCALLTYPE Document_GetEditDoc(IDocument *this, VARIANT *vtDoc);
@@ -457,6 +472,8 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
 INCLUDEITEM* StackInsertInclude(INCLUDESTACK *hStack);
 INCLUDEITEM* StackGetInclude(INCLUDESTACK *hStack, DWORD dwIndex);
 void StackFreeIncludes(INCLUDESTACK *hStack);
+STRITEM* StackInsertString(STRSTACK *hStack);
+void StackFreeStrings(STRSTACK *hStack);
 POINTERITEM* StackInsertPointer(POINTERSTACK *hStack);
 POINTERITEM* StackGetPointer(POINTERSTACK *hStack, void *lpData, INT_PTR nRange);
 void StackDeletePointer(POINTERSTACK *hStack, POINTERITEM *lpPointer);

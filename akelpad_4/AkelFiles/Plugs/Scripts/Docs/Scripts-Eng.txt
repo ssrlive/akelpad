@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v19.5              ***
+***                 Scripts AkelPad plugin v19.6              ***
 *****************************************************************
 
 2007-2026 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -170,6 +170,7 @@ AkelPad.GetLangId
 AkelPad.IsOldWindows                         +ActiveX
 AkelPad.IsAkelEdit
 AkelPad.IsMDI
+AkelPad.IsJScript9Legacy                     +ActiveX
 AkelPad.GetEditWnd
 AkelPad.SetEditWnd
 AkelPad.GetEditDoc
@@ -411,6 +412,21 @@ Return Value
 
 Example:
   var nMDI=AkelPad.IsMDI();
+
+
+AkelPad.IsJScript9Legacy
+________________________
+
+Is AkelPad use jscript9Legacy.dll engine.
+
+  IsJScript9Legacy();
+
+Return Value
+  true   jscript9Legacy.dll used (Windows 11 24H2 and higher).
+  false  jscript9Legacy.dll not used.
+
+Example:
+  var nJScript9Legacy=AkelPad.IsJScript9Legacy();
 
 
 AkelPad.GetEditWnd

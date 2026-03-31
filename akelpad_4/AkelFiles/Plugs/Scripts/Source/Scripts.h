@@ -112,6 +112,20 @@
 #define JIT_DEBUG       0x1
 #define JIT_FROMSTART   0x2
 
+typedef struct _ENGINE {
+  struct _ENGINE *next;
+  struct _ENGINE *prev;
+  wchar_t *wpExt;
+  GUID guidEngine;
+  HRESULT hResult;
+  int nJScript9Legacy;
+} ENGINE;
+
+typedef struct {
+  ENGINE *first;
+  ENGINE *last;
+} HENGINESTACK;
+
 typedef struct {
   wchar_t *wpScript;
   wchar_t *wpArguments;
@@ -153,6 +167,7 @@ typedef struct _SCRIPTTHREAD {
   PLUGINCALLSENDW *pcs;
   HANDLE hThread;
   DWORD dwThreadID;
+  int nJScript9Legacy;
   IActiveScript *objActiveScript;
   IActiveScriptParse *objActiveScriptParse;
   IProcessDebugManager *objProcessDebugManager;
@@ -298,6 +313,9 @@ int LangMatchRate(LANGID wCompareIt, LANGID wCompareWith);
 LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 BOOL CALLBACK HotkeyProc(void *lpParameter, LPARAM lParam, DWORD dwSupport);
+ENGINE* StackInsertEngine(HENGINESTACK *hStack);
+ENGINE* StackGetEngine(HENGINESTACK *hStack, const wchar_t *wpExt);
+void StackFreeEngines(HENGINESTACK *hStack);
 int EditScript(wchar_t *wpScript);
 void ExecScript(wchar_t *wpScript, wchar_t *wszArguments, int nExecType, PLUGINCALLSENDW *pcs);
 DWORD WINAPI ExecThreadProc(LPVOID lpParameter);

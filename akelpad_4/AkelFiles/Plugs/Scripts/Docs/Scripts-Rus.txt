@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v19.5              ***
+***                 Scripts AkelPad plugin v19.6              ***
 *****************************************************************
 
 2007-2026 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
@@ -171,6 +171,7 @@ AkelPad.GetLangId
 AkelPad.IsOldWindows                         +ActiveX
 AkelPad.IsAkelEdit
 AkelPad.IsMDI
+AkelPad.IsJScript9Legacy                     +ActiveX
 AkelPad.GetEditWnd
 AkelPad.SetEditWnd
 AkelPad.GetEditDoc
@@ -412,6 +413,21 @@ _____________
 
 Пример:
   var nMDI=AkelPad.IsMDI();
+
+
+AkelPad.IsJScript9Legacy
+________________________
+
+Проверить использование библиотеки jscript9Legacy.dll.
+
+  IsJScript9Legacy();
+
+Return Value
+  true   jscript9Legacy.dll используется (Windows 11 24H2 и выше).
+  false  jscript9Legacy.dll не используется.
+
+Пример:
+  var nJScript9Legacy=AkelPad.IsJScript9Legacy();
 
 
 AkelPad.GetEditWnd

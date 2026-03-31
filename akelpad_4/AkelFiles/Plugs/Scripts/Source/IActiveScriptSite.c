@@ -66,9 +66,10 @@ HHOOK hHookMessageBox;
 
 //// Script text execution
 
-HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine)
+HRESULT ExecScriptText(void *lpScriptThread, void *lpEngine)
 {
   SCRIPTTHREAD *st=(SCRIPTTHREAD *)lpScriptThread;
+  ENGINE *eng=(ENGINE *)lpEngine;
   HRESULT nCoInit=E_FAIL;
   HRESULT nResult=E_FAIL;
   DWORD dwDebugApplicationCookie=0;
@@ -110,8 +111,17 @@ HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine)
       MessageBoxW(hMainWnd, GetLangStringW(wLangModule, STRID_DEBUG_ERROR), wszPluginTitle, MB_OK|MB_ICONEXCLAMATION);
   }
 
-  if (CoCreateInstance(guidEngine, 0, CLSCTX_INPROC_SERVER, &IID_IActiveScript, (void **)&st->objActiveScript) == S_OK)
+  if (CoCreateInstance(&eng->guidEngine, 0, CLSCTX_INPROC_SERVER, &IID_IActiveScript, (void **)&st->objActiveScript) == S_OK)
   {
+    if (eng->nJScript9Legacy == -1)
+    {
+      if (GetModuleHandleWide(L"jscript9Legacy.dll"))
+        eng->nJScript9Legacy=TRUE;
+      else
+        eng->nJScript9Legacy=FALSE;
+    }
+    st->nJScript9Legacy=eng->nJScript9Legacy;
+
     if (st->objActiveScript->lpVtbl->QueryInterface(st->objActiveScript, &IID_IActiveScriptParse, (void **)&st->objActiveScriptParse) == S_OK)
     {
       if (st->objActiveScriptParse->lpVtbl->InitNew(st->objActiveScriptParse) == S_OK)

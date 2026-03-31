@@ -96,6 +96,9 @@ library Scripts
     //Is AkelPad in MDI mode.
     HRESULT IsMDI([out, retval] int *nIsMDI);
 
+    //Is AkelPad use jscript9Legacy.dll engine.
+    HRESULT IsJScript9Legacy([out, retval] int *nIsJScript9Legacy);
+
     //Get edit window handle.
     HRESULT GetEditWnd([out, retval] VARIANT *vtWnd);
 

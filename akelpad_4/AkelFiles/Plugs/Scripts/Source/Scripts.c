@@ -138,6 +138,7 @@ wchar_t wszAkelPadDir[MAX_PATH];
 wchar_t wszErrorMsg[BUFFER_SIZE]=L"";
 wchar_t wszLastScript[MAX_PATH]=L"";
 wchar_t wszFilter[MAX_PATH]=L"";
+HENGINESTACK hEngineStack={0};
 HTHREADSTACK hThreadStack={0};
 SCRIPTTHREAD *lpScriptThreadActiveX=NULL;
 HANDLE hMainThread=NULL;
@@ -2048,6 +2049,38 @@ BOOL CALLBACK HotkeyProc(void *lpParameter, LPARAM lParam, DWORD dwSupport)
   return TRUE;
 }
 
+ENGINE* StackInsertEngine(HENGINESTACK *hStack)
+{
+  ENGINE *lpElement=NULL;
+
+  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(ENGINE));
+
+  return lpElement;
+}
+
+ENGINE* StackGetEngine(HENGINESTACK *hStack, const wchar_t *wpExt)
+{
+  ENGINE *lpElement;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (!xstrcmpiW(wpExt, lpElement->wpExt))
+      return lpElement;
+  }
+  return NULL;
+}
+
+void StackFreeEngines(HENGINESTACK *hStack)
+{
+  ENGINE *lpElement;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->wpExt) GlobalFree((HGLOBAL)lpElement->wpExt);
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
 int EditScript(wchar_t *wpScript)
 {
   OPENDOCUMENTW od;
@@ -2246,23 +2279,48 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
       //Run script
       if (!lpScriptThread->bQuiting && !bMainOnFinish)
       {
+        ENGINE *lpEngine;
         wchar_t *wpContent=NULL;
         const wchar_t *wpExt;
         char szExt[MAX_PATH];
-        GUID guidEngine;
+        int nExtLen;
         INT_PTR nContentLen;
+        HRESULT hResult=E_FAIL;
 
         if (wpExt=GetFileExt(lpScriptThread->wszScriptName, -1))
         {
-          WideCharToMultiByte(CP_ACP, 0, --wpExt, -1, szExt, MAX_PATH, NULL, NULL);
-          if (GetScriptEngineA(szExt, &guidEngine) == S_OK)
+          --wpExt;
+
+          if (lpEngine=StackGetEngine(&hEngineStack, wpExt))
+          {
+            hResult=lpEngine->hResult;
+          }
+          else
+          {
+            if (lpEngine=StackInsertEngine(&hEngineStack))
+            {
+              xmemcpy(&lpEngine->guidEngine, &IID_NULL, sizeof(GUID));
+              WideCharToMultiByte(CP_ACP, 0, wpExt, -1, szExt, MAX_PATH, NULL, NULL);
+              hResult=GetScriptEngineA(szExt, &lpEngine->guidEngine);
+              if (hResult == S_OK)
+              {
+                nExtLen=(int)xstrlenW(wpExt);
+                if (lpEngine->wpExt=(wchar_t *)GlobalAlloc(GPTR, (nExtLen + 1) * sizeof(wchar_t)))
+                  xstrcpynW(lpEngine->wpExt, wpExt, nExtLen + 1);
+              }
+              lpEngine->hResult=hResult;
+              lpEngine->nJScript9Legacy=-1;
+            }
+          }
+
+          if (hResult == S_OK)
           {
             if (nContentLen=DetectAndReadFile(NULL, lpScriptThread->wszScriptFile, ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)-1))
             {
               lpScriptThread->wpScriptText=wpContent;
               lpScriptThread->nScriptTextLen=nContentLen;
 
-              if (ExecScriptText(lpScriptThread, &guidEngine) == S_OK)
+              if (ExecScriptText(lpScriptThread, lpEngine) == S_OK)
               {
                 bExecuted=TRUE;
               }
@@ -2277,11 +2335,12 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
               MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
             }
           }
-          else
-          {
-            xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ENGINE_ERROR), wpExt);
-            MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
-          }
+        }
+
+        if (hResult != S_OK)
+        {
+          xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ENGINE_ERROR), wpExt);
+          MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
         }
       }
     }
@@ -3392,6 +3451,7 @@ void UninitMain()
     CloseHandle(hMutexMsgFirst);
     hMutexMsgFirst=NULL;
   }
+  StackFreeEngines(&hEngineStack);
 
   if (NewMainProcData)
   {
