@@ -1488,7 +1488,6 @@ BOOL PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, const wchar_t *wpStr,
               continue;
             }
           }
-          if (*wpPat == L']') break;
           ++wpPat;
         }
         if (!bExclude) goto EndLoop;
@@ -1869,6 +1868,7 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPa
           ++(*wppPat);
           if (PatEscChar(wppPat) == L'\n')
             return RECCE_EQUAL;
+          --(*wppPat);
         }
         else if (nStrChar == -AELB_RRN)
         {
@@ -1878,7 +1878,9 @@ DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, int *lpnPa
             ++(*wppPat);
             if (PatEscChar(wppPat) == L'\n')
               return RECCE_EQUAL;
+            --(*wppPat);
           }
+          --(*wppPat);
         }
       }
       else *lpnPatChar=nPatChar;
@@ -2843,7 +2845,6 @@ BOOL AE_PatExec(STACKREGROUP *hStack, REGROUP *lpREGroupItem, AECHARINDEX *ciInp
               continue;
             }
           }
-          if (*wpPat == L']') break;
           ++wpPat;
         }
         if (!bExclude) goto EndLoop;
