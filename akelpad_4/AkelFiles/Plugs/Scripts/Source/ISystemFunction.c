@@ -155,15 +155,16 @@ HRESULT STDMETHODCALLTYPE SystemFunction_AddParameter(ISystemFunction *this, VAR
   SYSPARAMSTACK *hStack=&((IRealSystemFunction *)this)->sf.hSysParamStack;
   SYSPARAMITEM *lpSysParam;
   VARIANT *pvtParameter=&vtParameter;
+  HRESULT hr=NOERROR;
 
   if (lpSysParam=StackInsertSysParam(hStack))
   {
-    lpSysParam->dwValue=GetVariantValue(pvtParameter, &pvtParameter, bOldWindows);
+    lpSysParam->dwValue=GetVariantInt(pvtParameter, &pvtParameter, bOldWindows, &hr);
     lpSysParam->dwType=pvtParameter->vt;
   }
-  else return E_OUTOFMEMORY;
+  else hr=E_OUTOFMEMORY;
 
-  return NOERROR;
+  return hr;
 }
 
 HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, VARIANT vtDllFunction, SAFEARRAY **psa, VARIANT *vtResult)
@@ -183,7 +184,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_Call(ISystemFunction *this, VARIANT vtD
   int i;
 
   sf=&((IRealSystemFunction *)this)->sf;
-  dwDllFunction=GetVariantValue(pvtDllFunction, &pvtDllFunction, FALSE);
+  dwDllFunction=GetVariantInt(pvtDllFunction, &pvtDllFunction, FALSE, NULL);
   if (pvtDllFunction->vt == VT_BSTR && pvtDllFunction->bstrVal && pvtDllFunction->bstrVal[0])
     wpDllFunction=(wchar_t *)dwDllFunction;
   else
@@ -299,7 +300,7 @@ HRESULT STDMETHODCALLTYPE SystemFunction_RegisterCallback(ISystemFunction *this,
       dispp.cNamedArgs=0;
 
       if ((hr=objCallback->lpVtbl->Invoke(objCallback, dispidCallbackName, &IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispp, &vtResult, 0, 0)) == S_OK)
-        nArgCount=(int)GetVariantValue(&vtResult, NULL, bOldWindows);
+        nArgCount=(int)GetVariantInt(&vtResult, NULL, FALSE, NULL);
     }
   }
 

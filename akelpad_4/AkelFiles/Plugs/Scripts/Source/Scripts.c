@@ -332,7 +332,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
 
           SetVariantIntPtr(&vtData, (INT_PTR)lpScriptThread);
           Document_ScriptHandle((IDocument *)&objIDocument, vtData, nOperation, &vtResult);
-          *lpnResult=GetVariantInt(&vtResult, NULL);
+          *lpnResult=GetVariantInt(&vtResult, NULL, FALSE, NULL);
         }
       }
       if (pd->dwSupport & PDS_STRANSI)
@@ -483,7 +483,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
               //  SysFreeString(vtResult.bstrVal);
               //  vtResult.bstrVal=NULL;
               //}
-              nResult=GetVariantInt(&vtResult, NULL);
+              nResult=GetVariantInt(&vtResult, NULL, FALSE, NULL);
               if (lpnError) *lpnError=IEE_SUCCESS;
             }
             else if (lpnError) *lpnError=IEE_CALLERROR;
@@ -2710,54 +2710,23 @@ void StackFreeArguments(HARGSTACK *hStack)
   hStack->nElements=0;
 }
 
-UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bAnsi)
-{
-  UINT_PTR dwValue=0;
-  int nUniLen;
-  int nAnsiLen;
-
-  if (pvtParameter->vt == (VT_BYREF|VT_VARIANT))
-    pvtParameter=pvtParameter->pvarVal;
-
-  #if defined(_WIN64)
-    if (pvtParameter->vt == VT_BSTR && pvtParameter->bstrVal && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
-    {
-      //JScript doesn't support VT_I8, so __int64 number converted to string.
-      return xatoiW(pvtParameter->bstrVal + 1, NULL);
-    }
-  #endif
-  if (pvtParameter->vt == VT_BSTR)
-  {
-    if (bAnsi)
-    {
-      if (pvtParameter->bstrVal)
-      {
-        nUniLen=SysStringLen(pvtParameter->bstrVal);
-        nAnsiLen=WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen, NULL, 0, NULL, NULL);
-        if (dwValue=(UINT_PTR)GlobalAlloc(GPTR, nAnsiLen + 1))
-          WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen + 1, (char *)dwValue, nAnsiLen + 1, NULL, NULL);
-      }
-    }
-    else dwValue=(UINT_PTR)pvtParameter->bstrVal;
-  }
-  else dwValue=GetVariantInt(pvtParameter, &pvtParameter);
-
-  if (ppvtParameter) *ppvtParameter=pvtParameter;
-  return dwValue;
-}
-
-UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
+UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bAnsi, HRESULT *lpnError)
 {
   CALLBACKITEM *lpSysCallback;
   VARIANT vtConverted;
+  int nUniLen;
+  int nAnsiLen;
   UINT_PTR dwResult=0;
   INT_PTR nResult=0;
+  HRESULT hr=NOERROR;
 
   if (pvtParameter->vt == (VT_BYREF|VT_VARIANT))
   {
     pvtParameter=pvtParameter->pvarVal;
     if (ppvtParameter) *ppvtParameter=pvtParameter;
   }
+  if (lpnError) *lpnError=hr;
+
   if (pvtParameter->vt == VT_BOOL)
     return pvtParameter->boolVal?TRUE:FALSE;
   if (pvtParameter->vt == VT_DISPATCH)
@@ -2775,15 +2744,30 @@ UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
     }
   #endif
   if (pvtParameter->vt == VT_BSTR)
-    return (UINT_PTR)pvtParameter->bstrVal;
+  {
+    if (bAnsi)
+    {
+      if (pvtParameter->bstrVal)
+      {
+        nUniLen=SysStringLen(pvtParameter->bstrVal);
+        nAnsiLen=WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen, NULL, 0, NULL, NULL);
+        if (dwResult=(UINT_PTR)GlobalAlloc(GPTR, nAnsiLen + 1))
+          WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen + 1, (char *)dwResult, nAnsiLen + 1, NULL, NULL);
+      }
+    }
+    else dwResult=(UINT_PTR)pvtParameter->bstrVal;
+
+    return dwResult;
+  }
 
   VariantInit(&vtConverted);
   VariantCopy(&vtConverted, pvtParameter);
 
-  if (VariantChangeType(&vtConverted, &vtConverted, 0, VT_I4) == S_OK)
+  if ((hr=VariantChangeType(&vtConverted, &vtConverted, 0, VT_I4)) == S_OK)
     nResult=vtConverted.lVal;
-  if (!nResult && (VariantChangeType(&vtConverted, &vtConverted, 0, VT_UI4) == S_OK))
+  if (!nResult && ((hr=VariantChangeType(&vtConverted, &vtConverted, 0, VT_UI4)) == S_OK))
     dwResult=vtConverted.ulVal;
+  if (lpnError) *lpnError=hr;
   return max(dwResult, (UINT_PTR)nResult);
 }
 

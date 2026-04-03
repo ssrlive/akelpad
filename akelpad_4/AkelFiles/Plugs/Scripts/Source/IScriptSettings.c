@@ -140,7 +140,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Read(IScriptSettings *this, VARIANT vtO
 
   VariantInit(vtData);
 
-  wpOptionName=(wchar_t *)GetVariantValue(&vtOptionName, NULL, FALSE);
+  wpOptionName=(wchar_t *)GetVariantInt(&vtOptionName, NULL, FALSE, NULL);
 
   if (dwType == PO_BINARYSIZE)
   {
@@ -200,7 +200,7 @@ HRESULT STDMETHODCALLTYPE ScriptSettings_Write(IScriptSettings *this, BSTR wpOpt
 
   *nResult=0;
   if (!hOptions) return NOERROR;
-  dwNumber=GetVariantValue(pvtData, NULL, FALSE);
+  dwNumber=GetVariantInt(pvtData, NULL, FALSE, NULL);
 
   if (pvtData->vt == VT_BSTR && (dwType == PO_STRING || dwType == PO_BINARY))
   {
