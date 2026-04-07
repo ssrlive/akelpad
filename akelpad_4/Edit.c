@@ -18318,9 +18318,9 @@ FRAMEDATA* StackFrameIsValid(STACKFRAMEDATA *hStack, FRAMEDATA *lpFramePointer)
   return NULL;
 }
 
-void StackFrameMove(STACKFRAMEDATA *hStack, FRAMEDATA *lpFrame, int nIndex)
+int StackFrameMove(STACKFRAMEDATA *hStack, FRAMEDATA *lpFrame, int nIndex)
 {
-  StackMoveIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpFrame, nIndex);
+  return StackMoveIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpFrame, nIndex);
 }
 
 void StackFrameDelete(STACKFRAMEDATA *hStack, FRAMEDATA *lpFrame)

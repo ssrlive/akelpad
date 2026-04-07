@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(2, 2, 11, 0)
+#define AKELDLL MAKE_IDENTIFIER(2, 2, 12, 0)
 
 
 //// Defines
@@ -1449,6 +1449,11 @@ typedef struct {
 } FRAMEINFO;
 
 typedef struct {
+  FRAMEDATA *lpFrameData;  //Pointer to a current FRAMEDATA structure.
+  int nIndex;              //Frame index.
+} FRAMEINDEX;
+
+typedef struct {
   const wchar_t *wpFile; //Background image file.
   int nAlpha;            //Alpha transparency value that ranges from 0 to 255.
 } BKIMAGE;
@@ -2461,6 +2466,7 @@ typedef struct {
 #define AKD_FRAMEINDEX             (WM_USER + 270)
 #define AKD_FRAMEINIT              (WM_USER + 271)
 #define AKD_FRAMEAPPLYEDIT         (WM_USER + 272)
+#define AKD_FRAMEMOVE              (WM_USER + 273)
 
 //Process and Threads
 #define AKD_MEMCREATE              (WM_USER + 281)
@@ -4586,6 +4592,30 @@ Return Value
 
 Example:
  See AKD_FRAMEINIT example.
+
+
+AKD_FRAMEMOVE
+_____________
+
+Move frame in frame stack or tab panel.
+
+(BOOL)wParam         == TRUE   Move frame in frame stack.
+                        FALSE  Move frame in tab panel.
+(FRAMEINDEX *)lParam == pointer to a FRAMEINDEX structure.
+                        if (wParam == TRUE) then FRAMEINDEX.nIndex is new index for frame in frame stack. First frame has index 1, last -1.
+                        if (wParam == FALSE) then FRAMEINDEX.nIndex is new index for frame in tab panel. First frame has index 0.
+
+Return Value
+ 0 success.
+ 1 wrong index.
+ 2 frame already on specified index.
+
+Example (move current tab on the first place):
+ FRAMEINDEX fi;
+
+ fi.lpFrameData=(FRAMEDATA *)SendMessage(pd->hMainWnd, AKD_FRAMEFIND, FWF_CURRENT, 0);
+ fi.nIndex=0;
+ SendMessage(pd->hMainWnd, AKD_FRAMEMOVE, FALSE, (LPARAM)&fi);
 
 
 AKD_MEMCREATE
