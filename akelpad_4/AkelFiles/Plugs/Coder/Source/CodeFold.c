@@ -1702,7 +1702,12 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                   else
                     InvalidateRect(fwChange->hWndEdit, NULL, TRUE);
                 }
-                else
+
+                if (!fwChange->bLevelChanged ||
+                    (fwChange->lpTextChangeMinParent &&
+                     !IsFoldNameFromLeft(FoldData(fwChange->lpTextChangeMinParent)) &&
+                     AEC_IndexCompare(&fwChange->lpTextChangeMinParent->lpMinPoint->ciPoint, &aentc->ciCaret) <= 0 &&
+                     AEC_IndexCompare(&fwChange->lpTextChangeMinParent->lpMaxPoint->ciPoint, &aentc->ciCaret) >= 0))
                 {
                   //Update name of the fold
                   if (fwChange->pfwd->lpFoldStack->first)
