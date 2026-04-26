@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v19.7              ***
+***                 Scripts AkelPad plugin v19.8              ***
 *****************************************************************
 
 2007-2026 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -129,6 +129,9 @@ Call("Scripts::Main", 7, "METHOD", *RESULT)
       Call result.
   Example:
     "Find next paragraph" Call("Scripts::Main", 7, `AkelPad.TextFind(0, "(?<=\n\n)(?!\n)", 0x80001 /*FRF_DOWN|FRF_REGEXP*/)`)
+  Remarks:
+    If you need to execute a block of JScript code, use EvalCmd.js:
+      "Find clipboard text" Call("Scripts::Main", 1, "EvalCmd.js", `var pText=AkelPad.GetClipboardText(); AkelPad.TextFind(0, pText, 0x3 /*FRF_DOWN|FRF_BEGINNING*/)`)
 
 
 *** Service information in script ***

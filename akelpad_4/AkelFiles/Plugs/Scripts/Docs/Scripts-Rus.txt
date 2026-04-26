@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v19.7              ***
+***                 Scripts AkelPad plugin v19.8              ***
 *****************************************************************
 
 2007-2026 Шенгальц Александр aka Instructor (Shengalts@mail.ru)
@@ -130,6 +130,9 @@ Call("Scripts::Main", 7, "METHOD", *RESULT)
       Результат вызова.
   Пример:
     "Найти следующий параграф" Call("Scripts::Main", 7, `AkelPad.TextFind(0, "(?<=\n\n)(?!\n)", 0x80001 /*FRF_DOWN|FRF_REGEXP*/)`)
+  Замечания:
+    Если требуется вызвать кусок кода на JScript, используйте EvalCmd.js:
+      "Найти текст из буфера обмена" Call("Scripts::Main", 1, "EvalCmd.js", `var pText=AkelPad.GetClipboardText(); AkelPad.TextFind(0, pText, 0x3 /*FRF_DOWN|FRF_BEGINNING*/)`)
 
 
 *** Служебная информация в скрипте ***

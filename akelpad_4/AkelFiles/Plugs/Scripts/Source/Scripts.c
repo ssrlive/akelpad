@@ -448,7 +448,8 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
               lpParamStack=&hParamStack;
             }
           }
-          nArgCount=lpParamStack->nElements;
+          if (lpParamStack)
+            nArgCount=lpParamStack->nElements;
 
           if (lpTypeInfo && DispGetIDsOfNames(lpTypeInfo, &wpMethod, 1, &dispidMethod) == S_OK)
           {
