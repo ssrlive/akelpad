@@ -9,8 +9,8 @@ on: [push, pull_request]
 
 env:
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE_PATH: ./src/AkelPad.sln
-
+  SOLUTION_FILE_PATH: ./src/AkelPad.sln  # Path to the directory containing build outputs.
+  SOLUTION_DIR: ./src
   # Configuration type to build.
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
   # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
@@ -54,11 +54,11 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path output
           if ("${{ matrix.platform }}" -eq "Win32") {
-            Get-ChildItem -Path ${{env.SOLUTION_FILE_PATH}}/${{env.BUILD_CONFIGURATION}} -Recurse -Include *.pdb, *.lib, *.exp, *.ilk, *.bsc | Remove-Item -Force
-            Compress-Archive -Path ${{env.SOLUTION_FILE_PATH}}/${{env.BUILD_CONFIGURATION}}/* -DestinationPath output/akelpad-${{ matrix.platform }}.zip
+            Get-ChildItem -Path ${{env.SOLUTION_DIR}}/${{env.BUILD_CONFIGURATION}} -Recurse -Include *.pdb, *.lib, *.exp, *.ilk, *.bsc | Remove-Item -Force
+            Compress-Archive -Path ${{env.SOLUTION_DIR}}/${{env.BUILD_CONFIGURATION}}/* -DestinationPath output/akelpad-${{ matrix.platform }}.zip
           } else {
-            Get-ChildItem -Path ${{env.SOLUTION_FILE_PATH}}/${{ matrix.platform }}/${{env.BUILD_CONFIGURATION}} -Recurse -Include *.pdb, *.lib, *.exp, *.ilk, *.bsc | Remove-Item -Force
-            Compress-Archive -Path ${{env.SOLUTION_FILE_PATH}}/${{ matrix.platform }}/${{env.BUILD_CONFIGURATION}}/* -DestinationPath output/akelpad-${{ matrix.platform }}.zip
+            Get-ChildItem -Path ${{env.SOLUTION_DIR}}/${{ matrix.platform }}/${{env.BUILD_CONFIGURATION}} -Recurse -Include *.pdb, *.lib, *.exp, *.ilk, *.bsc | Remove-Item -Force
+            Compress-Archive -Path ${{env.SOLUTION_DIR}}/${{ matrix.platform }}/${{env.BUILD_CONFIGURATION}}/* -DestinationPath output/akelpad-${{ matrix.platform }}.zip
           }
 
       - name: Publish
