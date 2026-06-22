@@ -1,5 +1,5 @@
 *****************************************************************
-***                 Scripts AkelPad plugin v19.5              ***
+***                 Scripts AkelPad plugin v19.8              ***
 *****************************************************************
 
 2007-2026 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -129,6 +129,9 @@ Call("Scripts::Main", 7, "METHOD", *RESULT)
       Call result.
   Example:
     "Find next paragraph" Call("Scripts::Main", 7, `AkelPad.TextFind(0, "(?<=\n\n)(?!\n)", 0x80001 /*FRF_DOWN|FRF_REGEXP*/)`)
+  Remarks:
+    If you need to execute a block of JScript code, use EvalCmd.js:
+      "Find clipboard text" Call("Scripts::Main", 1, "EvalCmd.js", `var pText=AkelPad.GetClipboardText(); AkelPad.TextFind(0, pText, 0x3 /*FRF_DOWN|FRF_BEGINNING*/)`)
 
 
 *** Service information in script ***
@@ -154,7 +157,7 @@ Description (variant 2):
 
 Description on specified language (variant 3):
 // Description(1033): Search and replace using regular expressions.
-// Description(1049): ÐŸÐ¾Ð¸ÑÐº/Ð·Ð°Ð¼ÐµÐ½Ð° Ñ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ð½Ð¸ÐµÐ¼ Ñ€ÐµÐ³ÑƒÐ»ÑÑ€Ð½Ñ‹Ñ… Ð²Ñ‹Ñ€Ð°Ð¶ÐµÐ½Ð¸Ð¹.
+// Description(1049): Ïîèñê/çàìåíà ñ èñïîëüçîâàíèåì ðåãóëÿðíûõ âûðàæåíèé.
 
 Language identifiers list (Locale IDs Assigned by Microsoft):
 http://msdn.microsoft.com/en-us/goglobal/bb964664.aspx
@@ -170,6 +173,7 @@ AkelPad.GetLangId
 AkelPad.IsOldWindows                         +ActiveX
 AkelPad.IsAkelEdit
 AkelPad.IsMDI
+AkelPad.IsJScript9Legacy                     +ActiveX
 AkelPad.GetEditWnd
 AkelPad.SetEditWnd
 AkelPad.GetEditDoc
@@ -411,6 +415,21 @@ Return Value
 
 Example:
   var nMDI=AkelPad.IsMDI();
+
+
+AkelPad.IsJScript9Legacy
+________________________
+
+Is AkelPad use jscript9Legacy.dll engine.
+
+  IsJScript9Legacy();
+
+Return Value
+  true   jscript9Legacy.dll used (Windows 11 24H2 and higher).
+  false  jscript9Legacy.dll not used.
+
+Example:
+  var nJScript9Legacy=AkelPad.IsJScript9Legacy();
 
 
 AkelPad.GetEditWnd

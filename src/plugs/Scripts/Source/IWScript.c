@@ -286,7 +286,7 @@ HRESULT STDMETHODCALLTYPE WScript_ConnectObject(IWScript *This, IDispatch *objCo
   }
   else
   {
-    if (lpIID=(IID *)GetVariantInt(pvtIID, &pvtIID))
+    if (lpIID=(IID *)GetVariantInt(pvtIID, &pvtIID, FALSE, NULL))
     {
       xmemcpy(&objISink->iidConnect, lpIID, sizeof(IID));
       objISink->piidConnect=&objISink->iidConnect;

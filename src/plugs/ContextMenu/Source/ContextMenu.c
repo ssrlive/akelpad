@@ -1076,6 +1076,8 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 ncm->bProcess=FALSE;
               }
             }
+            crUrlMenuShow.cpMin=0;
+            crUrlMenuShow.cpMax=0;
           }
         }
         if (bMenuEditEnable && ncm->bProcess)
@@ -4067,7 +4069,7 @@ void ShowUrlMenu(HWND hWnd, CHARRANGE64 *crUrl, int x, int y)
               if (nCommand)
               {
                 if (nCommand == URL_OPEN ||
-                    nCommand == URL_COPY)                
+                    nCommand == URL_COPY)
                 {
                   gtr.cpMin=crUrl->cpMin;
                   gtr.cpMax=crUrl->cpMax;

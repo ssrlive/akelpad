@@ -140,6 +140,7 @@ wchar_t wszAkelPadDir[MAX_PATH];
 wchar_t wszErrorMsg[BUFFER_SIZE]=L"";
 wchar_t wszLastScript[MAX_PATH]=L"";
 wchar_t wszFilter[MAX_PATH]=L"";
+HENGINESTACK hEngineStack={0};
 HTHREADSTACK hThreadStack={0};
 SCRIPTTHREAD *lpScriptThreadActiveX=NULL;
 HANDLE hMainThread=NULL;
@@ -333,7 +334,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
 
           SetVariantIntPtr(&vtData, (INT_PTR)lpScriptThread);
           Document_ScriptHandle((IDocument *)&objIDocument, vtData, nOperation, &vtResult);
-          *lpnResult=GetVariantInt(&vtResult, NULL);
+          *lpnResult=GetVariantInt(&vtResult, NULL, FALSE, NULL);
         }
       }
       if (pd->dwSupport & PDS_STRANSI)
@@ -449,7 +450,8 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
               lpParamStack=&hParamStack;
             }
           }
-          nArgCount=lpParamStack->nElements;
+          if (lpParamStack)
+            nArgCount=lpParamStack->nElements;
 
           if (lpTypeInfo && DispGetIDsOfNames(lpTypeInfo, &wpMethod, 1, &dispidMethod) == S_OK)
           {
@@ -484,7 +486,7 @@ void __declspec(dllexport) Main(PLUGINDATA *pd)
               //  SysFreeString(vtResult.bstrVal);
               //  vtResult.bstrVal=NULL;
               //}
-              nResult=GetVariantInt(&vtResult, NULL);
+              nResult=GetVariantInt(&vtResult, NULL, FALSE, NULL);
               if (lpnError) *lpnError=IEE_SUCCESS;
             }
             else if (lpnError) *lpnError=IEE_CALLERROR;
@@ -2050,6 +2052,38 @@ BOOL CALLBACK HotkeyProc(void *lpParameter, LPARAM lParam, DWORD dwSupport)
   return TRUE;
 }
 
+ENGINE* StackInsertEngine(HENGINESTACK *hStack)
+{
+  ENGINE *lpElement=NULL;
+
+  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(ENGINE));
+
+  return lpElement;
+}
+
+ENGINE* StackGetEngine(HENGINESTACK *hStack, const wchar_t *wpExt)
+{
+  ENGINE *lpElement;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (!xstrcmpiW(wpExt, lpElement->wpExt))
+      return lpElement;
+  }
+  return NULL;
+}
+
+void StackFreeEngines(HENGINESTACK *hStack)
+{
+  ENGINE *lpElement;
+
+  for (lpElement=hStack->first; lpElement; lpElement=lpElement->next)
+  {
+    if (lpElement->wpExt) GlobalFree((HGLOBAL)lpElement->wpExt);
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
 int EditScript(wchar_t *wpScript)
 {
   OPENDOCUMENTW od;
@@ -2248,23 +2282,48 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
       //Run script
       if (!lpScriptThread->bQuiting && !bMainOnFinish)
       {
+        ENGINE *lpEngine;
         wchar_t *wpContent=NULL;
         const wchar_t *wpExt;
         char szExt[MAX_PATH];
-        GUID guidEngine;
+        int nExtLen;
         INT_PTR nContentLen;
+        HRESULT hResult=E_FAIL;
 
         if (wpExt=GetFileExt(lpScriptThread->wszScriptName, -1))
         {
-          WideCharToMultiByte(CP_ACP, 0, --wpExt, -1, szExt, MAX_PATH, NULL, NULL);
-          if (GetScriptEngineA(szExt, &guidEngine) == S_OK)
+          --wpExt;
+
+          if (lpEngine=StackGetEngine(&hEngineStack, wpExt))
+          {
+            hResult=lpEngine->hResult;
+          }
+          else
+          {
+            if (lpEngine=StackInsertEngine(&hEngineStack))
+            {
+              xmemcpy(&lpEngine->guidEngine, &IID_NULL, sizeof(GUID));
+              WideCharToMultiByte(CP_ACP, 0, wpExt, -1, szExt, MAX_PATH, NULL, NULL);
+              hResult=GetScriptEngineA(szExt, &lpEngine->guidEngine);
+              if (hResult == S_OK)
+              {
+                nExtLen=(int)xstrlenW(wpExt);
+                if (lpEngine->wpExt=(wchar_t *)GlobalAlloc(GPTR, (nExtLen + 1) * sizeof(wchar_t)))
+                  xstrcpynW(lpEngine->wpExt, wpExt, nExtLen + 1);
+              }
+              lpEngine->hResult=hResult;
+              lpEngine->nJScript9Legacy=-1;
+            }
+          }
+
+          if (hResult == S_OK)
           {
             if (nContentLen=DetectAndReadFile(NULL, lpScriptThread->wszScriptFile, ADT_BINARYERROR|ADT_DETECTCODEPAGE|ADT_DETECTBOM|ADT_NOMESSAGES, 0, 0, &wpContent, (UINT_PTR)-1))
             {
               lpScriptThread->wpScriptText=wpContent;
               lpScriptThread->nScriptTextLen=nContentLen;
 
-              if (ExecScriptText(lpScriptThread, &guidEngine) == S_OK)
+              if (ExecScriptText(lpScriptThread, lpEngine) == S_OK)
               {
                 bExecuted=TRUE;
               }
@@ -2279,11 +2338,12 @@ DWORD WINAPI ExecThreadProc(LPVOID lpParameter)
               MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
             }
           }
-          else
-          {
-            xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ENGINE_ERROR), wpExt);
-            MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
-          }
+        }
+
+        if (hResult != S_OK)
+        {
+          xprintfW(wszBuffer, GetLangStringW(wLangModule, STRID_ENGINE_ERROR), wpExt);
+          MessageBoxW(hMainWnd, wszBuffer, wszPluginTitle, MB_OK|MB_ICONERROR);
         }
       }
     }
@@ -2653,54 +2713,23 @@ void StackFreeArguments(HARGSTACK *hStack)
   hStack->nElements=0;
 }
 
-UINT_PTR GetVariantValue(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bAnsi)
-{
-  UINT_PTR dwValue=0;
-  int nUniLen;
-  int nAnsiLen;
-
-  if (pvtParameter->vt == (VT_BYREF|VT_VARIANT))
-    pvtParameter=pvtParameter->pvarVal;
-
-  #if defined(_WIN64)
-    if (pvtParameter->vt == VT_BSTR && pvtParameter->bstrVal && !pvtParameter->bstrVal[0] && SysStringLen(pvtParameter->bstrVal) > 0)
-    {
-      //JScript doesn't support VT_I8, so __int64 number converted to string.
-      return xatoiW(pvtParameter->bstrVal + 1, NULL);
-    }
-  #endif
-  if (pvtParameter->vt == VT_BSTR)
-  {
-    if (bAnsi)
-    {
-      if (pvtParameter->bstrVal)
-      {
-        nUniLen=SysStringLen(pvtParameter->bstrVal);
-        nAnsiLen=WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen, NULL, 0, NULL, NULL);
-        if (dwValue=(UINT_PTR)GlobalAlloc(GPTR, nAnsiLen + 1))
-          WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen + 1, (char *)dwValue, nAnsiLen + 1, NULL, NULL);
-      }
-    }
-    else dwValue=(UINT_PTR)pvtParameter->bstrVal;
-  }
-  else dwValue=GetVariantInt(pvtParameter, &pvtParameter);
-
-  if (ppvtParameter) *ppvtParameter=pvtParameter;
-  return dwValue;
-}
-
-UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
+UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter, BOOL bAnsi, HRESULT *lpnError)
 {
   CALLBACKITEM *lpSysCallback;
   VARIANT vtConverted;
+  int nUniLen;
+  int nAnsiLen;
   UINT_PTR dwResult=0;
   INT_PTR nResult=0;
+  HRESULT hr=NOERROR;
 
   if (pvtParameter->vt == (VT_BYREF|VT_VARIANT))
   {
     pvtParameter=pvtParameter->pvarVal;
     if (ppvtParameter) *ppvtParameter=pvtParameter;
   }
+  if (lpnError) *lpnError=hr;
+
   if (pvtParameter->vt == VT_BOOL)
     return pvtParameter->boolVal?TRUE:FALSE;
   if (pvtParameter->vt == VT_DISPATCH)
@@ -2718,15 +2747,30 @@ UINT_PTR GetVariantInt(VARIANT *pvtParameter, VARIANT **ppvtParameter)
     }
   #endif
   if (pvtParameter->vt == VT_BSTR)
-    return (UINT_PTR)pvtParameter->bstrVal;
+  {
+    if (bAnsi)
+    {
+      if (pvtParameter->bstrVal)
+      {
+        nUniLen=SysStringLen(pvtParameter->bstrVal);
+        nAnsiLen=WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen, NULL, 0, NULL, NULL);
+        if (dwResult=(UINT_PTR)GlobalAlloc(GPTR, nAnsiLen + 1))
+          WideCharToMultiByte(CP_ACP, 0, pvtParameter->bstrVal, nUniLen + 1, (char *)dwResult, nAnsiLen + 1, NULL, NULL);
+      }
+    }
+    else dwResult=(UINT_PTR)pvtParameter->bstrVal;
+
+    return dwResult;
+  }
 
   VariantInit(&vtConverted);
   VariantCopy(&vtConverted, pvtParameter);
 
-  if (VariantChangeType(&vtConverted, &vtConverted, 0, VT_I4) == S_OK)
+  if ((hr=VariantChangeType(&vtConverted, &vtConverted, 0, VT_I4)) == S_OK)
     nResult=vtConverted.lVal;
-  if (!nResult && (VariantChangeType(&vtConverted, &vtConverted, 0, VT_UI4) == S_OK))
+  if (!nResult && ((hr=VariantChangeType(&vtConverted, &vtConverted, 0, VT_UI4)) == S_OK))
     dwResult=vtConverted.ulVal;
+  if (lpnError) *lpnError=hr;
   return max(dwResult, (UINT_PTR)nResult);
 }
 
@@ -3394,6 +3438,7 @@ void UninitMain()
     CloseHandle(hMutexMsgFirst);
     hMutexMsgFirst=NULL;
   }
+  StackFreeEngines(&hEngineStack);
 
   if (NewMainProcData)
   {

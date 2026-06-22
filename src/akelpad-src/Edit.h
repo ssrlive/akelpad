@@ -670,11 +670,6 @@ typedef struct {
   BOOL bBOM;
 } STATUSSTATE;
 
-typedef struct {
-  POINT ptUnitCur;
-  POINT ptUnit96;
-} SCALE;
-
 typedef struct _ASSOCICON {
   struct _ASSOCICON *next;
   struct _ASSOCICON *prev;
@@ -1101,7 +1096,7 @@ FRAMEDATA* StackFrameGetByName(STACKFRAMEDATA *hStack, const wchar_t *wpFileName
 FRAMEDATA* StackFrameGetNext(STACKFRAMEDATA *hStack, FRAMEDATA *lpFrame, BOOL bPrev);
 DWORD StackFrameGetIndex(STACKFRAMEDATA *hStack, FRAMEDATA *lpFramePointer);
 FRAMEDATA* StackFrameIsValid(STACKFRAMEDATA *hStack, FRAMEDATA *lpFramePointer);
-void StackFrameMove(STACKFRAMEDATA *hStack, FRAMEDATA *lpFrame, int nIndex);
+int StackFrameMove(STACKFRAMEDATA *hStack, FRAMEDATA *lpFrame, int nIndex);
 void StackFrameDelete(STACKFRAMEDATA *hStack, FRAMEDATA *lpFrame);
 void StackFramesFree(STACKFRAMEDATA *hStack);
 

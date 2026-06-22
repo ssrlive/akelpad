@@ -3773,6 +3773,22 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Windows
+      case AKD_GETSCALE:
+      {
+        if (wParam == SCA_MAIN)
+        {
+          xmemcpy((SCALE *)lParam, &scMain, sizeof(SCALE));
+          return sizeof(SCALE);
+        }
+        else if (wParam == SCA_X)
+        {
+          return ScaleX(&scMain, (int)lParam);
+        }
+        else if (wParam == SCA_Y)
+        {
+          return ScaleY(&scMain, (int)lParam);
+        }
+      }
       case AKD_GETMODELESS:
       {
         int *lpnType=(int *)lParam;
@@ -4065,6 +4081,27 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         SetEditWindowSettings((FRAMEDATA *)lParam);
         return 0;
+      }
+      case AKD_FRAMEMOVE:
+      {
+        FRAMEINDEX *lpFrameIndex=(FRAMEINDEX *)lParam;
+        int nItemOld;
+
+        if (wParam)
+          return StackFrameMove(&hFramesStack, lpFrameIndex->lpFrameData, lpFrameIndex->nIndex);
+        else
+        {
+          if ((nItemOld=GetTabItemFromParam(hTab, (LPARAM)lpFrameIndex->lpFrameData)) != -1)
+          {
+            if (MoveTabItem(hTab, nItemOld, lpFrameIndex->nIndex) != -1)
+            {
+              if (nItemOld == lpFrameIndex->nIndex)
+                return 2;
+              return 0;
+            }
+          }
+          return 1;
+        }
       }
 
       //Thread

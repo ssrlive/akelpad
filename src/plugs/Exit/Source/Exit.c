@@ -381,18 +381,22 @@ LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_CLOSE)
   {
-    if (dwSettings & EX_PROMPTEXIT)
+    //Check that WM_CLOSE is called for the first time
+    if (SendMessage(hMainWnd, AKD_GETMAININFO, MI_ONFINISH, 0) == MOF_NONE)
     {
-      if (MessageBoxW(hMainWnd, wszExitMessage, wszPluginTitle, MB_YESNO|MB_ICONQUESTION) == IDNO)
-        return FALSE;
-    }
-    if (dwSettings & EX_CMDLINE)
-    {
-      PARSECMDLINESENDW pcls;
+      if (dwSettings & EX_PROMPTEXIT)
+      {
+        if (MessageBoxW(hMainWnd, wszExitMessage, wszPluginTitle, MB_YESNO|MB_ICONQUESTION) == IDNO)
+          return FALSE;
+      }
+      if (dwSettings & EX_CMDLINE)
+      {
+        PARSECMDLINESENDW pcls;
 
-      pcls.pCmdLine=wszExitCmdLine;
-      pcls.pWorkDir=L"";
-      SendMessage(hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pcls);
+        pcls.pCmdLine=wszExitCmdLine;
+        pcls.pWorkDir=L"";
+        SendMessage(hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pcls);
+      }
     }
   }
 

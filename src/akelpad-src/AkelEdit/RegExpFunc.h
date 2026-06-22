@@ -1,7 +1,7 @@
 /******************************************************************
- *                  RegExp functions header v2.7                  *
+ *                  RegExp functions header v2.8                  *
  *                                                                *
- * 2025 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ * 2026 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
  *                                                                *
  * RegExpFunc.h header uses functions:                            *
@@ -1869,6 +1869,7 @@ __inline DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, i
           ++(*wppPat);
           if (PatEscChar(wppPat) == L'\n')
             return RECCE_EQUAL;
+          --(*wppPat);
         }
         else if (nStrChar == -AELB_RRN)
         {
@@ -1878,7 +1879,9 @@ __inline DWORD PatCharCmp(const wchar_t **wppPat, int nStrChar, DWORD dwFlags, i
             ++(*wppPat);
             if (PatEscChar(wppPat) == L'\n')
               return RECCE_EQUAL;
+            --(*wppPat);
           }
+          --(*wppPat);
         }
       }
       else *lpnPatChar=nPatChar;

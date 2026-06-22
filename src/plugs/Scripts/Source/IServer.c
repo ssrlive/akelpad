@@ -238,6 +238,11 @@ HRESULT WINAPI DllGetClassObject(REFCLSID objGuid, const IID * factoryGuid, void
       if (lpScriptThreadActiveX=StackInsertScriptThread(&hThreadStack))
       {
         lpScriptThreadActiveX->dwThreadID=GetCurrentThreadId();
+
+        if (GetModuleHandleWide(L"jscript9Legacy.dll"))
+          lpScriptThreadActiveX->nJScript9Legacy=TRUE;
+        else
+          lpScriptThreadActiveX->nJScript9Legacy=FALSE;
       }
     }
 

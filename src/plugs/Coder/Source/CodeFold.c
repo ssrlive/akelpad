@@ -1525,7 +1525,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
           LEVEL *lpLevelTemp;
           LEVEL *lpLevelNextTemp;
           int nCompare;
-          BOOL bNeedUpdate=FALSE;
+          BOOL bUpdateCollapsed=FALSE;
 
           if (!(aentc->dwType & AETCT_NONE))
           {
@@ -1662,7 +1662,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                       if (lpFoldDataExist)
                       {
                         if (lpFoldExist->dwFlags & AEFOLDF_COLLAPSED)
-                          bNeedUpdate=TRUE;
+                          bUpdateCollapsed=TRUE;
                         DeleteFoldData(lpFoldDataExist);
                         SendMessage(fwChange->hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFoldExist, FALSE);
                       }
@@ -1681,7 +1681,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                          !AEC_IndexCompare(&lpFoldExist->lpMinPoint->ciPoint, &lpFoldExist->lpMaxPoint->ciPoint)))
                     {
                       if (lpFoldExist->dwFlags & AEFOLDF_COLLAPSED)
-                        bNeedUpdate=TRUE;
+                        bUpdateCollapsed=TRUE;
                       DeleteFoldData(FoldData(lpFoldExist));
                       SendMessage(fwChange->hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFoldExist, FALSE);
                     }
@@ -1697,7 +1697,7 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                   if (lpCurrentFoldWindow && lpCurrentFoldWindow->hWndEdit == fwChange->hWndEdit)
                     SetActiveEdit(fwChange->hWndEdit, hWndCodeFoldList, SAE_RESETLIST);
 
-                  if (bNeedUpdate)
+                  if (bUpdateCollapsed)
                     SendMessage(fwChange->hWndEdit, AEM_UPDATEFOLD, 0, -1);
                   else
                     InvalidateRect(fwChange->hWndEdit, NULL, TRUE);
@@ -1714,9 +1714,9 @@ BOOL CALLBACK CodeFoldParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
                     //Is caret in the fold name?
                     lpFold=FoldGet(fwChange, AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_FOLDEND|AEFF_RECURSE, (UINT_PTR)&aentc->ciCaret, &lpPrevFold);
-                    if (lpPrevFold)
+                    if (lpPrevFold && IsFoldNameFromLeft(FoldData(lpPrevFold)))
                       lpFold=AEC_NextFold(lpPrevFold, FALSE);
-                    else if (lpFold)
+                    else if (lpFold && IsFoldNameFromLeft(FoldData(lpFold)))
                       lpFold=AEC_NextFold(lpFold, TRUE);
                     if (!lpFold)
                       lpFold=(AEFOLD *)fwChange->pfwd->lpFoldStack->first;

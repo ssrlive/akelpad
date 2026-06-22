@@ -41,7 +41,7 @@ typedef struct {
 
 
 //Functions prototypes
-HRESULT ExecScriptText(void *lpScriptThread, GUID *guidEngine);
+HRESULT ExecScriptText(void *lpScriptThread, void *lpEngine);
 HRESULT GetScriptEngineA(char *szExt, GUID *guidEngine);
 int CBTMessageBox(HWND hWnd, const wchar_t *wpText, const wchar_t *wpCaption, UINT uType);
 LRESULT CALLBACK CBTMessageBoxProc(INT nCode, WPARAM wParam, LPARAM lParam);

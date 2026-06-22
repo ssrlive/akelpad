@@ -115,11 +115,16 @@ HRESULT STDMETHODCALLTYPE Global_Invoke(IGlobal *This, DISPID dispid, const IID 
 
 HRESULT STDMETHODCALLTYPE Global_PtrAdd(IGlobal *This, VARIANT vtPointer1, VARIANT vtPointer2, VARIANT *vtPointerResult)
 {
-  INT_PTR nPointer1=GetVariantInt(&vtPointer1, NULL);
-  INT_PTR nPointer2=GetVariantInt(&vtPointer2, NULL);
+  INT_PTR nPointer1;
+  INT_PTR nPointer2;
+  HRESULT hr=NOERROR;
 
+  nPointer1=GetVariantInt(&vtPointer1, NULL, FALSE, &hr);
+  if (hr != NOERROR) return hr;
+  nPointer2=GetVariantInt(&vtPointer2, NULL, FALSE, &hr);
+  if (hr != NOERROR) return hr;
   SetVariantIntPtr(vtPointerResult, nPointer1 + nPointer2);
-  return NOERROR;
+  return hr;
 }
 
 HRESULT STDMETHODCALLTYPE Global_vbPtrAdd(IGlobal *This, VARIANT vtPointer1, VARIANT vtPointer2, VARIANT *vtPointerResult)
@@ -129,9 +134,15 @@ HRESULT STDMETHODCALLTYPE Global_vbPtrAdd(IGlobal *This, VARIANT vtPointer1, VAR
 
 HRESULT STDMETHODCALLTYPE Global_PtrMath(IGlobal *This, VARIANT vtPointer1, BSTR wpSign, VARIANT vtPointer2, VARIANT *vtPointerResult)
 {
-  INT_PTR nPointer1=GetVariantInt(&vtPointer1, NULL);
-  INT_PTR nPointer2=GetVariantInt(&vtPointer2, NULL);
+  INT_PTR nPointer1;
+  INT_PTR nPointer2;
   INT_PTR nPointerResult=0;
+  HRESULT hr=NOERROR;
+
+  nPointer1=GetVariantInt(&vtPointer1, NULL, FALSE, &hr);
+  if (hr != NOERROR) return hr;
+  nPointer2=GetVariantInt(&vtPointer2, NULL, FALSE, &hr);
+  if (hr != NOERROR) return hr;
 
   if (!xstrcmpW(wpSign, L"+"))
     nPointerResult=nPointer1 + nPointer2;
